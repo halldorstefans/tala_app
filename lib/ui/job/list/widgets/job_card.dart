@@ -12,7 +12,9 @@ class JobCard extends StatelessWidget {
       child: ListTile(
         title: Text(job.title),
         subtitle: Text(
-          'Completion date: ${job.completionDate!.toLocal().toString().split(' ')[0]}',
+          job.completionDate != null
+              ? 'Completion date: ${job.completionDate!.toLocal().toString().split(' ')[0]}'
+              : 'In progress',
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,

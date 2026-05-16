@@ -5,7 +5,6 @@ class HomeVehicleCard extends StatelessWidget {
   final String title;
   final String? nickname;
   final String? registration;
-  final String? lastWork;
   final VoidCallback? onTap;
   final String? imageUrl;
 
@@ -14,7 +13,6 @@ class HomeVehicleCard extends StatelessWidget {
     required this.title,
     this.nickname,
     this.registration,
-    this.lastWork,
     this.onTap,
     this.imageUrl,
   });
@@ -35,13 +33,7 @@ class HomeVehicleCard extends StatelessWidget {
         registration != 'null') {
       subtitle = 'Reg: $registration';
     }
-    // Validate imageUrl to avoid passing invalid strings like "null" to Image.network
-    final bool hasValidImage =
-        imageUrl != null &&
-        imageUrl!.trim().isNotEmpty &&
-        imageUrl!.contains('null') == false &&
-        imageUrl!.toLowerCase() != 'null' &&
-        imageUrl!.startsWith('/uploads/');
+    final bool hasValidImage = ApiConfig.isValidPhotoPath(imageUrl);
 
     final cardColor = Theme.of(context).cardColor; // Aged paper tint
     final borderColor = Theme.of(
@@ -107,12 +99,6 @@ class HomeVehicleCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  /*
-                  Text(
-                    '$lastWork',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  */
                 ],
               ),
             ),

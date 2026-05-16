@@ -36,7 +36,9 @@ class JobListViewModel extends ChangeNotifier {
       case Ok<List<Job>>():
     }
 
-    _jobs.addAll(result.value);
+    _jobs
+      ..clear()
+      ..addAll(result.value);
 
     return result;
   }

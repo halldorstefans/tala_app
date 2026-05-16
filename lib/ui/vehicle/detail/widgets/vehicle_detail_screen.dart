@@ -100,8 +100,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (vehicle.photoUrl != null &&
-                                  vehicle.photoUrl!.isNotEmpty)
+                              if (ApiConfig.isValidPhotoPath(vehicle.photoUrl))
                                 Center(
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(2),
@@ -226,7 +225,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                             .execute(vehicle.id);
                                         result.whenComplete(() {
                                           if (mounted) {
-                                            context.push(Routes.vehicles);
+                                            context.go(Routes.home);
                                           }
                                         });
                                       },

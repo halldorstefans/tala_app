@@ -34,7 +34,9 @@ class HomeViewModel extends ChangeNotifier {
       case Ok<List<Vehicle>>():
     }
 
-    _vehicles.addAll(result.value);
+    _vehicles
+      ..clear()
+      ..addAll(result.value);
 
     return result;
   }

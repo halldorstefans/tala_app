@@ -54,11 +54,7 @@ GoRouter router(AuthRepository authRepository) => GoRouter(
       routes: [
         GoRoute(
           path: Routes.vehicles,
-          builder: (context, state) {
-            final viewModel = HomeViewModel(vehicleRepository: context.read());
-
-            return HomeScreen(viewModel: viewModel);
-          },
+          redirect: (context, state) => Routes.home,
           routes: [
             GoRoute(
               path: 'form',

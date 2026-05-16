@@ -31,7 +31,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   late DateTime? _purchaseDate = DateTime.now();
   late String? _notes = '';
   late String? _photoPath = '';
-  late File? _selectedPhoto = File('');
+  File? _selectedPhoto;
 
   Future<void> _pickPhoto(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
@@ -128,7 +128,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       }
 
       final result = vehicleResult.then((_) async {
-        if (_selectedPhoto != null && _selectedPhoto!.path.isNotEmpty) {
+        if (_selectedPhoto != null) {
           final uploadResult = await widget.viewModel.uploadVehiclePhoto(
             vehicle.id,
             _selectedPhoto!,
@@ -390,8 +390,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      if (_selectedPhoto != null &&
-                          _selectedPhoto!.path.isNotEmpty)
+                      if (_selectedPhoto != null)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Row(
