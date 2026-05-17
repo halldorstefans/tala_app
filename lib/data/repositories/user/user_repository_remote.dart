@@ -1,7 +1,6 @@
 import '../../../domain/models/user.dart';
 import '../../../utils/result.dart';
 import '../../services/tala_api/api_client.dart';
-import '../../models/user_api_model.dart';
 import 'user_repository.dart';
 
 class UserRepositoryRemote implements UserRepository {
@@ -17,17 +16,7 @@ class UserRepositoryRemote implements UserRepository {
       return Future.value(Result.ok(_cachedData!));
     }
 
-    final result = await _apiClient.getUser(userId);
-    switch (result) {
-      case Ok<UserApiModel>():
-        final user = User(
-          firstName: result.value.firstName,
-          lastName: result.value.lastName,
-        );
-        _cachedData = user;
-        return Result.ok(user);
-      case Error<UserApiModel>():
-        return Result.error(result.error);
-    }
+    // TODO: Implement with local storage or remove when drift is added
+    return Result.error(Exception('UserRepository not implemented for local-first'));
   }
 }

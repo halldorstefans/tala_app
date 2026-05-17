@@ -34,4 +34,31 @@ class SharedPreferencesService {
       return Result.error(e);
     }
   }
+
+  Future<String?> getString(String key) async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    return sharedPreferences.getString(key);
+  }
+
+  Future<Result<void>> setString(String key, String value) async {
+    try {
+      final sharedPreferences = await SharedPreferences.getInstance();
+      await sharedPreferences.setString(key, value);
+      return const Result.ok(null);
+    } on Exception catch (e) {
+      _log.warning('Failed to set string', e);
+      return Result.error(e);
+    }
+  }
+
+  Future<Result<void>> remove(String key) async {
+    try {
+      final sharedPreferences = await SharedPreferences.getInstance();
+      await sharedPreferences.remove(key);
+      return const Result.ok(null);
+    } on Exception catch (e) {
+      _log.warning('Failed to remove key', e);
+      return Result.error(e);
+    }
+  }
 }

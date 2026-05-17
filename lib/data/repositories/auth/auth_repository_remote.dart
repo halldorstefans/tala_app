@@ -18,9 +18,7 @@ class AuthRepositoryRemote extends AuthRepository {
     required SharedPreferencesService sharedPreferencesService,
   }) : _apiClient = apiClient,
        _authApiClient = authApiClient,
-       _sharedPreferencesService = sharedPreferencesService {
-    _apiClient.authHeaderProvider = _authHeaderProvider;
-  }
+       _sharedPreferencesService = sharedPreferencesService;
 
   final ApiClient _apiClient;
   final AuthApiClient _authApiClient;

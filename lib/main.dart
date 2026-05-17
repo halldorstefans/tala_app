@@ -9,7 +9,7 @@ import 'ui/core/themes/garage_theme.dart';
 void main() {
   Logger.root.level = Level.ALL;
 
-  runApp(MultiProvider(providers: providersRemote, child: const MainApp()));
+  runApp(MultiProvider(providers: providersLocal, child: const MainApp()));
 }
 
 class MainApp extends StatelessWidget {
@@ -20,7 +20,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Tala Car Logbook',
       theme: garageTheme,
-      routerConfig: router(context.read()),
+      routerConfig: router(),
     );
   }
 }

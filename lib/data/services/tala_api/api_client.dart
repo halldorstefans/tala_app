@@ -6,11 +6,7 @@ import 'package:tala_app/data/models/job_api_model.dart';
 import 'package:tala_app/data/models/vehicle_api_model.dart';
 
 import '../../../utils/result.dart';
-import '../../models/user_api_model.dart';
 import 'api_config.dart';
-
-/// Adds the `Authentication` header to a header configuration.
-typedef AuthHeaderProvider = String? Function();
 
 class ApiClient {
   ApiClient({String? baseUrl, HttpClient Function()? httpClient})
@@ -20,41 +16,6 @@ class ApiClient {
   final String _baseUrl;
   final HttpClient Function() _httpClient;
 
-  AuthHeaderProvider? _authHeaderProvider;
-
-  set authHeaderProvider(AuthHeaderProvider authHeaderProvider) {
-    _authHeaderProvider = authHeaderProvider;
-  }
-
-  Future<void> _authHeader(HttpHeaders headers) async {
-    final header = _authHeaderProvider?.call();
-    if (header != null) {
-      headers.add(HttpHeaders.authorizationHeader, header);
-    }
-  }
-
-  Future<Result<UserApiModel>> getUser(String userId) async {
-    final client = _httpClient();
-    try {
-      final request = await client.getUrl(Uri.parse('$_baseUrl/users/$userId'));
-      request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
-      final response = await request.close();
-
-      if (response.statusCode != 200) {
-        return const Result.error(HttpException('Failed to fetch user'));
-      }
-
-      final responseBody = await response.transform(utf8.decoder).join();
-      final user = UserApiModel.fromJson(jsonDecode(responseBody));
-      return Result.ok(user);
-    } on Exception catch (error) {
-      return Result.error(error);
-    } finally {
-      client.close();
-    }
-  }
-
   Future<Result<VehicleApiModel>> getVehicle(String vehicleId) async {
     final client = _httpClient();
     try {
@@ -62,7 +23,6 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId'),
       );
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       final response = await request.close();
 
       if (response.statusCode != 200) {
@@ -84,7 +44,6 @@ class ApiClient {
     try {
       final request = await client.getUrl(Uri.parse('$_baseUrl/vehicles'));
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       final response = await request.close();
 
       if (response.statusCode != 200) {
@@ -116,7 +75,6 @@ class ApiClient {
     try {
       final request = await client.postUrl(Uri.parse('$_baseUrl/vehicles'));
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       request.add(
         utf8.encode(
           jsonEncode({
@@ -156,7 +114,6 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/${vehicle.id}'),
       );
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       request.add(
         utf8.encode(
           jsonEncode({
@@ -199,7 +156,6 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId'),
       );
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       final response = await request.close();
 
       if (response.statusCode != 204) {
@@ -224,21 +180,14 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId/photos'),
       );
 
-      final authHeader = _authHeaderProvider?.call();
-      if (authHeader != null) {
-        request.headers['Authorization'] = authHeader;
-      }
-
       request.files.add(await http.MultipartFile.fromPath('photo', photo.path));
 
-      // Send request
       var response = await request.send();
 
       if (response.statusCode != 200) {
         return Result.error(Exception('Failed to upload photo'));
       }
 
-      // Parse response
       final responseBody = await response.stream.bytesToString();
       final json = jsonDecode(responseBody);
       final photoUrl = json['photo_url'] as String;
@@ -256,7 +205,6 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs/$jobId'),
       );
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       final response = await request.close();
 
       if (response.statusCode != 200) {
@@ -279,7 +227,6 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs'),
       );
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       final response = await request.close();
 
       if (response.statusCode != 200) {
@@ -309,7 +256,6 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs'),
       );
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       request.add(
         utf8.encode(
           jsonEncode({
@@ -349,7 +295,6 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs/${job.id}'),
       );
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       request.add(
         utf8.encode(
           jsonEncode({
@@ -389,7 +334,6 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs/$jobId'),
       );
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       final response = await request.close();
 
       if (response.statusCode != 204) {
@@ -417,21 +361,14 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs/$jobId/photos'),
       );
 
-      final authHeader = _authHeaderProvider?.call();
-      if (authHeader != null) {
-        request.headers['Authorization'] = authHeader;
-      }
-
       request.files.add(await http.MultipartFile.fromPath('photo', photo.path));
 
-      // Send request
       var response = await request.send();
 
       if (response.statusCode != 200) {
         return Result.error(Exception('Failed to upload photo'));
       }
 
-      // Parse response
       final responseBody = await response.stream.bytesToString();
       final json = jsonDecode(responseBody);
       final photoUrl = json['photo_url'] as String;
@@ -452,7 +389,6 @@ class ApiClient {
         Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs/$jobId/photos'),
       );
       request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      await _authHeader(request.headers);
       final response = await request.close();
 
       if (response.statusCode != 200) {
@@ -487,7 +423,6 @@ class ApiClient {
       final request = await client.deleteUrl(
         Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs/$jobId/photos/$photoId'),
       );
-      await _authHeader(request.headers);
       final response = await request.close();
       if (response.statusCode != 200) {
         return Result.error(HttpException('Failed to delete job photo'));

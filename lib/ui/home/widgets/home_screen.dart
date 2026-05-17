@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 import '../../../routing/routes.dart';
 import '../view_models/home_viewmodel.dart';
-import '../../auth/logout/widgets/logout_button.dart';
-import '../../auth/logout/view_models/logout_viewmodel.dart';
 import 'home_vehicle_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -29,11 +26,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Tala'),
-        actions: [
-          LogoutButton(
-            viewModel: LogoutViewModel(authRepository: context.read()),
-          ),
-        ],
       ),
       body: ListenableBuilder(
         listenable: widget.viewModel.fetchVehicles,
