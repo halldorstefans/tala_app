@@ -26,109 +26,98 @@ GoRouter router() => GoRouter(
           viewModel: HomeViewModel(vehicleRepository: context.read()),
         );
       },
+    ),
+    GoRoute(
+      path: '/vehicle-form',
+      builder: (context, state) {
+        return VehicleFormScreen(
+          viewModel: VehicleFormViewmodel(
+            vehicleRepository: context.read(),
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/vehicle-form/:vehicleId',
+      builder: (context, state) {
+        final vehicleId = state.pathParameters['vehicleId']!;
+        final viewModel = VehicleFormViewmodel(
+          vehicleRepository: context.read(),
+        );
+        viewModel.fetchVehicle.execute(vehicleId);
+        return VehicleFormScreen(viewModel: viewModel);
+      },
+    ),
+    GoRoute(
+      path: '/vehicle/:vehicleId',
+      builder: (context, state) {
+        final vehicleId = state.pathParameters['vehicleId']!;
+        final viewModel = VehicleDetailViewModel(
+          vehicleRepository: context.read(),
+        );
+        final jobListViewModel = JobListViewModel(
+          jobsRepository: context.read(),
+          vehicleId: vehicleId,
+        );
+
+        viewModel.fetchVehicle.execute(vehicleId);
+
+        return VehicleDetailScreen(
+          viewModel: viewModel,
+          jobListViewModel: jobListViewModel,
+        );
+      },
       routes: [
         GoRoute(
-          path: Routes.vehicles,
-          redirect: (context, state) => Routes.home,
-          routes: [
-            GoRoute(
-              path: 'form',
-              builder: (context, state) {
-                final viewModel = VehicleFormViewmodel(
-                  vehicleRepository: context.read(),
-                );
+          path: 'jobs',
+          builder: (context, state) {
+            final vehicleId = state.pathParameters['vehicleId']!;
+            final viewModel = JobListViewModel(
+              jobsRepository: context.read(),
+              vehicleId: vehicleId,
+            );
+            return JobHistoryScreen(viewModel: viewModel);
+          },
+        ),
+        GoRoute(
+          path: 'jobs/form',
+          builder: (context, state) {
+            final vehicleId = state.pathParameters['vehicleId']!;
+            final viewModel = JobFormViewModel(
+              vehicleId: vehicleId,
+              jobsRepository: context.read(),
+            );
 
-                return VehicleFormScreen(viewModel: viewModel);
-              },
-            ),
-            GoRoute(
-              path: 'form/:vehicleId',
-              builder: (context, state) {
-                final vehicleId = state.pathParameters['vehicleId']!;
+            return JobFormScreen(viewModel: viewModel);
+          },
+        ),
+        GoRoute(
+          path: 'jobs/form/:jobId',
+          builder: (context, state) {
+            final vehicleId = state.pathParameters['vehicleId']!;
+            final recordId = state.pathParameters['jobId']!;
+            final viewModel = JobFormViewModel(
+              vehicleId: vehicleId,
+              jobsRepository: context.read(),
+            );
 
-                final viewModel = VehicleFormViewmodel(
-                  vehicleRepository: context.read(),
-                );
+            viewModel.fetchJob.execute((vehicleId, recordId));
 
-                viewModel.fetchVehicle.execute(vehicleId);
+            return JobFormScreen(viewModel: viewModel);
+          },
+        ),
+        GoRoute(
+          path: 'jobs/:jobId',
+          builder: (context, state) {
+            final vehicleId = state.pathParameters['vehicleId']!;
+            final recordId = state.pathParameters['jobId']!;
+            final viewModel = JobDetailViewModel(
+              jobsRepository: context.read(),
+            );
+            viewModel.fetchJob.execute((vehicleId, recordId));
 
-                return VehicleFormScreen(viewModel: viewModel);
-              },
-            ),
-            GoRoute(
-              path: ':vehicleId',
-              builder: (context, state) {
-                final vehicleId = state.pathParameters['vehicleId']!;
-                final viewModel = VehicleDetailViewModel(
-                  vehicleRepository: context.read(),
-                );
-                final jobListViewModel = JobListViewModel(
-                  jobsRepository: context.read(),
-                  vehicleId: vehicleId,
-                );
-
-                viewModel.fetchVehicle.execute(vehicleId);
-
-                return VehicleDetailScreen(
-                  viewModel: viewModel,
-                  jobListViewModel: jobListViewModel,
-                );
-              },
-              routes: [
-                GoRoute(
-                  path: 'jobs',
-                  builder: (context, state) {
-                    final vehicleId = state.pathParameters['vehicleId']!;
-                    final viewModel = JobListViewModel(
-                      jobsRepository: context.read(),
-                      vehicleId: vehicleId,
-                    );
-                    return JobHistoryScreen(viewModel: viewModel);
-                  },
-                ),
-                GoRoute(
-                  path: 'jobs/form',
-                  builder: (context, state) {
-                    final vehicleId = state.pathParameters['vehicleId']!;
-                    final viewModel = JobFormViewModel(
-                      vehicleId: vehicleId,
-                      jobsRepository: context.read(),
-                    );
-
-                    return JobFormScreen(viewModel: viewModel);
-                  },
-                ),
-                GoRoute(
-                  path: 'jobs/form/:jobId',
-                  builder: (context, state) {
-                    final vehicleId = state.pathParameters['vehicleId']!;
-                    final recordId = state.pathParameters['jobId']!;
-                    final viewModel = JobFormViewModel(
-                      vehicleId: vehicleId,
-                      jobsRepository: context.read(),
-                    );
-
-                    viewModel.fetchJob.execute((vehicleId, recordId));
-
-                    return JobFormScreen(viewModel: viewModel);
-                  },
-                ),
-                GoRoute(
-                  path: 'jobs/:jobId',
-                  builder: (context, state) {
-                    final vehicleId = state.pathParameters['vehicleId']!;
-                    final recordId = state.pathParameters['jobId']!;
-                    final viewModel = JobDetailViewModel(
-                      jobsRepository: context.read(),
-                    );
-                    viewModel.fetchJob.execute((vehicleId, recordId));
-
-                    return JobDetailScreen(viewModel: viewModel);
-                  },
-                ),
-              ],
-            ),
-          ],
+            return JobDetailScreen(viewModel: viewModel);
+          },
         ),
       ],
     ),

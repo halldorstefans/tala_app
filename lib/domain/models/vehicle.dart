@@ -1,3 +1,6 @@
+import 'package:drift/drift.dart' hide Column;
+import 'package:tala_app/data/database/app_database.dart' as db;
+
 class Vehicle {
   final String id;
   final String make;
@@ -10,7 +13,9 @@ class Vehicle {
   int? odometer;
   DateTime? purchaseDate;
   String? notes;
-  String? photoUrl;
+  String? photoPath;
+
+  String? get photoUrl => photoPath;
 
   Vehicle({
     required this.id,
@@ -24,8 +29,9 @@ class Vehicle {
     this.odometer,
     this.purchaseDate,
     this.notes,
-    this.photoUrl,
-  });
+    String? photoPath,
+    String? photoUrl,
+  }) : photoPath = photoPath ?? photoUrl;
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
     return Vehicle(
@@ -42,7 +48,43 @@ class Vehicle {
           ? DateTime.parse(json['purchase_date'] as String)
           : null,
       notes: json['notes'] as String?,
-      photoUrl: json['photo_url'] as String?,
+      photoPath: json['photo_path'] as String?,
+    );
+  }
+
+  db.VehiclesCompanion toDrift() {
+    return db.VehiclesCompanion(
+      id: Value(id),
+      make: Value(make),
+      model: Value(model),
+      year: Value(year),
+      nickname: Value(nickname),
+      registrationNumber: Value(registration),
+      vin: Value(vin),
+      colour: Value(colour),
+      odometer: Value(odometer),
+      purchaseDate: Value(purchaseDate),
+      notes: Value(notes),
+      photoPath: Value(photoPath),
+      createdAt: Value(DateTime.now()),
+      updatedAt: Value(DateTime.now()),
+    );
+  }
+
+  static Vehicle fromDrift(db.Vehicle data) {
+    return Vehicle(
+      id: data.id,
+      make: data.make,
+      model: data.model,
+      year: data.year,
+      nickname: data.nickname,
+      registration: data.registrationNumber,
+      vin: data.vin,
+      colour: data.colour,
+      odometer: data.odometer,
+      purchaseDate: data.purchaseDate,
+      notes: data.notes,
+      photoPath: data.photoPath,
     );
   }
 }

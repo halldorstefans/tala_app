@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       nickname: v.nickname,
                       registration: v.registration,
                       imageUrl: v.photoUrl,
-                      onTap: () => context.push(Routes.vehicleDetails(v.id)),
+                      onTap: () => context.push('/vehicle/${v.id}'),
                     ),
                   ),
                 ),
@@ -102,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          context.push(Routes.vehicleForm);
+          context.push(Routes.vehicleFormWithId(null));
         },
         icon: const Icon(Icons.add),
         label: Text(

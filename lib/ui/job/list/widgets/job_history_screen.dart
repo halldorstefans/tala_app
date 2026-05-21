@@ -83,7 +83,7 @@ class _JobHistoryScreenState extends State<JobHistoryScreen> {
               child: Text(
                 'No jobs found.',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onBackground.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             );

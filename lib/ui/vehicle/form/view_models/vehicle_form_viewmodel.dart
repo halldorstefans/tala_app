@@ -24,21 +24,33 @@ class VehicleFormViewmodel extends ChangeNotifier {
   Vehicle? _vehicle;
   Vehicle? get vehicle => _vehicle;
 
-  late final Command1<void, Vehicle> addVehicle;
+  late final Command1<String, Vehicle> addVehicle;
   late final Command1<void, Vehicle> updateVehicle;
   late final Command1<void, String> fetchVehicle;
 
-  Future<Result<void>> _addVehicle(Vehicle vehicle) async {
+  Future<Result<String>> _addVehicle(Vehicle vehicle) async {
     final result = await _vehicleRepository.addVehicle(vehicle);
 
     switch (result) {
-      case Error<void>():
+      case Error<String>():
         _log.severe('Error adding vehicle: ${result.error}');
         return result;
-      case Ok<void>():
+      case Ok<String>():
+        _vehicle = Vehicle(
+          id: result.value,
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          nickname: vehicle.nickname,
+          registration: vehicle.registration,
+          vin: vehicle.vin,
+          colour: vehicle.colour,
+          odometer: vehicle.odometer,
+          purchaseDate: vehicle.purchaseDate,
+          notes: vehicle.notes,
+          photoPath: vehicle.photoPath,
+        );
     }
-
-    _vehicle = vehicle;
 
     notifyListeners();
 

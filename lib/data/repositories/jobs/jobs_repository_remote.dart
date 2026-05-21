@@ -55,9 +55,10 @@ class JobsRepositoryRemote extends JobsRepository {
 
     try {
       final photoResponse = await _apiClient.getJobPhotos(vehicleId, jobId);
+      List<String>? photoUrls;
       switch (photoResponse) {
         case Ok<List<JobPhotosApiModel>>():
-          record.photoUrls = photoResponse.value
+          photoUrls = photoResponse.value
               .map((apiModel) => apiModel.photoUrl)
               .toList();
         case Error<List<JobPhotosApiModel>>():
@@ -66,7 +67,19 @@ class JobsRepositoryRemote extends JobsRepository {
             photoResponse.error,
           );
       }
-      return Result.ok(record);
+      return Result.ok(Job(
+        id: record.id,
+        vehicleId: record.vehicleId,
+        title: record.title,
+        startDate: record.startDate,
+        completionDate: record.completionDate,
+        odometer: record.odometer,
+        category: record.category,
+        status: record.status,
+        description: record.description,
+        cost: record.cost,
+        photoUrls: photoUrls,
+      ));
     } catch (e, st) {
       _log.severe('Exception in getJob photo fetch', e, st);
       return Result.error(Exception('Failed to get job photo'));
@@ -114,7 +127,7 @@ class JobsRepositoryRemote extends JobsRepository {
   }
 
   @override
-  Future<Result<void>> addJob(String vehicleId, Job job) async {
+  Future<Result<String>> addJob(String vehicleId, Job job) async {
     try {
       final jobApiModel = JobApiModel(
         id: job.id,
@@ -130,18 +143,19 @@ class JobsRepositoryRemote extends JobsRepository {
       );
       final response = await _apiClient.addJob(vehicleId, jobApiModel);
       switch (response) {
-        case Ok<void>():
-          return Result.ok(null);
-        case Error<void>():
+        case Ok<String>():
+          return Result.ok(response.value);
+        case Error<String>():
           _log.warning(
             'Failed to add job ${job.id} for vehicle $vehicleId',
             response.error,
           );
           return Result.error(response.error);
       }
+
     } catch (e, st) {
-      _log.severe('Exception in addJob', e, st);
-      return Result.error(Exception('Failed to add job'));
+      _log.warning('Failed to add job ${job.id} for vehicle $vehicleId', e, st);
+      return Result.error(e is Exception ? e : Exception('Failed to add job'));
     }
   }
 
@@ -237,8 +251,8 @@ class JobsRepositoryRemote extends JobsRepository {
   Future<Result<void>> deleteJobPhoto(
     String vehicleId,
     String jobId,
-    String photoId,
+    String photoPath,
   ) async {
-    return _apiClient.deleteJobPhoto(vehicleId, jobId, photoId);
+    return _apiClient.deleteJobPhoto(vehicleId, jobId, photoPath);
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:tala_app/data/services/tala_api/api_config.dart';
 
@@ -35,10 +37,8 @@ class HomeVehicleCard extends StatelessWidget {
     }
     final bool hasValidImage = ApiConfig.isValidPhotoPath(imageUrl);
 
-    final cardColor = Theme.of(context).cardColor; // Aged paper tint
-    final borderColor = Theme.of(
-      context,
-    ).colorScheme.onSurface.withValues(alpha: 0.1); // Subtle border color
+    final cardColor = Theme.of(context).cardColor;
+    final borderColor = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1);
     final shadow = [
       BoxShadow(
         color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
@@ -46,6 +46,42 @@ class HomeVehicleCard extends StatelessWidget {
         offset: const Offset(0, 1),
       ),
     ];
+
+    Widget imageWidget;
+    if (hasValidImage) {
+      if (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://')) {
+        imageWidget = Image.network(
+          imageUrl!,
+          fit: BoxFit.cover,
+        );
+      } else {
+        imageWidget = FutureBuilder<String>(
+          future: ApiConfig.getLocalPhotoPath(imageUrl!),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final file = File(snapshot.data!);
+              if (file.existsSync()) {
+                return Image.file(
+                  file,
+                  fit: BoxFit.cover,
+                );
+              }
+            }
+            return const Icon(
+              Icons.directions_car,
+              size: 40,
+              color: Colors.black26,
+            );
+          },
+        );
+      }
+    } else {
+      imageWidget = const Icon(
+        Icons.directions_car,
+        size: 40,
+        color: Colors.black26,
+      );
+    }
 
     return InkWell(
       onTap: onTap,
@@ -60,27 +96,16 @@ class HomeVehicleCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Photo area
             ClipRRect(
               borderRadius: BorderRadius.circular(2),
               child: Container(
                 width: 96,
                 height: 72,
                 color: Colors.grey.shade200,
-                child: hasValidImage
-                    ? Image.network(
-                        ApiConfig.getPhotoUrl(imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : const Icon(
-                        Icons.directions_car,
-                        size: 40,
-                        color: Colors.black26,
-                      ),
+                child: imageWidget,
               ),
             ),
             const SizedBox(width: 16),
-            // Text content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,9 +118,7 @@ class HomeVehicleCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(height: 8),

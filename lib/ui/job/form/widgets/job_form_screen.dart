@@ -23,7 +23,7 @@ class _JobFormScreenState extends State<JobFormScreen> {
   late TextEditingController _startDateController;
   late TextEditingController _completionDateController;
   late String _title = '';
-  late int? _odometer = null;
+  int? _odometer;
   late DateTime? _startDate = DateTime.now();
   late DateTime? _completionDate = DateTime.now();
   late String? _status = 'planned';
@@ -125,6 +125,7 @@ class _JobFormScreenState extends State<JobFormScreen> {
       }
 
       final result = jobResult.then((_) async {
+        final effectiveJobId = widget.viewModel.job!.id;
         // Upload photos after job is created/updated
         for (final photo in _selectedPhotos) {
           var compressedPhoto = await FlutterImageCompress.compressAndGetFile(
@@ -143,7 +144,7 @@ class _JobFormScreenState extends State<JobFormScreen> {
 
           final uploadResult = await widget.viewModel.uploadJobPhoto(
             job.vehicleId,
-            job.id,
+            effectiveJobId,
             photoToUpload,
           );
           switch (uploadResult) {

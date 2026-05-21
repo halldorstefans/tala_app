@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:tala_app/routing/routes.dart';
 import '../../../../domain/models/vehicle.dart';
 import '../../../../utils/result.dart';
 import '../view_models/vehicle_form_viewmodel.dart';
@@ -120,8 +119,10 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
         photoUrl: _photoPath,
       );
 
+      final bool isNewVehicle = widget.viewModel.vehicle == null;
+
       Future<void> vehicleResult;
-      if (widget.viewModel.vehicle == null) {
+      if (isNewVehicle) {
         vehicleResult = widget.viewModel.addVehicle.execute(vehicle);
       } else {
         vehicleResult = widget.viewModel.updateVehicle.execute(vehicle);
@@ -129,25 +130,34 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
 
       final result = vehicleResult.then((_) async {
         if (_selectedPhoto != null) {
-          final uploadResult = await widget.viewModel.uploadVehiclePhoto(
-            vehicle.id,
-            _selectedPhoto!,
-          );
-          switch (uploadResult) {
-            case Error<String>():
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Photo upload failed: ${uploadResult.error}'),
-                ),
-              );
-            case Ok<String>():
+          final effectiveVehicleId = widget.viewModel.vehicle!.id;
+          if (effectiveVehicleId.isNotEmpty) {
+            final uploadResult = await widget.viewModel.uploadVehiclePhoto(
+              effectiveVehicleId,
+              _selectedPhoto!,
+            );
+            switch (uploadResult) {
+              case Error<String>():
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Photo upload failed: ${uploadResult.error}'),
+                  ),
+                );
+              case Ok<String>():
+            }
           }
         }
       });
 
       result.whenComplete(() {
         if (mounted) {
-          context.go(Routes.vehicleDetails(vehicle.id));
+          if (isNewVehicle) {
+            // New vehicle - go to home
+            context.go('/');
+          } else {
+            // Existing vehicle - go to detail (replace form in stack)
+            context.go('/vehicle/${vehicle.id}');
+          }
         }
       });
     }

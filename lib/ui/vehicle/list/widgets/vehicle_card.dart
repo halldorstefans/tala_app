@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tala_app/ui/core/widgets/app_image.dart';
 import '../../../../domain/models/vehicle.dart';
 
 class VehicleCard extends StatelessWidget {
@@ -8,25 +9,14 @@ class VehicleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool hasValidImage =
-        vehicle.photoUrl != null &&
-        vehicle.photoUrl!.trim().isNotEmpty &&
-        vehicle.photoUrl!.toLowerCase() != 'null' &&
-        (vehicle.photoUrl!.startsWith('http://') ||
-            vehicle.photoUrl!.startsWith('https://'));
-
     return Card(
       child: ListTile(
-        leading: vehicle.photoUrl != null
-            ? (hasValidImage
-                  ? Image.network(
-                      vehicle.photoUrl!,
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                    )
-                  : const Icon(Icons.directions_car, size: 40))
-            : const Icon(Icons.directions_car, size: 40),
+        leading: AppImage(
+          path: vehicle.photoUrl,
+          width: 56,
+          height: 56,
+          placeholderIcon: Icons.directions_car,
+        ),
         title: Text('${vehicle.make} ${vehicle.model}'),
         subtitle: Text('Year: ${vehicle.year}'),
         onTap: onTap,

@@ -1,3 +1,6 @@
+import 'package:drift/drift.dart' hide Column;
+import 'package:tala_app/data/database/app_database.dart' as db;
+
 class Job {
   final String id;
   final String vehicleId;
@@ -9,7 +12,9 @@ class Job {
   String? status;
   String? description;
   double? cost;
-  List<String>? photoUrls;
+  List<String>? photoPaths;
+
+  List<String>? get photoUrls => photoPaths;
 
   Job({
     required this.id,
@@ -22,7 +27,9 @@ class Job {
     this.status,
     this.description,
     this.cost,
-  });
+    List<String>? photoPaths,
+    List<String>? photoUrls,
+  }) : photoPaths = photoPaths ?? photoUrls;
 
   factory Job.fromJson(Map<String, dynamic> json) {
     return Job(
@@ -40,6 +47,39 @@ class Job {
       status: json['status'] as String?,
       description: json['description'] as String?,
       cost: json['cost'] != null ? (json['cost'] as num).toDouble() : null,
+    );
+  }
+
+  db.JobsCompanion toDrift() {
+    return db.JobsCompanion(
+      id: Value(id),
+      vehicleId: Value(vehicleId),
+      title: Value(title),
+      startDate: Value(startDate),
+      completionDate: Value(completionDate),
+      odometer: Value(odometer),
+      category: Value(category),
+      status: Value(status),
+      description: Value(description),
+      cost: Value(cost),
+      createdAt: Value(DateTime.now()),
+      updatedAt: Value(DateTime.now()),
+    );
+  }
+
+  static Job fromDrift(db.Job data, {List<String>? photoPaths}) {
+    return Job(
+      id: data.id,
+      vehicleId: data.vehicleId,
+      title: data.title,
+      startDate: data.startDate,
+      completionDate: data.completionDate,
+      odometer: data.odometer,
+      category: data.category,
+      status: data.status,
+      description: data.description,
+      cost: data.cost,
+      photoPaths: photoPaths,
     );
   }
 }

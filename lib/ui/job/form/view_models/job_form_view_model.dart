@@ -28,21 +28,32 @@ class JobFormViewModel extends ChangeNotifier {
   Job? _job;
   Job? get job => _job;
 
-  late final Command1<void, Job> addJob;
+  late final Command1<String, Job> addJob;
   late final Command1<void, Job> updateJob;
   late final Command1<void, (String vehicleId, String jobId)> fetchJob;
 
-  Future<Result<void>> _addJob(Job job) async {
+  Future<Result<String>> _addJob(Job job) async {
     final result = await _jobsRepository.addJob(vehicleId, job);
 
     switch (result) {
-      case Error<void>():
+      case Error<String>():
         _log.severe('Error adding job: ${result.error}');
         return result;
-      case Ok<void>():
+      case Ok<String>():
+        _job = Job(
+          id: result.value,
+          vehicleId: vehicleId,
+          title: job.title,
+          startDate: job.startDate,
+          completionDate: job.completionDate,
+          odometer: job.odometer,
+          category: job.category,
+          status: job.status,
+          description: job.description,
+          cost: job.cost,
+          photoPaths: job.photoPaths,
+        );
     }
-
-    _job = job;
 
     notifyListeners();
     return result;

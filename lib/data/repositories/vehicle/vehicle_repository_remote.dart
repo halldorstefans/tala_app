@@ -87,7 +87,7 @@ class VehicleRepositoryRemote extends VehicleRepository {
   }
 
   @override
-  Future<Result<void>> addVehicle(Vehicle vehicle) async {
+  Future<Result<String>> addVehicle(Vehicle vehicle) async {
     try {
       final vehicleApiModel = VehicleApiModel(
         id: vehicle.id,
@@ -105,15 +105,16 @@ class VehicleRepositoryRemote extends VehicleRepository {
       );
       final response = await _apiClient.addVehicle(vehicleApiModel);
       switch (response) {
-        case Ok<void>():
-          return Result.ok(null);
-        case Error<void>():
+        case Ok<String>():
+          return Result.ok(response.value);
+        case Error<String>():
           _log.warning('Failed to add vehicle', response.error);
           return Result.error(response.error);
       }
+
     } catch (e, st) {
-      _log.severe('Exception in addVehicle', e, st);
-      return Result.error(Exception('Failed to add vehicle'));
+      _log.warning('Failed to add vehicle', e, st);
+      return Result.error(e is Exception ? e : Exception('Failed to add vehicle'));
     }
   }
 

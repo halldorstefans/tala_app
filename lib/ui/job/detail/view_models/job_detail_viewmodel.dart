@@ -12,7 +12,7 @@ class JobDetailViewModel extends ChangeNotifier {
     fetchJob = Command1<void, (String vehicleId, String jobId)>(_fetchJob);
     removeJob = Command1<void, (String vehicleId, String jobId)>(_removeJob);
     deleteJobPhoto =
-        Command1<void, (String vehicleId, String jobId, String photoId)>(
+        Command1<void, (String vehicleId, String jobId, String photoPath)>(
           _deleteJobPhoto,
         );
   }
@@ -57,11 +57,11 @@ class JobDetailViewModel extends ChangeNotifier {
   }
 
   Future<Result<void>> _deleteJobPhoto((String, String, String) ids) async {
-    final (vehicleId, jobId, photoId) = ids;
+    final (vehicleId, jobId, photoPath) = ids;
     final result = await _jobsRepository.deleteJobPhoto(
       vehicleId,
       jobId,
-      photoId,
+      photoPath,
     );
 
     return result;

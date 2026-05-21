@@ -76,7 +76,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                             return VehicleCard(
                               vehicle: vehicle,
                               onTap: () {
-                                context.push(Routes.vehicleDetails(vehicle.id));
+                                context.push('/vehicle/${vehicle.id}');
                               },
                             );
                           },
@@ -91,7 +91,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          context.push(Routes.vehicleForm);
+          context.push(Routes.vehicleFormWithId(null));
         },
         icon: const Icon(Icons.add),
         label: const Text('Add Vehicle'),

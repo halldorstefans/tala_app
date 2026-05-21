@@ -70,7 +70,7 @@ class ApiClient {
     }
   }
 
-  Future<Result<void>> addVehicle(VehicleApiModel vehicle) async {
+  Future<Result<String>> addVehicle(VehicleApiModel vehicle) async {
     final client = _httpClient();
     try {
       final request = await client.postUrl(Uri.parse('$_baseUrl/vehicles'));
@@ -99,7 +99,9 @@ class ApiClient {
         return const Result.error(HttpException('Failed to add vehicle'));
       }
 
-      return const Result.ok(null);
+      final responseBody = await response.transform(utf8.decoder).join();
+      final created = VehicleApiModel.fromJson(jsonDecode(responseBody));
+      return Result.ok(created.id);
     } on Exception catch (error) {
       return Result.error(error);
     } finally {
@@ -249,7 +251,7 @@ class ApiClient {
     }
   }
 
-  Future<Result<void>> addJob(String vehicleId, JobApiModel job) async {
+  Future<Result<String>> addJob(String vehicleId, JobApiModel job) async {
     final client = _httpClient();
     try {
       final request = await client.postUrl(
@@ -277,7 +279,9 @@ class ApiClient {
         return const Result.error(HttpException('Failed to add job'));
       }
 
-      return const Result.ok(null);
+      final responseBody = await response.transform(utf8.decoder).join();
+      final created = JobApiModel.fromJson(jsonDecode(responseBody));
+      return Result.ok(created.id);
     } on Exception catch (error) {
       return Result.error(error);
     } finally {
@@ -416,12 +420,12 @@ class ApiClient {
   Future<Result<void>> deleteJobPhoto(
     String vehicleId,
     String jobId,
-    String photoId,
+    String photoPath,
   ) async {
     final client = _httpClient();
     try {
       final request = await client.deleteUrl(
-        Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs/$jobId/photos/$photoId'),
+        Uri.parse('$_baseUrl/vehicles/$vehicleId/jobs/$jobId/photos/$photoPath'),
       );
       final response = await request.close();
       if (response.statusCode != 200) {

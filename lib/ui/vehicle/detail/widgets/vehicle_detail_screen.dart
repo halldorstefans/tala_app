@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tala_app/data/services/tala_api/api_config.dart';
 import 'package:tala_app/routing/routes.dart';
+import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
 import 'package:tala_app/ui/job/list/widgets/job_history_screen.dart';
 
@@ -32,6 +33,10 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
         elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.home),
+          onPressed: () => context.go('/'),
+        ),
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Padding(
@@ -106,10 +111,8 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                     borderRadius: BorderRadius.circular(2),
                                     child: AspectRatio(
                                       aspectRatio: 4 / 3,
-                                      child: Image.network(
-                                        ApiConfig.getPhotoUrl(
-                                          vehicle.photoUrl!,
-                                        ),
+                                      child: AppImage(
+                                        path: vehicle.photoUrl,
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -200,9 +203,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        context.push(
-                                          Routes.vehicleFormWithID(vehicle.id),
-                                        );
+                                        context.push(Routes.vehicleFormWithId(vehicle.id));
                                       },
                                       child: const Text('Edit Vehicle'),
                                     ),

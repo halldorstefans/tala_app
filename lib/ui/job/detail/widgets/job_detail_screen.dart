@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:go_router/go_router.dart';
-import 'package:tala_app/data/services/tala_api/api_config.dart';
+import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/detail/view_models/job_detail_viewmodel.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:photo_view/photo_view.dart';
@@ -19,8 +18,11 @@ class JobDetailScreen extends StatefulWidget {
 }
 
 class _JobDetailScreenState extends State<JobDetailScreen> {
-  void _openGallery(List<String> urls, int initialIndex) {
-    // No need to set state or store initialIndex
+  Future<void> _openGallery(List<String> urls, int initialIndex) async {
+    final providers = await Future.wait(
+      urls.map(AppImage.resolveProvider),
+    );
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) {
@@ -35,9 +37,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   pageController: PageController(initialPage: initialIndex),
                   builder: (context, index) {
                     return PhotoViewGalleryPageOptions(
-                      imageProvider: NetworkImage(
-                        ApiConfig.getPhotoUrl(urls[index]),
-                      ),
+                      imageProvider: providers[index],
                       minScale: PhotoViewComputedScale.contained,
                       maxScale: PhotoViewComputedScale.covered * 2,
                     );
@@ -242,13 +242,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
-                                            child: Image.network(
-                                              ApiConfig.getPhotoUrl(
-                                                job.photoUrls![i],
-                                              ),
+                                            child: AppImage(
+                                              path: job.photoUrls![i],
                                               width: 80,
                                               height: 80,
-                                              fit: BoxFit.cover,
                                             ),
                                           ),
                                         ),
@@ -299,17 +296,15 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                                           ),
                                                     );
                                                 if (confirm == true) {
-                                                  String photoId = job
-                                                      .photoUrls![i]
-                                                      .split('/')
-                                                      .last;
+                                                  final photoPath =
+                                                      job.photoUrls![i];
                                                   await widget
                                                       .viewModel
                                                       .deleteJobPhoto
                                                       .execute((
                                                         job.vehicleId,
                                                         job.id,
-                                                        photoId,
+                                                        photoPath,
                                                       ));
                                                   await widget
                                                       .viewModel
@@ -349,7 +344,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                     child: ElevatedButton(
                                       onPressed: () {
                                         context.push(
-                                          Routes.jobFormWithID(
+                                          Routes.jobFormWithId(
                                             widget.viewModel.job!.vehicleId,
                                             widget.viewModel.job!.id,
                                           ),
@@ -379,9 +374,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                         result.whenComplete(() {
                                           if (mounted) {
                                             context.push(
-                                              Routes.vehicleDetails(
-                                                widget.viewModel.job!.vehicleId,
-                                              ),
+                                              '/vehicle/${widget.viewModel.job!.vehicleId}',
                                             );
                                           }
                                         });

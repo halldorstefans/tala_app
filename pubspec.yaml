@@ -45,6 +45,15 @@ dependencies:
   flutter_image_compress: ^2.4.0
   photo_view: ^0.15.0
 
+  # Database
+  drift: ^2.26.0
+  sqlite3_flutter_libs: ^0.5.31
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # UUID generation
+  uuid: ^4.5.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -55,6 +64,10 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Drift code generation
+  drift_dev: ^2.26.0
+  build_runner: ^2.4.15
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
