@@ -39,6 +39,20 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
         ),
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: ListenableBuilder(
+        listenable: widget.viewModel,
+        builder: (context, _) {
+          final vehicle = widget.viewModel.vehicle;
+          if (vehicle == null) return const SizedBox.shrink();
+          return FloatingActionButton.extended(
+            onPressed: () => context.push(Routes.jobForm(vehicle.id)),
+            backgroundColor: Theme.of(context).colorScheme.secondary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            icon: const Icon(Icons.add),
+            label: const Text('Add Job'),
+          );
+        },
+      ),
       body: Padding(
         padding: dimens.edgeInsetsScreenSymmetric,
         child: ListenableBuilder(

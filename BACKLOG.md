@@ -2,36 +2,7 @@
 
 Active work for **Phase 1 — Garage MVP**. The goal of this phase is to make the app genuinely useful during restoration sessions: low friction, works with dirty hands and bad lighting.
 
-Tickets are grouped by feature area. Each one is intended to be self-contained enough for a developer to pick up. Suggested order of attack: **1 → 2 → 3 → 4 → 5**, but they can be parallelised once the category constants from #2 land.
-
----
-
-## 1. Quick-add job
-
-**Goal:** Let the user create a job in as few taps as possible. Title, category, and date (default today) — everything else fillable later.
-
-### 1a. Relax required fields on the job form
-**File:** `lib/ui/job/form/widgets/job_form_screen.dart`
-
-`description`, `odometer`, and `category` are all blocked by validators. Phase 1 wants only `title` required.
-
-- Remove validators on `description`, `odometer`, and (after #2 lands) keep category validated against the predefined list when set but not required.
-- Stop defaulting `_cost = 0.0` — leave null when the user hasn't entered one. (Same for `_odometer`.)
-- The form currently defaults `_completionDate = DateTime.now()`. Default completion date to **null** — a brand-new job is "planned", not "completed today". Start date stays defaulted to today.
-- Sanity-check the submit path: after `_addJob` succeeds, `widget.viewModel.job!.id` is dereferenced. If add fails this throws. Wrap the post-submit photo upload + navigation in a check that `viewModel.job != null`.
-
-### 1b. Add a "Quick Add Job" entry point
-**Files:** `lib/ui/home/widgets/home_screen.dart`, `lib/routing/router.dart`, `lib/routing/routes.dart`
-
-Today, you can only add a job from inside a vehicle's job history screen. With a single MGB this is fine, but the spec calls for a persistent "+". Options (pick one):
-
-- **Recommended:** When exactly one vehicle exists, the home-screen FAB becomes "Add Job" for that vehicle. When >1 vehicles exist, FAB opens a vehicle picker bottom sheet, then routes to the job form. The "Add Vehicle" action moves into an overflow menu.
-- Alternative: dual FABs ("Add Job" / "Add Vehicle") via `SpeedDial` / `expandable_fab` package.
-
-Decide with the project owner before building. Either way, the new entry point reuses `Routes.jobForm(vehicleId)`.
-
-### 1c. (Optional, post-1a) "Quick-add" mini sheet
-A bottom sheet variant of the form showing only title + category dropdown + start date, with a "More fields…" link that pushes the full form. Skip if 1a feels lean enough — the spec's bar is "title and a tap", which 1a alone gets close to.
+Tickets are grouped by feature area. Each one is intended to be self-contained enough for a developer to pick up. Suggested order of attack: **2 → 3 → 4 → 5**, but they can be parallelised once the category constants from #2 land.
 
 ---
 

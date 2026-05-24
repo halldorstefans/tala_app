@@ -30,6 +30,7 @@ class HomeViewModel extends ChangeNotifier {
       case Error<List<Vehicle>>():
         _log.severe('Error fetching vehicles: ${result.error}');
         _errorMessage = result.error.toString();
+        notifyListeners();
         return result;
       case Ok<List<Vehicle>>():
     }
@@ -37,6 +38,7 @@ class HomeViewModel extends ChangeNotifier {
     _vehicles
       ..clear()
       ..addAll(result.value);
+    notifyListeners();
 
     return result;
   }

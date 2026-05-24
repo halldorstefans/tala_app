@@ -22,15 +22,15 @@ class _JobFormScreenState extends State<JobFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _startDateController;
   late TextEditingController _completionDateController;
-  late String _title = '';
+  String _title = '';
   int? _odometer;
-  late DateTime? _startDate = DateTime.now();
-  late DateTime? _completionDate = DateTime.now();
-  late String? _status = 'planned';
-  late String? _category = '';
-  late String? _description = '';
-  late double? _cost = 0.0;
-  late final List<File> _selectedPhotos = [];
+  DateTime? _startDate = DateTime.now();
+  DateTime? _completionDate;
+  String? _status = 'planned';
+  String? _category;
+  String? _description;
+  double? _cost;
+  final List<File> _selectedPhotos = [];
 
   Future<void> _pickPhoto(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
@@ -102,68 +102,63 @@ class _JobFormScreenState extends State<JobFormScreen> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      final job = Job(
-        id: widget.viewModel.job?.id ?? '',
-        vehicleId: widget.viewModel.vehicleId,
-        title: _title,
-        odometer: _odometer,
-        startDate: _startDate,
-        completionDate: _completionDate,
-        status: _status,
-        category: _category,
-        description: _description,
-        cost: _cost,
-      );
+  void _submit() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      Future<void> jobResult;
-      if (widget.viewModel.job == null) {
-        jobResult = widget.viewModel.addJob.execute(job);
-      } else {
-        jobResult = widget.viewModel.updateJob.execute(job);
+    final isUpdate = widget.viewModel.job != null;
+    final job = Job(
+      id: widget.viewModel.job?.id ?? '',
+      vehicleId: widget.viewModel.vehicleId,
+      title: _title,
+      odometer: _odometer,
+      startDate: _startDate,
+      completionDate: _completionDate,
+      status: _status,
+      category: _category,
+      description: _description,
+      cost: _cost,
+    );
+
+    if (isUpdate) {
+      await widget.viewModel.updateJob.execute(job);
+    } else {
+      await widget.viewModel.addJob.execute(job);
+    }
+
+    final savedJob = widget.viewModel.job;
+    if (savedJob == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to save job')),
+        );
       }
+      return;
+    }
 
-      final result = jobResult.then((_) async {
-        final effectiveJobId = widget.viewModel.job!.id;
-        // Upload photos after job is created/updated
-        for (final photo in _selectedPhotos) {
-          var compressedPhoto = await FlutterImageCompress.compressAndGetFile(
-            photo.absolute.path,
-            '${photo.parent.path}/compressed_${photo.uri.pathSegments.last}',
-            quality: 85,
-            //format: CompressFormat.png,
-          );
+    for (final photo in _selectedPhotos) {
+      final compressedPhoto = await FlutterImageCompress.compressAndGetFile(
+        photo.absolute.path,
+        '${photo.parent.path}/compressed_${photo.uri.pathSegments.last}',
+        quality: 85,
+      );
+      final photoToUpload = compressedPhoto != null
+          ? File(compressedPhoto.path)
+          : photo;
 
-          File? photoToUpload;
-          if (compressedPhoto != null) {
-            photoToUpload = File(compressedPhoto.path);
-          } else {
-            photoToUpload = photo;
-          }
+      final uploadResult = await widget.viewModel.uploadJobPhoto(
+        savedJob.vehicleId,
+        savedJob.id,
+        photoToUpload,
+      );
+      if (uploadResult is Error<String> && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Photo upload failed: ${uploadResult.error}')),
+        );
+      }
+    }
 
-          final uploadResult = await widget.viewModel.uploadJobPhoto(
-            job.vehicleId,
-            effectiveJobId,
-            photoToUpload,
-          );
-          switch (uploadResult) {
-            case Error<String>():
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Photo upload failed: ${uploadResult.error}'),
-                ),
-              );
-            case Ok<String>():
-          }
-        }
-      });
-
-      result.whenComplete(() {
-        if (mounted) {
-          context.go(Routes.jobDetails(widget.viewModel.vehicleId, job.id));
-        }
-      });
+    if (mounted) {
+      context.go(Routes.jobDetails(savedJob.vehicleId, savedJob.id));
     }
   }
 
@@ -231,9 +226,7 @@ class _JobFormScreenState extends State<JobFormScreen> {
                     TextFormField(
                       initialValue: _category,
                       decoration: const InputDecoration(labelText: 'Category'),
-                      onChanged: (v) => _category = v,
-                      validator: (v) =>
-                          v == null || v.isEmpty ? 'Enter category' : null,
+                      onChanged: (v) => _category = v.isEmpty ? null : v,
                     ),
                     const SizedBox(height: 16),
 
@@ -242,27 +235,14 @@ class _JobFormScreenState extends State<JobFormScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Description',
                       ),
-                      onChanged: (v) => _description = v,
-                      validator: (v) =>
-                          v == null || v.isEmpty ? 'Enter description' : null,
+                      onChanged: (v) => _description = v.isEmpty ? null : v,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      initialValue:
-                          _odometer?.toString() ?? '', // Show empty if 0
+                      initialValue: _odometer?.toString() ?? '',
                       decoration: const InputDecoration(labelText: 'Odometer'),
                       keyboardType: TextInputType.number,
-                      onChanged: (v) => _odometer = int.tryParse(v) ?? 0,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) {
-                          return 'Enter mileage';
-                        }
-                        final mileage = int.tryParse(v);
-                        if (mileage == null || mileage < 0) {
-                          return 'Enter a valid mileage';
-                        }
-                        return null;
-                      },
+                      onChanged: (v) => _odometer = int.tryParse(v),
                     ),
                     const SizedBox(height: 32),
                     TextFormField(
