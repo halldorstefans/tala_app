@@ -20,11 +20,14 @@ On Arch Linux: `sudo pacman -S jdk21-openjdk`
 # Install dependencies
 flutter pub get
 
-# Run the app (requires API_URL at compile time)
+# Run the app (API_URL is required at compile time even in local-first mode)
 flutter run --dart-define=API_URL=http://localhost:8080
 
 # Build
 flutter build apk --dart-define=API_URL=https://api.example.com
+
+# Regenerate Drift database code after schema changes
+dart run build_runner build --delete-conflicting-outputs
 
 # Run all tests
 flutter test
@@ -39,30 +42,50 @@ flutter analyze
 dart format lib/
 ```
 
+## SKILLS
+
+Relevant skills are under the `.agents/` directory.
+
 ## Architecture
 
-This is a Flutter app following a strict layered architecture. The three primary layers are:
+This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQLite via Drift. There is a remote API layer (stub) that is not yet active.
 
-**Domain** (`lib/domain/models/`) — Plain Dart classes (`User`, `Vehicle`, `Job`). No Flutter or API dependencies.
+### Layers
 
-**Data** (`lib/data/`) — Two sub-layers:
-- `models/` — API-shaped models (e.g., `VehicleApiModel`) that map to/from JSON. These are distinct from domain models.
-- `repositories/` — Abstract interfaces (e.g., `VehicleRepository`) plus `*_remote.dart` implementations that talk to the backend via `ApiClient`. `dependencies.dart` wires up the concrete implementations.
-- `services/tala_api/ApiClient` — The single HTTP client for all REST calls. It uses `dart:io`'s `HttpClient` directly (not the `http` package), except for multipart photo uploads which use `http.MultipartRequest`. The API base URL is injected at compile time via `--dart-define=API_URL=...` and read through `ApiConfig.baseUrl`.
-- `AuthApiClient` handles login/register separately because it doesn't need the auth header injection that `ApiClient` does.
+**Domain** (`lib/domain/models/`) — Plain Dart classes (`User`, `Vehicle`, `Job`). No Flutter or API dependencies. Domain models include `toDrift()` / `fromDrift()` helpers for Drift interop.
 
-**UI** (`lib/ui/`) — Organized by feature (`auth/`, `home/`, `vehicle/`, `job/`). Each feature has:
-- `view_models/` — `ChangeNotifier` classes that hold `Command` objects for async actions and expose state.
+**Data** (`lib/data/`) — Three sub-layers:
+- `database/` — Drift ORM: `AppDatabase` with three tables (`Vehicles`, `Jobs`, `JobPhotos`). Database file is `tala.db` in the app documents directory. After any schema change, regenerate with `build_runner`.
+- `repositories/` — Abstract interfaces plus `*_local.dart` implementations backed by SQLite. `*_remote.dart` stubs exist but throw `UnimplementedError`. `dependencies.dart` wires up the active implementations (`providersLocal`).
+- `services/tala_api/` — Unused in local-first mode. `ApiClient` uses `dart:io`'s `HttpClient` for REST; `AuthApiClient` handles login/register. `ApiConfig.baseUrl` reads the compile-time `API_URL` define. `ApiConfig.getLocalPhotoPath(relativePath)` resolves relative photo paths to absolute disk paths.
+
+**UI** (`lib/ui/`) — Feature folders: `auth/`, `home/`, `vehicle/`, `job/`, `core/`. Each feature has:
+- `view_models/` — `ChangeNotifier` classes that hold `Command` objects and expose state.
 - `widgets/` — Screens and components that read from ViewModels via `Provider`/`context.watch`.
 
-## Key Patterns
+`lib/ui/core/widgets/app_image.dart` — Unified image widget. Checks if the path starts with `http(s)://` → `Image.network`; otherwise resolves via `ApiConfig.getLocalPhotoPath()` → `Image.file`. Pass `null` to show a placeholder icon.
 
-**`Result<T>`** (`lib/utils/result.dart`) — A sealed class (`Ok<T>` / `Error<T>`) used as the return type of every repository and API method. Always pattern-match on it.
+### Key Patterns
 
-**`Command<T>`** (`lib/utils/command.dart`) — Wraps an async action that returns `Result<T>`. Exposes `.running`, `.error`, `.completed`, and `.result`. Use `Command0` for zero-arg actions and `Command1<T, A>` for one-arg actions. Call `.execute(...)` to trigger and `.clearResult()` after consuming the result. ViewModels own Commands; widgets listen to them.
+**`Result<T>`** (`lib/utils/result.dart`) — Sealed class (`Ok<T>` / `Error<T>`). Every repository method returns `Result<T>`. Always pattern-match exhaustively.
 
-**Dependency injection** — `lib/config/dependencies.dart` exports `providersRemote`, a list of `Provider`/`ChangeNotifierProvider` entries passed to `MultiProvider` at app startup. `AuthRepository` is a `ChangeNotifier` because the router listens to it for auth state changes.
+**`Command<T>`** (`lib/utils/command.dart`) — Wraps an async action returning `Result<T>`. Exposes `.running`, `.error`, `.completed`, `.result`. Use `Command0` for zero-arg actions, `Command1<T, A>` for one-arg. Call `.execute(...)` to trigger; call `.clearResult()` after consuming the result. ViewModels own Commands; widgets listen.
 
-**Routing** — GoRouter in `lib/routing/router.dart`. The router takes `AuthRepository` as a `refreshListenable` so auth changes trigger redirects. The redirect guard in `_redirect` sends unauthenticated users to `/login`. ViewModels are created directly in route builders via `context.read()`.
+**Dependency injection** — `lib/config/dependencies.dart` exports `providersLocal` (active) and `providersRemote` (stub). `main.dart` passes `providersLocal` to `MultiProvider`. `AppDatabase` is a singleton Provider. `AuthRepository` is a `ChangeNotifier` because the router listens to it.
 
-**Photo uploads** — Use `http.MultipartRequest` (not the `dart:io` client) for multipart form data. The auth token is injected manually from `_authHeaderProvider` since the `dart:io`-based helper can't be reused.
+**Routing** — GoRouter in `lib/routing/router.dart`. Uses `AuthRepository` as `refreshListenable`; `_redirect` guards routes and sends unauthenticated users to `/login`. ViewModels are instantiated in route builders via `context.read()`.
+
+### Photo Storage
+
+Photos are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative path (`photos/<uuid>.<ext>`) is persisted in the database. On display, `ApiConfig.getLocalPhotoPath()` resolves it to the full path, which `AppImage` uses with `Image.file`.
+
+- **Vehicle photos**: single `photoPath` field in the `Vehicles` table.
+- **Job photos**: one row per photo in the `JobPhotos` table; loaded as `List<String>` on the `Job` domain model.
+- **Cascade delete**: deleting a vehicle deletes its jobs and all job photo files from disk, then database records.
+
+### Drift / Database Notes
+
+- Schema is in `lib/data/database/app_database.dart`. Drift generates `app_database.g.dart`.
+- Any table or column change requires running `build_runner` (see Commands above).
+- Uses `NativeDatabase.createInBackground()` for async DB init.
+- Domain ↔ Drift conversion: `Vehicle.fromDrift(row)` and `vehicle.toDrift()` (returns `VehiclesCompanion`). Same pattern for `Job`.
