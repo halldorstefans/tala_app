@@ -1,24 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:logging/logging.dart';
 import 'package:tala_app/data/repositories/jobs/jobs_repository.dart';
 
 import '../../../../domain/models/job.dart';
 import '../../../../utils/command.dart';
+import '../../../../utils/photo_compressor.dart';
 import '../../../../utils/result.dart';
-
-typedef PhotoCompressor = Future<File?> Function(File source);
-
-Future<File?> _defaultCompressor(File source) async {
-  final compressed = await FlutterImageCompress.compressAndGetFile(
-    source.absolute.path,
-    '${source.parent.path}/compressed_${source.uri.pathSegments.last}',
-    quality: 85,
-  );
-  return compressed != null ? File(compressed.path) : null;
-}
 
 class JobFormViewModel extends ChangeNotifier {
   JobFormViewModel({
@@ -29,7 +18,7 @@ class JobFormViewModel extends ChangeNotifier {
   }) : _jobsRepository = jobsRepository,
        _vehicleId = vehicleId,
        _job = job,
-       _compressor = compressor ?? _defaultCompressor {
+       _compressor = compressor ?? defaultPhotoCompressor {
     addJob = Command1(_addJob);
     updateJob = Command1(_updateJob);
     fetchJob = Command1(_fetchJob);

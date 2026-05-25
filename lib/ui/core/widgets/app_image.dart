@@ -10,6 +10,7 @@ class AppImage extends StatelessWidget {
   final BoxFit fit;
   final IconData placeholderIcon;
   final double placeholderSize;
+  final Color? placeholderColor;
 
   const AppImage({
     super.key,
@@ -19,6 +20,7 @@ class AppImage extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.placeholderIcon = Icons.image,
     this.placeholderSize = 40,
+    this.placeholderColor,
   });
 
   static Future<ImageProvider> resolveProvider(String path) async {
@@ -36,7 +38,11 @@ class AppImage extends StatelessWidget {
   bool get _hasValidPath =>
       path != null && path!.isNotEmpty && path != 'null';
 
-  Widget get _placeholder => Icon(placeholderIcon, size: placeholderSize);
+  Widget get _placeholder => Icon(
+        placeholderIcon,
+        size: placeholderSize,
+        color: placeholderColor,
+      );
 
   @override
   Widget build(BuildContext context) {

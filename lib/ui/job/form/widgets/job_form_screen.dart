@@ -430,7 +430,13 @@ class _JobFormScreenState extends State<JobFormScreen> {
                           itemBuilder: (context, index) {
                             return Padding(
                               padding: const EdgeInsets.all(4.0),
-                              child: Image.file(_selectedPhotos[index]),
+                              child: Image.file(
+                                _selectedPhotos[index],
+                                errorBuilder: (_, _, _) => const Icon(
+                                  Icons.broken_image,
+                                  size: 40,
+                                ),
+                              ),
                             );
                           },
                         ),

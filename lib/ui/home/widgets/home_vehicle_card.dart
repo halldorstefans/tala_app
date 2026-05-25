@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:tala_app/data/services/tala_api/api_config.dart';
+
+import '../../core/widgets/app_image.dart';
 
 class HomeVehicleCard extends StatelessWidget {
   final String title;
@@ -19,26 +18,24 @@ class HomeVehicleCard extends StatelessWidget {
     this.imageUrl,
   });
 
+  bool _meaningful(String? v) => v != null && v.isNotEmpty && v != 'null';
+
   @override
   Widget build(BuildContext context) {
-    String subtitle = '';
-
-    if ((nickname != null && nickname!.isNotEmpty && nickname != 'null') &&
-        (registration != null &&
-            registration!.isNotEmpty &&
-            registration != 'null')) {
-      subtitle = [nickname, 'Reg: $registration'].join(' - ');
-    } else if (nickname != null && nickname!.isNotEmpty && nickname != 'null') {
+    final String subtitle;
+    if (_meaningful(nickname) && _meaningful(registration)) {
+      subtitle = '$nickname - Reg: $registration';
+    } else if (_meaningful(nickname)) {
       subtitle = nickname!;
-    } else if (registration != null &&
-        registration!.isNotEmpty &&
-        registration != 'null') {
+    } else if (_meaningful(registration)) {
       subtitle = 'Reg: $registration';
+    } else {
+      subtitle = '';
     }
-    final bool hasValidImage = ApiConfig.isValidPhotoPath(imageUrl);
 
     final cardColor = Theme.of(context).cardColor;
-    final borderColor = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1);
+    final borderColor =
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1);
     final shadow = [
       BoxShadow(
         color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
@@ -46,42 +43,6 @@ class HomeVehicleCard extends StatelessWidget {
         offset: const Offset(0, 1),
       ),
     ];
-
-    Widget imageWidget;
-    if (hasValidImage) {
-      if (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://')) {
-        imageWidget = Image.network(
-          imageUrl!,
-          fit: BoxFit.cover,
-        );
-      } else {
-        imageWidget = FutureBuilder<String>(
-          future: ApiConfig.getLocalPhotoPath(imageUrl!),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              final file = File(snapshot.data!);
-              if (file.existsSync()) {
-                return Image.file(
-                  file,
-                  fit: BoxFit.cover,
-                );
-              }
-            }
-            return const Icon(
-              Icons.directions_car,
-              size: 40,
-              color: Colors.black26,
-            );
-          },
-        );
-      }
-    } else {
-      imageWidget = const Icon(
-        Icons.directions_car,
-        size: 40,
-        color: Colors.black26,
-      );
-    }
 
     return InkWell(
       onTap: onTap,
@@ -102,7 +63,12 @@ class HomeVehicleCard extends StatelessWidget {
                 width: 96,
                 height: 72,
                 color: Colors.grey.shade200,
-                child: imageWidget,
+                child: AppImage(
+                  path: imageUrl,
+                  fit: BoxFit.cover,
+                  placeholderIcon: Icons.directions_car,
+                  placeholderColor: Colors.black26,
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -118,7 +84,11 @@ class HomeVehicleCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(height: 8),

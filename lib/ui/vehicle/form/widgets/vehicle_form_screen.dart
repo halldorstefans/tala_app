@@ -412,6 +412,14 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                                   width: 80,
                                   height: 80,
                                   fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => const SizedBox(
+                                    width: 80,
+                                    height: 80,
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      size: 40,
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),

@@ -5,14 +5,17 @@ import 'package:logging/logging.dart';
 import '../../../../data/repositories/vehicle/vehicle_repository.dart';
 import '../../../../domain/models/vehicle.dart';
 import '../../../../utils/command.dart';
+import '../../../../utils/photo_compressor.dart';
 import '../../../../utils/result.dart';
 
 class VehicleFormViewmodel extends ChangeNotifier {
   VehicleFormViewmodel({
     required VehicleRepository vehicleRepository,
     Vehicle? vehicle,
+    PhotoCompressor? compressor,
   }) : _vehicle = vehicle,
-       _vehicleRepository = vehicleRepository {
+       _vehicleRepository = vehicleRepository,
+       _compressor = compressor ?? defaultPhotoCompressor {
     addVehicle = Command1(_addVehicle);
     updateVehicle = Command1(_updateVehicle);
     fetchVehicle = Command1(_fetchVehicle);
@@ -20,6 +23,7 @@ class VehicleFormViewmodel extends ChangeNotifier {
 
   final _log = Logger('VehicleFormViewModel');
   final VehicleRepository _vehicleRepository;
+  final PhotoCompressor _compressor;
 
   Vehicle? _vehicle;
   Vehicle? get vehicle => _vehicle;
@@ -95,9 +99,10 @@ class VehicleFormViewmodel extends ChangeNotifier {
     String vehicleId,
     File photoFile,
   ) async {
+    final compressed = await _compressor(photoFile);
     final result = await _vehicleRepository.uploadVehiclePhoto(
       vehicleId,
-      photoFile,
+      compressed ?? photoFile,
     );
 
     switch (result) {
