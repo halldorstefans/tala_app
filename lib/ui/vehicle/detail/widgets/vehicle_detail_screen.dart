@@ -101,7 +101,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                   );
                 }
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 32),
+                  padding: const EdgeInsets.only(bottom: 112),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -217,7 +217,9 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        context.push(Routes.vehicleFormWithId(vehicle.id));
+                                        context.push(
+                                          Routes.vehicleFormWithId(vehicle.id),
+                                        );
                                       },
                                       child: const Text('Edit Vehicle'),
                                     ),

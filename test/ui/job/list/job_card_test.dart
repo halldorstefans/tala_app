@@ -20,7 +20,7 @@ void main() {
 
       expect(find.text('Replace brake pads'), findsOneWidget);
       expect(find.text('Maintenance'), findsOneWidget);
-      expect(find.text('planned'), findsOneWidget);
+      expect(find.text('Planned'), findsOneWidget);
     });
 
     testWidgets('renders Uncategorized when category is null', (tester) async {

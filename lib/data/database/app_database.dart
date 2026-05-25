@@ -37,10 +37,34 @@ class AppDatabase extends _$AppDatabase {
 
   // Job operations
   Future<List<Job>> getJobsForVehicle(String vehicleId) =>
-      (select(jobs)..where((t) => t.vehicleId.equals(vehicleId))).get();
+      (select(jobs)
+            ..where((t) => t.vehicleId.equals(vehicleId))
+            ..orderBy([
+              (t) => OrderingTerm(
+                expression: t.startDate,
+                mode: OrderingMode.desc,
+              ),
+              (t) => OrderingTerm(
+                expression: t.createdAt,
+                mode: OrderingMode.desc,
+              ),
+            ]))
+          .get();
 
   Stream<List<Job>> watchJobsForVehicle(String vehicleId) =>
-      (select(jobs)..where((t) => t.vehicleId.equals(vehicleId))).watch();
+      (select(jobs)
+            ..where((t) => t.vehicleId.equals(vehicleId))
+            ..orderBy([
+              (t) => OrderingTerm(
+                expression: t.startDate,
+                mode: OrderingMode.desc,
+              ),
+              (t) => OrderingTerm(
+                expression: t.createdAt,
+                mode: OrderingMode.desc,
+              ),
+            ]))
+          .watch();
 
   Future<Job?> getJobById(String id) =>
       (select(jobs)..where((t) => t.id.equals(id))).getSingleOrNull();

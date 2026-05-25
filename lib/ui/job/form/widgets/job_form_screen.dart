@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:tala_app/routing/routes.dart';
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
+import '../../../../domain/models/job_status.dart';
 import '../../../../utils/result.dart';
 import '../view_models/job_form_view_model.dart';
 
@@ -28,7 +29,7 @@ class _JobFormScreenState extends State<JobFormScreen> {
   int? _odometer;
   DateTime? _startDate = DateTime.now();
   DateTime? _completionDate;
-  String? _status = 'planned';
+  String? _status = JobStatus.planned;
   String? _category;
   late TextEditingController _customCategoryController;
   String? _categoryDropdownValue;
@@ -230,11 +231,13 @@ class _JobFormScreenState extends State<JobFormScreen> {
           builder: (context, child) {
             return child!;
           },
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -289,6 +292,24 @@ class _JobFormScreenState extends State<JobFormScreen> {
                             _category = v.isEmpty ? null : v,
                       ),
                     ],
+                    const SizedBox(height: 16),
+
+                    DropdownButtonFormField<String>(
+                      initialValue: JobStatus.isKnown(_status)
+                          ? _status
+                          : JobStatus.planned,
+                      decoration: const InputDecoration(labelText: 'Status'),
+                      items: [
+                        for (final s in JobStatus.all)
+                          DropdownMenuItem(
+                            value: s,
+                            child: Text(statusLabel(s)),
+                          ),
+                      ],
+                      onChanged: (v) {
+                        setState(() => _status = v);
+                      },
+                    ),
                     const SizedBox(height: 16),
 
                     TextFormField(
@@ -425,7 +446,8 @@ class _JobFormScreenState extends State<JobFormScreen> {
                             : 'Save Changes',
                       ),
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

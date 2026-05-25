@@ -24,6 +24,73 @@ class JobListViewModel extends ChangeNotifier {
   final List<Job> _jobs = <Job>[];
   List<Job> get jobs => _jobs;
 
+  Set<String> _statusFilter = {};
+  Set<String> _categoryFilter = {};
+  DateTimeRange? _dateRange;
+
+  Set<String> get statusFilter => _statusFilter;
+  Set<String> get categoryFilter => _categoryFilter;
+  DateTimeRange? get dateRange => _dateRange;
+
+  bool get hasActiveFilters =>
+      _statusFilter.isNotEmpty ||
+      _categoryFilter.isNotEmpty ||
+      _dateRange != null;
+
+  void setStatusFilter(Set<String> value) {
+    _statusFilter = value;
+    notifyListeners();
+  }
+
+  void setCategoryFilter(Set<String> value) {
+    _categoryFilter = value;
+    notifyListeners();
+  }
+
+  void setDateRange(DateTimeRange? value) {
+    _dateRange = value;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _statusFilter = {};
+    _categoryFilter = {};
+    _dateRange = null;
+    notifyListeners();
+  }
+
+  List<Job> get filteredJobs {
+    if (!hasActiveFilters) return _jobs;
+    return _jobs.where((j) {
+      if (_statusFilter.isNotEmpty && !_statusFilter.contains(j.status)) {
+        return false;
+      }
+      if (_categoryFilter.isNotEmpty &&
+          !_categoryFilter.contains(j.category)) {
+        return false;
+      }
+      if (_dateRange != null) {
+        final start = j.startDate;
+        if (start == null) return false;
+        final day = DateTime(start.year, start.month, start.day);
+        final rangeStart = DateTime(
+          _dateRange!.start.year,
+          _dateRange!.start.month,
+          _dateRange!.start.day,
+        );
+        final rangeEnd = DateTime(
+          _dateRange!.end.year,
+          _dateRange!.end.month,
+          _dateRange!.end.day,
+        );
+        if (day.isBefore(rangeStart) || day.isAfter(rangeEnd)) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+  }
+
   late Command1<void, String> fetchJobs;
 
   Future<Result<void>> _fetchJobs(String vehicleId) async {
@@ -39,6 +106,7 @@ class JobListViewModel extends ChangeNotifier {
     _jobs
       ..clear()
       ..addAll(result.value);
+    notifyListeners();
 
     return result;
   }

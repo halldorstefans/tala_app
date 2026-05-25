@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
+import '../../../../domain/models/job_status.dart';
 import '../../../core/widgets/app_image.dart';
 
 class JobCard extends StatelessWidget {
@@ -14,7 +15,7 @@ class JobCard extends StatelessWidget {
     final theme = Theme.of(context);
     final photoCount = job.photoPaths?.length ?? 0;
     final firstPhoto = (photoCount > 0) ? job.photoPaths!.first : null;
-    final isCompleted = job.status == 'completed';
+    final isCompleted = job.status == JobStatus.completed;
     final dateToShow = isCompleted && job.completionDate != null
         ? job.completionDate
         : job.startDate;
@@ -66,7 +67,7 @@ class JobCard extends StatelessWidget {
                         if (job.status != null && job.status!.isNotEmpty) ...[
                           const SizedBox(width: 8),
                           Chip(
-                            label: Text(job.status!),
+                            label: Text(statusLabel(job.status)),
                             visualDensity: VisualDensity.compact,
                             materialTapTargetSize:
                                 MaterialTapTargetSize.shrinkWrap,
