@@ -326,6 +326,19 @@ class _JobFormScreenState extends State<JobFormScreen> {
                       keyboardType: TextInputType.number,
                       onChanged: (v) => _odometer = int.tryParse(v),
                     ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      initialValue: _cost?.toStringAsFixed(2) ?? '',
+                      decoration: const InputDecoration(
+                        labelText: 'Cost',
+                        prefixText: '€ ',
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onChanged: (v) =>
+                          _cost = v.isEmpty ? null : double.tryParse(v),
+                    ),
                     const SizedBox(height: 32),
                     TextFormField(
                       controller: _startDateController,

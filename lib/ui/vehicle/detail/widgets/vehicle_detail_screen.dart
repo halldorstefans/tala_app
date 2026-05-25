@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tala_app/data/services/tala_api/api_config.dart';
+import 'package:tala_app/domain/models/job_status.dart';
 import 'package:tala_app/routing/routes.dart';
 import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
@@ -257,6 +258,71 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       ),
                       const SizedBox(height: 32),
                       Text(
+                        'Stats',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      ListenableBuilder(
+                        listenable: widget.jobListViewModel,
+                        builder: (context, _) {
+                          final stats = widget.jobListViewModel.stats;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _StatTile(
+                                      label: 'Planned',
+                                      value: stats.planned.toString(),
+                                      onTap: () => context.push(
+                                        Routes.jobsWithStatus(
+                                          vehicle.id,
+                                          JobStatus.planned,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _StatTile(
+                                      label: 'In progress',
+                                      value: stats.inProgress.toString(),
+                                      onTap: () => context.push(
+                                        Routes.jobsWithStatus(
+                                          vehicle.id,
+                                          JobStatus.inProgress,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _StatTile(
+                                      label: 'Completed',
+                                      value: stats.completed.toString(),
+                                      onTap: () => context.push(
+                                        Routes.jobsWithStatus(
+                                          vehicle.id,
+                                          JobStatus.completed,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              _StatTile(
+                                label: 'Total cost',
+                                value:
+                                    '€${stats.totalCost.toStringAsFixed(2)}',
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
                         'Recent Job History',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
@@ -311,6 +377,58 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
           },
         ),
       ),
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({required this.label, required this.value, this.onTap});
+
+  final String label;
+  final String value;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontFamily: 'IBMPlexMono',
+              ),
+              maxLines: 1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+
+    return Card(
+      color: theme.cardColor,
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(2),
+        side: BorderSide(color: theme.dividerColor),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: onTap != null
+          ? InkWell(onTap: onTap, child: content)
+          : content,
     );
   }
 }

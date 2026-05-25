@@ -10,6 +10,8 @@ abstract final class Routes {
   static String vehicleDetails(String vehicleId) => '/vehicle/$vehicleId';
 
   static String jobs(String vehicleId) => '/vehicle/$vehicleId/jobs';
+  static String jobsWithStatus(String vehicleId, String status) =>
+      '${jobs(vehicleId)}?status=${Uri.encodeComponent(status)}';
   static String jobDetails(String vehicleId, String jobId) =>
       '/vehicle/$vehicleId/jobs/$jobId';
   static String jobForm(String vehicleId) => '/vehicle/$vehicleId/jobs/form';

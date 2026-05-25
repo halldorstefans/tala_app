@@ -3,8 +3,16 @@ import 'package:logging/logging.dart';
 
 import '../../../../data/repositories/jobs/jobs_repository.dart';
 import '../../../../domain/models/job.dart';
+import '../../../../domain/models/job_status.dart';
 import '../../../../utils/command.dart';
 import '../../../../utils/result.dart';
+
+typedef JobStats = ({
+  int planned,
+  int inProgress,
+  int completed,
+  double totalCost,
+});
 
 class JobListViewModel extends ChangeNotifier {
   JobListViewModel({
@@ -57,6 +65,30 @@ class JobListViewModel extends ChangeNotifier {
     _categoryFilter = {};
     _dateRange = null;
     notifyListeners();
+  }
+
+  JobStats get stats {
+    var planned = 0;
+    var inProgress = 0;
+    var completed = 0;
+    var totalCost = 0.0;
+    for (final j in _jobs) {
+      switch (j.status) {
+        case JobStatus.planned:
+          planned++;
+        case JobStatus.inProgress:
+          inProgress++;
+        case JobStatus.completed:
+          completed++;
+      }
+      if (j.cost != null) totalCost += j.cost!;
+    }
+    return (
+      planned: planned,
+      inProgress: inProgress,
+      completed: completed,
+      totalCost: totalCost,
+    );
   }
 
   List<Job> get filteredJobs {

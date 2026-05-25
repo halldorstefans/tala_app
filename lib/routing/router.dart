@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../domain/models/job_status.dart';
 import '../ui/job/form/view_models/job_form_view_model.dart';
 import '../ui/job/detail/view_models/job_detail_viewmodel.dart';
 import '../ui/job/detail/widgets/job_detail_screen.dart';
@@ -76,6 +77,10 @@ GoRouter router() => GoRouter(
               jobsRepository: context.read(),
               vehicleId: vehicleId,
             );
+            final preselect = state.uri.queryParameters['status'];
+            if (preselect != null && JobStatus.isKnown(preselect)) {
+              viewModel.setStatusFilter({preselect});
+            }
             return JobHistoryScreen(viewModel: viewModel);
           },
         ),

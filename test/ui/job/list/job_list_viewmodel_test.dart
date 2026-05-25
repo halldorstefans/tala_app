@@ -181,6 +181,90 @@ void main() {
       expect(notified, 4);
     });
 
+    test('stats are zero when there are no jobs', () async {
+      final vm = await _vmWithJobs([]);
+      final stats = vm.stats;
+      expect(stats.planned, 0);
+      expect(stats.inProgress, 0);
+      expect(stats.completed, 0);
+      expect(stats.totalCost, 0.0);
+    });
+
+    test('stats count jobs by status and sum cost', () async {
+      final vm = await _vmWithJobs([
+        Job(
+          id: 'a',
+          vehicleId: 'v1',
+          title: 'a',
+          status: JobStatus.planned,
+          cost: 100.0,
+        ),
+        Job(
+          id: 'b',
+          vehicleId: 'v1',
+          title: 'b',
+          status: JobStatus.planned,
+          cost: 50.0,
+        ),
+        Job(
+          id: 'c',
+          vehicleId: 'v1',
+          title: 'c',
+          status: JobStatus.inProgress,
+          cost: 25.5,
+        ),
+        Job(
+          id: 'd',
+          vehicleId: 'v1',
+          title: 'd',
+          status: JobStatus.completed,
+        ),
+      ]);
+
+      final stats = vm.stats;
+      expect(stats.planned, 2);
+      expect(stats.inProgress, 1);
+      expect(stats.completed, 1);
+      expect(stats.totalCost, closeTo(175.5, 1e-9));
+    });
+
+    test('stats ignore unknown statuses in counts but still sum their cost',
+        () async {
+      final vm = await _vmWithJobs([
+        Job(id: 'a', vehicleId: 'v1', title: 'a', status: 'shelved', cost: 9.0),
+        Job(
+          id: 'b',
+          vehicleId: 'v1',
+          title: 'b',
+          status: JobStatus.completed,
+          cost: 1.0,
+        ),
+      ]);
+
+      final stats = vm.stats;
+      expect(stats.planned, 0);
+      expect(stats.inProgress, 0);
+      expect(stats.completed, 1);
+      expect(stats.totalCost, closeTo(10.0, 1e-9));
+    });
+
+    test('stats skip null costs without error', () async {
+      final vm = await _vmWithJobs([
+        Job(id: 'a', vehicleId: 'v1', title: 'a', status: JobStatus.planned),
+        Job(
+          id: 'b',
+          vehicleId: 'v1',
+          title: 'b',
+          status: JobStatus.planned,
+          cost: 12.5,
+        ),
+      ]);
+
+      final stats = vm.stats;
+      expect(stats.planned, 2);
+      expect(stats.totalCost, closeTo(12.5, 1e-9));
+    });
+
     test('filteredJobs preserves order from underlying list', () async {
       final vm = await _vmWithJobs([
         _job('first', status: JobStatus.planned),
