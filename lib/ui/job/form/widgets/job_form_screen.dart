@@ -6,8 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:tala_app/routing/routes.dart';
 import '../../../../domain/models/job.dart';
+import '../../../../domain/models/job_category.dart';
 import '../../../../utils/result.dart';
 import '../view_models/job_form_view_model.dart';
+
+const _customCategorySentinel = '__custom__';
 
 class JobFormScreen extends StatefulWidget {
   const JobFormScreen({super.key, required this.viewModel});
@@ -28,9 +31,24 @@ class _JobFormScreenState extends State<JobFormScreen> {
   DateTime? _completionDate;
   String? _status = 'planned';
   String? _category;
+  late TextEditingController _customCategoryController;
+  String? _categoryDropdownValue;
   String? _description;
   double? _cost;
   final List<File> _selectedPhotos = [];
+
+  void _syncCategoryControls() {
+    if (_category == null || _category!.isEmpty) {
+      _categoryDropdownValue = null;
+      _customCategoryController.text = '';
+    } else if (JobCategory.isPredefined(_category)) {
+      _categoryDropdownValue = _category;
+      _customCategoryController.text = '';
+    } else {
+      _categoryDropdownValue = _customCategorySentinel;
+      _customCategoryController.text = _category!;
+    }
+  }
 
   Future<void> _pickPhoto(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
@@ -71,6 +89,9 @@ class _JobFormScreenState extends State<JobFormScreen> {
       text: _completionDate?.toLocal().toString().split(' ')[0],
     );
 
+    _customCategoryController = TextEditingController();
+    _syncCategoryControls();
+
     widget.viewModel.addListener(_updateFormFields);
   }
 
@@ -90,6 +111,7 @@ class _JobFormScreenState extends State<JobFormScreen> {
             _startDate?.toLocal().toString().split(' ')[0] ?? '';
         _completionDateController.text =
             _completionDate?.toLocal().toString().split(' ')[0] ?? '';
+        _syncCategoryControls();
       });
     }
   }
@@ -98,6 +120,7 @@ class _JobFormScreenState extends State<JobFormScreen> {
   void dispose() {
     _startDateController.dispose();
     _completionDateController.dispose();
+    _customCategoryController.dispose();
     widget.viewModel.removeListener(_updateFormFields);
     super.dispose();
   }
@@ -223,11 +246,48 @@ class _JobFormScreenState extends State<JobFormScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    TextFormField(
-                      initialValue: _category,
+                    DropdownButtonFormField<String>(
+                      initialValue: _categoryDropdownValue,
                       decoration: const InputDecoration(labelText: 'Category'),
-                      onChanged: (v) => _category = v.isEmpty ? null : v,
+                      items: [
+                        for (final c in JobCategory.predefined)
+                          DropdownMenuItem(
+                            value: c,
+                            child: Text(categoryLabel(c)),
+                          ),
+                        const DropdownMenuItem(
+                          value: _customCategorySentinel,
+                          child: Text('Custom…'),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        setState(() {
+                          _categoryDropdownValue = v;
+                          if (v == null) {
+                            _category = null;
+                            _customCategoryController.text = '';
+                          } else if (v == _customCategorySentinel) {
+                            _category = _customCategoryController.text.isEmpty
+                                ? null
+                                : _customCategoryController.text;
+                          } else {
+                            _category = v;
+                            _customCategoryController.text = '';
+                          }
+                        });
+                      },
                     ),
+                    if (_categoryDropdownValue == _customCategorySentinel) ...[
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _customCategoryController,
+                        decoration: const InputDecoration(
+                          labelText: 'Custom category',
+                        ),
+                        onChanged: (v) =>
+                            _category = v.isEmpty ? null : v,
+                      ),
+                    ],
                     const SizedBox(height: 16),
 
                     TextFormField(

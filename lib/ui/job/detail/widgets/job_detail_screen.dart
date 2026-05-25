@@ -5,6 +5,7 @@ import 'package:tala_app/ui/job/detail/view_models/job_detail_viewmodel.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:photo_view/photo_view.dart';
 
+import '../../../../domain/models/job_category.dart';
 import '../../../../routing/routes.dart';
 import '../../../core/themes/dimens.dart';
 
@@ -183,7 +184,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      'Category: ${widget.viewModel.job!.category}',
+                                      'Category: ${categoryLabel(widget.viewModel.job!.category)}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
