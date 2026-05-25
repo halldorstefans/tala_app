@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:logging/logging.dart';
 import 'package:tala_app/data/repositories/jobs/jobs_repository.dart';
 
@@ -8,20 +9,39 @@ import '../../../../domain/models/job.dart';
 import '../../../../utils/command.dart';
 import '../../../../utils/result.dart';
 
+typedef PhotoCompressor = Future<File?> Function(File source);
+
+Future<File?> _defaultCompressor(File source) async {
+  final compressed = await FlutterImageCompress.compressAndGetFile(
+    source.absolute.path,
+    '${source.parent.path}/compressed_${source.uri.pathSegments.last}',
+    quality: 85,
+  );
+  return compressed != null ? File(compressed.path) : null;
+}
+
 class JobFormViewModel extends ChangeNotifier {
   JobFormViewModel({
     required JobsRepository jobsRepository,
     required String vehicleId,
     Job? job,
+    PhotoCompressor? compressor,
   }) : _jobsRepository = jobsRepository,
        _vehicleId = vehicleId,
-       _job = job {
+       _job = job,
+       _compressor = compressor ?? _defaultCompressor {
     addJob = Command1(_addJob);
     updateJob = Command1(_updateJob);
     fetchJob = Command1(_fetchJob);
   }
   final _log = Logger('JobFormViewModel');
   final JobsRepository _jobsRepository;
+  final PhotoCompressor _compressor;
+
+  int _uploadedCount = 0;
+  int _uploadTotal = 0;
+  int get uploadedCount => _uploadedCount;
+  int get uploadTotal => _uploadTotal;
 
   final String _vehicleId;
   String get vehicleId => _vehicleId;
@@ -110,5 +130,42 @@ class JobFormViewModel extends ChangeNotifier {
 
     notifyListeners();
     return result;
+  }
+
+  Future<Result<void>> uploadJobPhotos(
+    String vehicleId,
+    String jobId,
+    List<File> photos,
+  ) async {
+    if (photos.isEmpty) return Result.ok(null);
+
+    _uploadedCount = 0;
+    _uploadTotal = photos.length;
+    notifyListeners();
+
+    Exception? firstError;
+    for (final photo in photos) {
+      final compressed = await _compressor(photo);
+      final toUpload = compressed ?? photo;
+
+      final result = await _jobsRepository.uploadJobPhoto(
+        vehicleId,
+        jobId,
+        toUpload,
+      );
+      if (result is Error<String>) {
+        _log.severe('Error uploading job photo: ${result.error}');
+        firstError ??= result.error;
+      }
+
+      _uploadedCount++;
+      notifyListeners();
+    }
+
+    _uploadedCount = 0;
+    _uploadTotal = 0;
+    notifyListeners();
+
+    return firstError != null ? Result.error(firstError) : Result.ok(null);
   }
 }

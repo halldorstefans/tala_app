@@ -12,6 +12,9 @@ class FakeJobsRepository implements JobsRepository {
   Job? lastAdded;
   Job? lastUpdated;
 
+  final List<File> uploadedPhotos = [];
+  Exception? uploadError;
+
   void seed(Job job) {
     _jobs[job.id] = job;
   }
@@ -75,6 +78,8 @@ class FakeJobsRepository implements JobsRepository {
     File photo,
   ) async {
     if (error != null) return Result.error(error!);
+    if (uploadError != null) return Result.error(uploadError!);
+    uploadedPhotos.add(photo);
     return Result.ok('photos/test.jpg');
   }
 

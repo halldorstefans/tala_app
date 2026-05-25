@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:tala_app/routing/routes.dart';
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
@@ -52,10 +51,23 @@ class _JobFormScreenState extends State<JobFormScreen> {
 
   Future<void> _pickPhoto(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
+
+    if (source == ImageSource.gallery) {
+      final List<XFile> images = await picker.pickMultiImage(
+        maxWidth: 1920,
+        imageQuality: 85,
+      );
+      if (images.isNotEmpty) {
+        setState(() {
+          _selectedPhotos.addAll(images.map((x) => File(x.path)));
+        });
+      }
+      return;
+    }
+
     final XFile? image = await picker.pickImage(
       source: source,
       maxWidth: 1920,
-      //maxHeight: 1080,
       imageQuality: 85,
     );
 
@@ -158,26 +170,15 @@ class _JobFormScreenState extends State<JobFormScreen> {
       return;
     }
 
-    for (final photo in _selectedPhotos) {
-      final compressedPhoto = await FlutterImageCompress.compressAndGetFile(
-        photo.absolute.path,
-        '${photo.parent.path}/compressed_${photo.uri.pathSegments.last}',
-        quality: 85,
+    final uploadResult = await widget.viewModel.uploadJobPhotos(
+      savedJob.vehicleId,
+      savedJob.id,
+      _selectedPhotos,
+    );
+    if (uploadResult is Error<void> && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Photo upload failed: ${uploadResult.error}')),
       );
-      final photoToUpload = compressedPhoto != null
-          ? File(compressedPhoto.path)
-          : photo;
-
-      final uploadResult = await widget.viewModel.uploadJobPhoto(
-        savedJob.vehicleId,
-        savedJob.id,
-        photoToUpload,
-      );
-      if (uploadResult is Error<String> && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Photo upload failed: ${uploadResult.error}')),
-        );
-      }
     }
 
     if (mounted) {
@@ -401,8 +402,23 @@ class _JobFormScreenState extends State<JobFormScreen> {
                         ),
                       ),
                     const SizedBox(height: 16),
+                    if (widget.viewModel.uploadTotal > 0) ...[
+                      LinearProgressIndicator(
+                        value: widget.viewModel.uploadTotal == 0
+                            ? null
+                            : widget.viewModel.uploadedCount /
+                                  widget.viewModel.uploadTotal,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Uploading ${widget.viewModel.uploadedCount}/${widget.viewModel.uploadTotal}…',
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     ElevatedButton(
-                      onPressed: _submit,
+                      onPressed: widget.viewModel.uploadTotal > 0
+                          ? null
+                          : _submit,
                       child: Text(
                         widget.viewModel.job == null
                             ? 'Add Job'

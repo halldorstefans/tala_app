@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/domain/models/job.dart';
 import 'package:tala_app/ui/job/form/view_models/job_form_view_model.dart';
+import 'package:tala_app/utils/result.dart';
 
 import '../../../helpers/fake_jobs_repository.dart';
+
+Future<File?> _identityCompressor(File source) async => source;
+Future<File?> _failingCompressor(File source) async => null;
 
 void main() {
   group('JobFormViewModel.addJob', () {
@@ -70,6 +76,111 @@ void main() {
       expect(repo.lastUpdated?.title, 'Renamed');
       expect(vm.job?.title, 'Renamed');
       expect(vm.job?.category, 'maintenance');
+    });
+  });
+
+  group('JobFormViewModel.uploadJobPhotos', () {
+    test('uploads each file once via the repository', () async {
+      final repo = FakeJobsRepository();
+      final vm = JobFormViewModel(
+        jobsRepository: repo,
+        vehicleId: 'v1',
+        compressor: _identityCompressor,
+      );
+
+      final photos = [File('/tmp/a.jpg'), File('/tmp/b.jpg')];
+      final result = await vm.uploadJobPhotos('v1', 'job-1', photos);
+
+      expect(result, isA<Ok<void>>());
+      expect(repo.uploadedPhotos.map((f) => f.path), [
+        '/tmp/a.jpg',
+        '/tmp/b.jpg',
+      ]);
+    });
+
+    test('uses compressor output when it returns a file', () async {
+      final repo = FakeJobsRepository();
+      Future<File?> swappingCompressor(File source) async =>
+          File('${source.path}.compressed');
+      final vm = JobFormViewModel(
+        jobsRepository: repo,
+        vehicleId: 'v1',
+        compressor: swappingCompressor,
+      );
+
+      await vm.uploadJobPhotos('v1', 'job-1', [File('/tmp/a.jpg')]);
+
+      expect(repo.uploadedPhotos.single.path, '/tmp/a.jpg.compressed');
+    });
+
+    test('falls back to original when compressor returns null', () async {
+      final repo = FakeJobsRepository();
+      final vm = JobFormViewModel(
+        jobsRepository: repo,
+        vehicleId: 'v1',
+        compressor: _failingCompressor,
+      );
+
+      await vm.uploadJobPhotos('v1', 'job-1', [File('/tmp/a.jpg')]);
+
+      expect(repo.uploadedPhotos.single.path, '/tmp/a.jpg');
+    });
+
+    test('updates progress counters during upload', () async {
+      final repo = FakeJobsRepository();
+      final vm = JobFormViewModel(
+        jobsRepository: repo,
+        vehicleId: 'v1',
+        compressor: _identityCompressor,
+      );
+
+      final observed = <(int, int)>[];
+      vm.addListener(() {
+        observed.add((vm.uploadedCount, vm.uploadTotal));
+      });
+
+      await vm.uploadJobPhotos('v1', 'job-1', [
+        File('/tmp/a.jpg'),
+        File('/tmp/b.jpg'),
+      ]);
+
+      expect(observed, [(0, 2), (1, 2), (2, 2), (0, 0)]);
+      expect(vm.uploadedCount, 0);
+      expect(vm.uploadTotal, 0);
+    });
+
+    test('no-op when photo list is empty', () async {
+      final repo = FakeJobsRepository();
+      final vm = JobFormViewModel(
+        jobsRepository: repo,
+        vehicleId: 'v1',
+        compressor: _identityCompressor,
+      );
+
+      final result = await vm.uploadJobPhotos('v1', 'job-1', []);
+
+      expect(result, isA<Ok<void>>());
+      expect(repo.uploadedPhotos, isEmpty);
+      expect(vm.uploadTotal, 0);
+    });
+
+    test('returns error but continues uploading on partial failure',
+        () async {
+      final repo = FakeJobsRepository()
+        ..uploadError = Exception('disk full');
+      final vm = JobFormViewModel(
+        jobsRepository: repo,
+        vehicleId: 'v1',
+        compressor: _identityCompressor,
+      );
+
+      final result = await vm.uploadJobPhotos('v1', 'job-1', [
+        File('/tmp/a.jpg'),
+        File('/tmp/b.jpg'),
+      ]);
+
+      expect(result, isA<Error<void>>());
+      expect(vm.uploadTotal, 0);
     });
   });
 
