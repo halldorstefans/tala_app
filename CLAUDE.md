@@ -44,7 +44,7 @@ dart format lib/
 
 ## SKILLS
 
-Relevant skills are under the `.agents/` directory.
+Relevant skills are under the `.agents/skills/` directory (Flutter/Dart architecture, testing, static analysis, etc.).
 
 ## Architecture
 
@@ -89,3 +89,8 @@ Photos are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative
 - Any table or column change requires running `build_runner` (see Commands above).
 - Uses `NativeDatabase.createInBackground()` for async DB init.
 - Domain ↔ Drift conversion: `Vehicle.fromDrift(row)` and `vehicle.toDrift()` (returns `VehiclesCompanion`). Same pattern for `Job`.
+
+### Testing
+
+- ViewModel/widget tests do not touch SQLite. Instead, they use in-memory fakes that implement the abstract repository interfaces — see `test/helpers/fake_jobs_repository.dart` and `test/helpers/fake_vehicle_repository.dart`. Each fake supports `seed(...)`, controllable `error`, and records the last mutation for assertions.
+- When adding a new repository, add a matching fake under `test/helpers/` rather than mocking with a library.
