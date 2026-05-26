@@ -222,7 +222,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                           Routes.vehicleFormWithId(vehicle.id),
                                         );
                                       },
-                                      child: const Text('Edit Vehicle'),
+                                      child: const Text('Edit'),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
@@ -247,7 +247,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                           }
                                         });
                                       },
-                                      child: const Text('Remove Vehicle'),
+                                      child: const Text('Remove'),
                                     ),
                                   ),
                                 ],
@@ -314,8 +314,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                               const SizedBox(height: 8),
                               _StatTile(
                                 label: 'Total cost',
-                                value:
-                                    '€${stats.totalCost.toStringAsFixed(2)}',
+                                value: '€${stats.totalCost.toStringAsFixed(2)}',
                               ),
                             ],
                           );
@@ -426,9 +425,7 @@ class _StatTile extends StatelessWidget {
         side: BorderSide(color: theme.dividerColor),
       ),
       clipBehavior: Clip.antiAlias,
-      child: onTap != null
-          ? InkWell(onTap: onTap, child: content)
-          : content,
+      child: onTap != null ? InkWell(onTap: onTap, child: content) : content,
     );
   }
 }

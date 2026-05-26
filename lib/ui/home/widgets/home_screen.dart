@@ -20,10 +20,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Future<void> _onAddPressed() async {
     final vehicles = widget.viewModel.vehicles;
-    final action = await showModalBottomSheet<_AddAction>(
-      context: context,
-      builder: (context) => _AddActionSheet(canAddJob: vehicles.isNotEmpty),
-    );
+    final action = vehicles.isEmpty
+        ? _AddAction.vehicle
+        : await showModalBottomSheet<_AddAction>(
+            context: context,
+            builder: (context) =>
+                _AddActionSheet(canAddJob: vehicles.isNotEmpty),
+          );
     if (!mounted || action == null) return;
     switch (action) {
       case _AddAction.vehicle:
@@ -142,10 +145,7 @@ class _AddActionSheet extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(
-              'Add…',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            child: Text('Add…', style: Theme.of(context).textTheme.titleMedium),
           ),
           ListTile(
             leading: const Icon(Icons.directions_car),

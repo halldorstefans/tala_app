@@ -20,9 +20,7 @@ class JobDetailScreen extends StatefulWidget {
 
 class _JobDetailScreenState extends State<JobDetailScreen> {
   Future<void> _openGallery(List<String> urls, int initialIndex) async {
-    final providers = await Future.wait(
-      urls.map(AppImage.resolveProvider),
-    );
+    final providers = await Future.wait(urls.map(AppImage.resolveProvider));
     if (!mounted) return;
     showDialog(
       context: context,
@@ -351,7 +349,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                           ),
                                         );
                                       },
-                                      child: const Text('Edit Service'),
+                                      child: const Text('Edit'),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
@@ -380,7 +378,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                           }
                                         });
                                       },
-                                      child: const Text('Remove job'),
+                                      child: const Text('Remove'),
                                     ),
                                   ),
                                 ],
