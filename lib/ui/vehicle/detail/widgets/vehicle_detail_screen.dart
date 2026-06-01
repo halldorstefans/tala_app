@@ -161,7 +161,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      'Odometer: ${vehicle.odometer ?? 'N/A'}',
+                                      'Odometer: ${vehicle.odometer ?? 0} km',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -170,7 +170,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      'Registration: ${vehicle.registration ?? 'N/A'}',
+                                      'Registration: ${vehicle.registration ?? ''}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -183,7 +183,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      'VIN: ${vehicle.vin ?? 'N/A'}',
+                                      'VIN: ${vehicle.vin ?? ''}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -192,7 +192,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      'Purchase: ${vehicle.purchaseDate != null ? vehicle.purchaseDate!.toLocal().toString().split(' ').first : 'N/A'}',
+                                      'Purchase: ${vehicle.purchaseDate?.toLocal().toString().split(' ').first ?? ''}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium

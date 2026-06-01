@@ -6,6 +6,7 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:photo_view/photo_view.dart';
 
 import '../../../../domain/models/job_category.dart';
+import '../../../../domain/models/job_status.dart';
 import '../../../../routing/routes.dart';
 import '../../../core/themes/dimens.dart';
 
@@ -147,11 +148,12 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                 ).textTheme.headlineMedium,
                               ),
                               const SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Row(
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      'Start Date: ${widget.viewModel.job!.startDate?.toLocal().toString().split(' ')[0]}',
+                                      'Start Date: ${widget.viewModel.job!.startDate?.toLocal().toString().split(' ')[0] ?? ''}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -160,7 +162,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      'Completion Date: ${widget.viewModel.job!.completionDate?.toLocal().toString().split(' ')[0]}',
+                                      'Completion Date: ${widget.viewModel.job!.completionDate?.toLocal().toString().split(' ')[0] ?? ''}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -173,7 +175,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      'Status: ${widget.viewModel.job!.status}',
+                                      'Status: ${statusLabel(widget.viewModel.job!.status)}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -195,7 +197,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      'Odometer: ${widget.viewModel.job!.odometer} km',
+                                      'Odometer: ${widget.viewModel.job!.odometer ?? 0} km',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -204,7 +206,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      'Cost: \$${widget.viewModel.job!.cost?.toStringAsFixed(2)}',
+                                      'Cost: \$${widget.viewModel.job!.cost?.toStringAsFixed(2) ?? '0.00'}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium

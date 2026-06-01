@@ -22,12 +22,12 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   late String _make = '';
   late String _model = '';
   late int _year = DateTime.now().year;
-  late String? _nickname = '';
-  late String? _registration = '';
-  late String? _vin = '';
-  late String? _colour = '';
-  late int? _odometer = 0;
-  late DateTime? _purchaseDate = DateTime.now();
+  String? _nickname = '';
+  String? _registration;
+  String? _vin;
+  String? _colour = '';
+  int? _odometer;
+  DateTime? _purchaseDate;
   late String? _notes = '';
   late String? _photoPath = '';
   File? _selectedPhoto;
@@ -48,11 +48,6 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
 
   @override
   void initState() {
-    if (_purchaseDate != null) {
-      _purchaseDateController.text = _purchaseDate!.toLocal().toString().split(
-        ' ',
-      )[0];
-    }
     super.initState();
 
     if (widget.viewModel.vehicle != null) {
@@ -68,6 +63,9 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       _purchaseDate = v.purchaseDate;
       _notes = v.notes;
       _photoPath = v.photoUrl;
+
+      _purchaseDateController.text =
+          _purchaseDate?.toLocal().toString().split(' ')[0] ?? '';
     }
 
     widget.viewModel.addListener(_updateFormFields);
@@ -110,8 +108,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
         model: _model,
         year: _year,
         nickname: _nickname,
-        registration: _registration,
-        vin: _vin,
+        registration: _registration?.isEmpty == true ? null : _registration,
+        vin: _vin?.isEmpty == true ? null : _vin,
         colour: _colour,
         odometer: _odometer,
         purchaseDate: _purchaseDate,
@@ -287,7 +285,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                               decoration: const InputDecoration(
                                 labelText: 'Registration',
                               ),
-                              onChanged: (v) => _registration = v,
+                              onChanged: (v) =>
+                                  _registration = v.isEmpty ? null : v,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -298,7 +297,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                                 labelText: 'VIN',
                               ),
                               style: Theme.of(context).textTheme.bodyMedium,
-                              onChanged: (v) => _vin = v,
+                              onChanged: (v) => _vin = v.isEmpty ? null : v,
                             ),
                           ),
                         ],
@@ -334,7 +333,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                         onTap: () async {
                           final picked = await showDatePicker(
                             context: context,
-                            initialDate: _purchaseDate,
+                            initialDate: _purchaseDate ?? DateTime.now(),
                             firstDate: DateTime(1900),
                             lastDate: DateTime.now().add(
                               const Duration(days: 365),
