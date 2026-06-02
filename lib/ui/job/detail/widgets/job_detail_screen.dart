@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/detail/view_models/job_detail_viewmodel.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -154,19 +155,21 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                   Expanded(
                                     child: Text(
                                       'Start Date: ${widget.viewModel.job!.startDate?.toLocal().toString().split(' ')[0] ?? ''}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Text(
                                       'Completion Date: ${widget.viewModel.job!.completionDate?.toLocal().toString().split(' ')[0] ?? ''}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -176,19 +179,21 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                   Expanded(
                                     child: Text(
                                       'Status: ${statusLabel(widget.viewModel.job!.status)}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Text(
                                       'Category: ${categoryLabel(widget.viewModel.job!.category)}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -198,19 +203,21 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                   Expanded(
                                     child: Text(
                                       'Odometer: ${widget.viewModel.job!.odometer ?? 0} km',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Text(
                                       'Cost: \$${widget.viewModel.job!.cost?.toStringAsFixed(2) ?? '0.00'}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                 ],

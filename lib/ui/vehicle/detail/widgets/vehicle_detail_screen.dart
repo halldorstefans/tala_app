@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tala_app/data/services/tala_api/api_config.dart';
 import 'package:tala_app/domain/models/job_status.dart';
 import 'package:tala_app/routing/routes.dart';
@@ -160,19 +161,21 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                   Expanded(
                                     child: Text(
                                       'Odometer: ${vehicle.odometer ?? 0} km',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Text(
                                       'Registration: ${vehicle.registration ?? ''}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -182,19 +185,21 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                   Expanded(
                                     child: Text(
                                       'VIN: ${vehicle.vin ?? ''}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Text(
                                       'Purchase: ${vehicle.purchaseDate?.toLocal().toString().split(' ').first ?? ''}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(fontFamily: 'IBMPlexMono'),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -399,8 +404,8 @@ class _StatTile extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               value,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontFamily: 'IBMPlexMono',
+              style: GoogleFonts.jetBrainsMono(
+                textStyle: theme.textTheme.titleLarge,
               ),
               maxLines: 1,
             ),
