@@ -53,7 +53,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tala')),
+      appBar: AppBar(
+        centerTitle: true,
+        title: Image.asset(
+          'assets/images/tala_stamp.png',
+          height: 36,
+          fit: BoxFit.contain,
+        ),
+      ),
       body: ListenableBuilder(
         listenable: widget.viewModel.fetchVehicles,
         builder: (context, child) {
