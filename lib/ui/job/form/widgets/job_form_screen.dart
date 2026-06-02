@@ -455,14 +455,17 @@ class _JobFormScreenState extends State<JobFormScreen> {
                       ),
                       const SizedBox(height: 16),
                     ],
-                    ElevatedButton(
-                      onPressed: widget.viewModel.uploadTotal > 0
-                          ? null
-                          : _submit,
-                      child: Text(
-                        widget.viewModel.job == null
-                            ? 'Add Job'
-                            : 'Save Changes',
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: widget.viewModel.uploadTotal > 0
+                            ? null
+                            : _submit,
+                        child: Text(
+                          widget.viewModel.job == null
+                              ? 'Add Job'
+                              : 'Save Changes',
+                        ),
                       ),
                     ),
                     ],

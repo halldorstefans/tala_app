@@ -47,8 +47,6 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
           if (vehicle == null) return const SizedBox.shrink();
           return FloatingActionButton.extended(
             onPressed: () => context.push(Routes.jobForm(vehicle.id)),
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
             icon: const Icon(Icons.add),
             label: const Text('Add Job'),
           );
@@ -229,12 +227,12 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                   Expanded(
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(
-                                          0xFFFF6B35,
-                                        ), // Safety Orange
+                                        backgroundColor: Theme.of(
+                                          context,
+                                        ).colorScheme.secondary,
                                         foregroundColor: Theme.of(
                                           context,
-                                        ).colorScheme.onSurface,
+                                        ).colorScheme.onSecondary,
                                       ),
                                       onPressed: () {
                                         Future<void> result = widget
@@ -349,9 +347,11 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         alignment: Alignment.centerRight,
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Color(0xFF1B4965),
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
                             side: BorderSide(
-                              color: Color(0xFF1B4965),
+                              color: Theme.of(context).colorScheme.primary,
                               width: 2,
                             ),
                             padding: const EdgeInsets.symmetric(
@@ -359,7 +359,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                               vertical: 12,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(2),
+                              borderRadius: BorderRadius.circular(4),
                             ),
                           ),
                           onPressed: () {

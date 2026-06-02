@@ -431,17 +431,10 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _submit,
-                          style: Theme.of(context).elevatedButtonTheme.style,
                           child: Text(
                             widget.viewModel.vehicle == null
                                 ? 'Add Vehicle'
                                 : 'Save Changes',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
-                                  color: Theme.of(context).primaryColor,
-                                ),
                           ),
                         ),
                       ),

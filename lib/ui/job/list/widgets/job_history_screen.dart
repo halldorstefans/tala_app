@@ -316,15 +316,7 @@ class _JobHistoryScreenState extends State<JobHistoryScreen> {
           context.push(Routes.jobForm(widget.viewModel.vehicleId));
         },
         icon: const Icon(Icons.add),
-        label: Text(
-          'Add Job',
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: theme.colorScheme.onPrimary,
-            letterSpacing: 0.5,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: theme.colorScheme.secondary,
+        label: const Text('Add Job'),
       ),
     );
   }

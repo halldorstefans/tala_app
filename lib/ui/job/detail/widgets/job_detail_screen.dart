@@ -358,10 +358,12 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                   Expanded(
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xFFFF6B35),
+                                        backgroundColor: Theme.of(
+                                          context,
+                                        ).colorScheme.secondary,
                                         foregroundColor: Theme.of(
                                           context,
-                                        ).colorScheme.onSurface,
+                                        ).colorScheme.onSecondary,
                                       ),
 
                                       onPressed: () {
