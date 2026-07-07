@@ -18,6 +18,42 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // One-shot per app session. On first visit, if the user has exactly one
+  // vehicle, we jump straight to its detail page. Subsequent visits to /
+  // (e.g. tapping the home icon on the detail page) render normally so
+  // the user can still see the list, add another vehicle, etc.
+  static bool _autoJumpConsumed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_autoJumpConsumed) {
+      widget.viewModel.fetchVehicles.addListener(_maybeAutoJump);
+      // Also check right away in case the fetch already completed
+      // (e.g. hot reload).
+      _maybeAutoJump();
+    }
+  }
+
+  void _maybeAutoJump() {
+    if (_autoJumpConsumed) return;
+    if (!widget.viewModel.fetchVehicles.completed) return;
+    final vehicles = widget.viewModel.vehicles;
+    if (vehicles.length != 1) return;
+
+    _autoJumpConsumed = true;
+    final id = vehicles.first.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.go(Routes.vehicleDetails(id));
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.viewModel.fetchVehicles.removeListener(_maybeAutoJump);
+    super.dispose();
+  }
+
   Future<void> _onAddPressed() async {
     final vehicles = widget.viewModel.vehicles;
     final action = vehicles.isEmpty
