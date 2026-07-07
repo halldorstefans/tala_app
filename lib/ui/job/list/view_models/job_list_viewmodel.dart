@@ -21,6 +21,7 @@ class JobListViewModel extends ChangeNotifier {
   }) : _jobsRepository = jobsRepository,
        _vehicleId = vehicleId {
     fetchJobs = Command1(_fetchJobs)..execute(vehicleId);
+    toggleDone = Command1(_toggleDone);
   }
 
   final _log = Logger('JobListViewmodel');
@@ -124,6 +125,33 @@ class JobListViewModel extends ChangeNotifier {
   }
 
   late Command1<void, String> fetchJobs;
+  late final Command1<void, Job> toggleDone;
+
+  /// Flips a job between "completed" and "in progress" from the list view.
+  ///
+  /// Marking complete stamps `completionDate = now` if the job didn't
+  /// already have one, so the card can show a real date immediately.
+  /// Unmarking flips the status back to in-progress; the previously
+  /// stored `completionDate` is left in place (harmless — `JobCard` only
+  /// surfaces it when status == completed).
+  Future<Result<void>> _toggleDone(Job job) async {
+    final markingDone = job.status != JobStatus.completed;
+    final updated = job.copyWith(
+      status: markingDone ? JobStatus.completed : JobStatus.inProgress,
+      completionDate: markingDone
+          ? (job.completionDate ?? DateTime.now())
+          : job.completionDate,
+    );
+    final result = await _jobsRepository.updateJob(_vehicleId, updated);
+    switch (result) {
+      case Error<Job>():
+        _log.severe('Error toggling job done state: ${result.error}');
+        return result;
+      case Ok<Job>():
+        await _fetchJobs(_vehicleId);
+        return const Result.ok(null);
+    }
+  }
 
   Future<Result<void>> _fetchJobs(String vehicleId) async {
     final result = await _jobsRepository.getJobs(vehicleId);

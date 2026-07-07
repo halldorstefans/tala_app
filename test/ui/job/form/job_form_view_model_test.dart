@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tala_app/data/services/shared_preferences_service.dart';
 import 'package:tala_app/domain/models/job.dart';
 import 'package:tala_app/ui/job/form/view_models/job_form_view_model.dart';
 import 'package:tala_app/utils/result.dart';
@@ -204,6 +206,76 @@ void main() {
 
       expect(vm.job, isNull);
       expect(vm.fetchJob.error, isTrue);
+    });
+  });
+
+  group('JobFormViewModel.loadDefaultCategory', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
+    test('is a no-op when no preferences service is provided', () async {
+      final vm = JobFormViewModel(
+        jobsRepository: FakeJobsRepository(),
+        vehicleId: 'v1',
+      );
+
+      await vm.loadDefaultCategory.execute();
+
+      expect(vm.defaultCategory, isNull);
+      expect(vm.loadDefaultCategory.error, isFalse);
+    });
+
+    test('loads the stored default category from prefs', () async {
+      SharedPreferences.setMockInitialValues({
+        'DEFAULT_JOB_CATEGORY': 'repair',
+      });
+      final vm = JobFormViewModel(
+        jobsRepository: FakeJobsRepository(),
+        vehicleId: 'v1',
+        preferences: SharedPreferencesService(),
+      );
+
+      await vm.loadDefaultCategory.execute();
+
+      expect(vm.defaultCategory, 'repair');
+    });
+
+    test('addJob persists the category as the new default', () async {
+      final prefs = SharedPreferencesService();
+      final vm = JobFormViewModel(
+        jobsRepository: FakeJobsRepository()..nextId = 'j1',
+        vehicleId: 'v1',
+        preferences: prefs,
+      );
+
+      await vm.addJob.execute(
+        Job(id: '', vehicleId: 'v1', title: 'Oil', category: 'maintenance'),
+      );
+      // Category write is fire-and-forget from addJob's perspective;
+      // drain the microtask queue so the pref write completes.
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(await prefs.getDefaultJobCategory(), 'maintenance');
+    });
+
+    test('addJob with null category clears the stored default', () async {
+      SharedPreferences.setMockInitialValues({
+        'DEFAULT_JOB_CATEGORY': 'repair',
+      });
+      final prefs = SharedPreferencesService();
+      final vm = JobFormViewModel(
+        jobsRepository: FakeJobsRepository()..nextId = 'j1',
+        vehicleId: 'v1',
+        preferences: prefs,
+      );
+
+      await vm.addJob.execute(Job(id: '', vehicleId: 'v1', title: 'Uncat'));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(await prefs.getDefaultJobCategory(), isNull);
     });
   });
 }

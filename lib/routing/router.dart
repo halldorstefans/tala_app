@@ -117,7 +117,8 @@ GoRouter router() => GoRouter(
               create: (context) => JobFormViewModel(
                 vehicleId: vehicleId,
                 jobsRepository: context.read(),
-              ),
+                preferences: context.read(),
+              )..loadDefaultCategory.execute(),
               child: Builder(
                 builder: (context) =>
                     JobFormScreen(viewModel: context.read<JobFormViewModel>()),
@@ -134,6 +135,7 @@ GoRouter router() => GoRouter(
               create: (context) => JobFormViewModel(
                 vehicleId: vehicleId,
                 jobsRepository: context.read(),
+                preferences: context.read(),
               )..fetchJob.execute((vehicleId, jobId)),
               child: Builder(
                 builder: (context) =>

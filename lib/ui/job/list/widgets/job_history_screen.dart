@@ -258,6 +258,8 @@ class _JobHistoryScreenState extends State<JobHistoryScreen> {
                   Routes.jobDetails(widget.viewModel.vehicleId, records[i].id),
                 );
               },
+              onToggleDone: (_) =>
+                  widget.viewModel.toggleDone.execute(records[i]),
             ),
           );
         },

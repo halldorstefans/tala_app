@@ -224,6 +224,7 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
                       child: TextFormField(
                         controller: _makeController,
                         decoration: const InputDecoration(labelText: 'Make'),
+                        textCapitalization: TextCapitalization.words,
                         validator: (v) =>
                             v == null || v.isEmpty ? 'Enter make' : null,
                       ),
@@ -233,6 +234,7 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
                       child: TextFormField(
                         controller: _modelController,
                         decoration: const InputDecoration(labelText: 'Model'),
+                        textCapitalization: TextCapitalization.words,
                         validator: (v) =>
                             v == null || v.isEmpty ? 'Enter model' : null,
                       ),
@@ -258,6 +260,7 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
                         decoration: const InputDecoration(
                           labelText: 'Nickname',
                         ),
+                        textCapitalization: TextCapitalization.words,
                       ),
                     ),
                   ],
@@ -271,6 +274,7 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
                         decoration: const InputDecoration(
                           labelText: 'Registration',
                         ),
+                        textCapitalization: TextCapitalization.characters,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -279,6 +283,7 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
                         controller: _vinController,
                         decoration: const InputDecoration(labelText: 'VIN'),
                         style: theme.textTheme.bodyMedium,
+                        textCapitalization: TextCapitalization.characters,
                       ),
                     ),
                   ],
@@ -290,6 +295,7 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
                       child: TextFormField(
                         controller: _colourController,
                         decoration: const InputDecoration(labelText: 'Colour'),
+                        textCapitalization: TextCapitalization.words,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -326,6 +332,7 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
                   minLines: 3,
                   maxLines: 5,
                   style: theme.textTheme.bodyLarge,
+                  textCapitalization: TextCapitalization.sentences,
                 ),
                 const SizedBox(height: 12),
                 Row(

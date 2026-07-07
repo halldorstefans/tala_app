@@ -8,7 +8,14 @@ import '../../../core/widgets/app_image.dart';
 class JobCard extends StatelessWidget {
   final Job job;
   final VoidCallback? onTap;
-  const JobCard({super.key, required this.job, this.onTap});
+  final ValueChanged<bool>? onToggleDone;
+
+  const JobCard({
+    super.key,
+    required this.job,
+    this.onTap,
+    this.onToggleDone,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +57,11 @@ class JobCard extends StatelessWidget {
                   children: [
                     Text(
                       job.title,
-                      style: theme.textTheme.titleMedium,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        decoration: isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -76,31 +87,35 @@ class JobCard extends StatelessWidget {
                       ],
                     ),
                     if (dateText.isNotEmpty)
-                      Text(
-                        dateText,
-                        style: theme.textTheme.bodySmall,
-                      ),
+                      Text(dateText, style: theme.textTheme.bodySmall),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
               if (photoCount > 1)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '+${photoCount - 1}',
+                      style: theme.textTheme.labelSmall,
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '+${photoCount - 1}',
-                    style: theme.textTheme.labelSmall,
-                  ),
-                )
-              else
-                const Icon(Icons.chevron_right),
+                ),
+              if (onToggleDone != null)
+                Checkbox(
+                  value: isCompleted,
+                  onChanged: (v) => onToggleDone!(v ?? false),
+                  materialTapTargetSize: MaterialTapTargetSize.padded,
+                ),
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/domain/models/job.dart';
+import 'package:tala_app/domain/models/job_status.dart';
 import 'package:tala_app/ui/job/list/widgets/job_card.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
@@ -31,10 +32,10 @@ void main() {
       expect(find.text('Uncategorized'), findsOneWidget);
     });
 
-    testWidgets('shows chevron when photo count is 0 or 1', (tester) async {
+    testWidgets('shows no +N badge when photo count is 0 or 1',
+        (tester) async {
       final noPhotos = Job(id: 'j1', vehicleId: 'v1', title: 'A');
       await tester.pumpWidget(_wrap(JobCard(job: noPhotos)));
-      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
       expect(find.textContaining('+'), findsNothing);
 
       final onePhoto = Job(
@@ -44,7 +45,7 @@ void main() {
         photoPaths: ['photos/a.jpg'],
       );
       await tester.pumpWidget(_wrap(JobCard(job: onePhoto)));
-      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      expect(find.textContaining('+'), findsNothing);
     });
 
     testWidgets('shows +N badge when more than one photo', (tester) async {
@@ -58,7 +59,51 @@ void main() {
       await tester.pumpWidget(_wrap(JobCard(job: job)));
 
       expect(find.text('+2'), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_right), findsNothing);
+    });
+
+    testWidgets('shows checkbox only when onToggleDone is provided',
+        (tester) async {
+      final job = Job(id: 'j1', vehicleId: 'v1', title: 'T');
+
+      await tester.pumpWidget(_wrap(JobCard(job: job)));
+      expect(find.byType(Checkbox), findsNothing);
+
+      await tester.pumpWidget(
+        _wrap(JobCard(job: job, onToggleDone: (_) {})),
+      );
+      expect(find.byType(Checkbox), findsOneWidget);
+    });
+
+    testWidgets('checkbox reflects completed status and reports toggle',
+        (tester) async {
+      final planned = Job(
+        id: 'j1',
+        vehicleId: 'v1',
+        title: 'Open',
+        status: JobStatus.planned,
+      );
+      var lastValue = false;
+
+      await tester.pumpWidget(
+        _wrap(JobCard(job: planned, onToggleDone: (v) => lastValue = v)),
+      );
+      final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
+      expect(checkbox.value, isFalse);
+
+      await tester.tap(find.byType(Checkbox));
+      expect(lastValue, isTrue);
+
+      final done = Job(
+        id: 'j2',
+        vehicleId: 'v1',
+        title: 'Done',
+        status: JobStatus.completed,
+      );
+      await tester.pumpWidget(
+        _wrap(JobCard(job: done, onToggleDone: (_) {})),
+      );
+      final doneCheckbox = tester.widget<Checkbox>(find.byType(Checkbox));
+      expect(doneCheckbox.value, isTrue);
     });
 
     testWidgets('prefers completion date when status is completed',

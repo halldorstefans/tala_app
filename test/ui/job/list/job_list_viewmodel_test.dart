@@ -277,4 +277,57 @@ void main() {
       expect(vm.filteredJobs.map((j) => j.id), ['first', 'third']);
     });
   });
+
+  group('JobListViewModel.toggleDone', () {
+    test('marking planned job done flips status and stamps completionDate',
+        () async {
+      final vm = await _vmWithJobs([
+        _job('j1', status: JobStatus.planned),
+      ]);
+
+      await vm.toggleDone.execute(vm.jobs.first);
+
+      final updated = vm.jobs.firstWhere((j) => j.id == 'j1');
+      expect(updated.status, JobStatus.completed);
+      expect(updated.completionDate, isNotNull);
+    });
+
+    test('unmarking a completed job flips status to in-progress', () async {
+      final existingCompletion = DateTime(2026, 3, 4);
+      final vm = await _vmWithJobs([
+        Job(
+          id: 'j1',
+          vehicleId: 'v1',
+          title: 'Done',
+          status: JobStatus.completed,
+          completionDate: existingCompletion,
+        ),
+      ]);
+
+      await vm.toggleDone.execute(vm.jobs.first);
+
+      final updated = vm.jobs.firstWhere((j) => j.id == 'j1');
+      expect(updated.status, JobStatus.inProgress);
+      // completionDate is intentionally preserved as historical record.
+      expect(updated.completionDate, existingCompletion);
+    });
+
+    test('preserves an existing completionDate when marking done', () async {
+      final priorCompletion = DateTime(2026, 1, 1);
+      final vm = await _vmWithJobs([
+        Job(
+          id: 'j1',
+          vehicleId: 'v1',
+          title: 'Reopened',
+          status: JobStatus.inProgress,
+          completionDate: priorCompletion,
+        ),
+      ]);
+
+      await vm.toggleDone.execute(vm.jobs.first);
+
+      final updated = vm.jobs.firstWhere((j) => j.id == 'j1');
+      expect(updated.completionDate, priorCompletion);
+    });
+  });
 }

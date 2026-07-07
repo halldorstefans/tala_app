@@ -5,7 +5,22 @@ import '../../utils/result.dart';
 
 class SharedPreferencesService {
   static const _tokenKey = 'TOKEN';
+  static const _defaultJobCategoryKey = 'DEFAULT_JOB_CATEGORY';
   final _log = Logger('SharedPreferencesService');
+
+  Future<String?> getDefaultJobCategory() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_defaultJobCategoryKey);
+  }
+
+  Future<void> setDefaultJobCategory(String? category) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (category == null || category.isEmpty) {
+      await prefs.remove(_defaultJobCategoryKey);
+    } else {
+      await prefs.setString(_defaultJobCategoryKey, category);
+    }
+  }
 
   Future<Result<String?>> fetchToken() async {
     try {
