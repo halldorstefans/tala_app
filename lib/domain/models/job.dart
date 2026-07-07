@@ -5,18 +5,16 @@ class Job {
   final String id;
   final String vehicleId;
   final String title;
-  DateTime? startDate;
-  DateTime? completionDate;
-  int? odometer;
-  String? category;
-  String? status;
-  String? description;
-  double? cost;
-  List<String>? photoPaths;
+  final DateTime? startDate;
+  final DateTime? completionDate;
+  final int? odometer;
+  final String? category;
+  final String? status;
+  final String? description;
+  final double? cost;
+  final List<String>? photoPaths;
 
-  List<String>? get photoUrls => photoPaths;
-
-  Job({
+  const Job({
     required this.id,
     required this.vehicleId,
     required this.title,
@@ -27,9 +25,36 @@ class Job {
     this.status,
     this.description,
     this.cost,
+    this.photoPaths,
+  });
+
+  Job copyWith({
+    String? id,
+    String? vehicleId,
+    String? title,
+    DateTime? startDate,
+    DateTime? completionDate,
+    int? odometer,
+    String? category,
+    String? status,
+    String? description,
+    double? cost,
     List<String>? photoPaths,
-    List<String>? photoUrls,
-  }) : photoPaths = photoPaths ?? photoUrls;
+  }) {
+    return Job(
+      id: id ?? this.id,
+      vehicleId: vehicleId ?? this.vehicleId,
+      title: title ?? this.title,
+      startDate: startDate ?? this.startDate,
+      completionDate: completionDate ?? this.completionDate,
+      odometer: odometer ?? this.odometer,
+      category: category ?? this.category,
+      status: status ?? this.status,
+      description: description ?? this.description,
+      cost: cost ?? this.cost,
+      photoPaths: photoPaths ?? this.photoPaths,
+    );
+  }
 
   factory Job.fromJson(Map<String, dynamic> json) {
     return Job(
@@ -50,6 +75,8 @@ class Job {
     );
   }
 
+  /// Builds a Companion for insert or update. See [Vehicle.toDrift] for the
+  /// rationale on omitting `createdAt`.
   db.JobsCompanion toDrift() {
     return db.JobsCompanion(
       id: Value(id),
@@ -62,7 +89,6 @@ class Job {
       status: Value(status),
       description: Value(description),
       cost: Value(cost),
-      createdAt: Value(DateTime.now()),
       updatedAt: Value(DateTime.now()),
     );
   }

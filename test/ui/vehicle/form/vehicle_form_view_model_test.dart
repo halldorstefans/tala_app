@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/domain/models/vehicle.dart';
-import 'package:tala_app/ui/vehicle/form/view_models/vehicle_form_viewmodel.dart';
+import 'package:tala_app/ui/vehicle/form/view_models/vehicle_form_view_model.dart';
 
 import '../../../helpers/fake_vehicle_repository.dart';
 
@@ -10,10 +10,10 @@ Vehicle _vehicle({String id = '', String make = 'MG'}) =>
     Vehicle(id: id, make: make, model: 'B', year: 1974);
 
 void main() {
-  group('VehicleFormViewmodel.addVehicle', () {
+  group('VehicleFormViewModel.addVehicle', () {
     test('routes to repository.addVehicle when no vehicle is seeded', () async {
       final repo = FakeVehicleRepository()..nextId = 'veh-7';
-      final vm = VehicleFormViewmodel(vehicleRepository: repo);
+      final vm = VehicleFormViewModel(vehicleRepository: repo);
 
       await vm.addVehicle.execute(_vehicle(make: 'Triumph'));
 
@@ -24,7 +24,7 @@ void main() {
 
     test('leaves vm.vehicle null on failure', () async {
       final repo = FakeVehicleRepository()..error = Exception('db down');
-      final vm = VehicleFormViewmodel(vehicleRepository: repo);
+      final vm = VehicleFormViewModel(vehicleRepository: repo);
 
       await vm.addVehicle.execute(_vehicle());
 
@@ -33,12 +33,12 @@ void main() {
     });
   });
 
-  group('VehicleFormViewmodel.updateVehicle', () {
+  group('VehicleFormViewModel.updateVehicle', () {
     test('routes to repository.updateVehicle when a vehicle is seeded',
         () async {
       final repo = FakeVehicleRepository();
       final existing = _vehicle(id: 'veh-1');
-      final vm = VehicleFormViewmodel(
+      final vm = VehicleFormViewModel(
         vehicleRepository: repo,
         vehicle: existing,
       );
@@ -57,13 +57,13 @@ void main() {
     });
   });
 
-  group('VehicleFormViewmodel.uploadVehiclePhoto', () {
+  group('VehicleFormViewModel.uploadVehiclePhoto', () {
     test('compresses the source file before handing it to the repo',
         () async {
       final repo = FakeVehicleRepository();
       Future<File?> swappingCompressor(File source) async =>
           File('${source.path}.compressed');
-      final vm = VehicleFormViewmodel(
+      final vm = VehicleFormViewModel(
         vehicleRepository: repo,
         compressor: swappingCompressor,
       );
@@ -76,7 +76,7 @@ void main() {
     test('falls back to original file when compressor returns null',
         () async {
       final repo = FakeVehicleRepository();
-      final vm = VehicleFormViewmodel(
+      final vm = VehicleFormViewModel(
         vehicleRepository: repo,
         compressor: (_) async => null,
       );
@@ -87,11 +87,11 @@ void main() {
     });
   });
 
-  group('VehicleFormViewmodel.fetchVehicle', () {
+  group('VehicleFormViewModel.fetchVehicle', () {
     test('loads vehicle into vm', () async {
       final repo = FakeVehicleRepository()
         ..seededVehicle = _vehicle(id: 'veh-9', make: 'Jaguar');
-      final vm = VehicleFormViewmodel(vehicleRepository: repo);
+      final vm = VehicleFormViewModel(vehicleRepository: repo);
 
       await vm.fetchVehicle.execute('veh-9');
 

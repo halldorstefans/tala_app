@@ -49,19 +49,7 @@ class JobFormViewModel extends ChangeNotifier {
         _log.severe('Error adding job: ${result.error}');
         return result;
       case Ok<String>():
-        _job = Job(
-          id: result.value,
-          vehicleId: vehicleId,
-          title: job.title,
-          startDate: job.startDate,
-          completionDate: job.completionDate,
-          odometer: job.odometer,
-          category: job.category,
-          status: job.status,
-          description: job.description,
-          cost: job.cost,
-          photoPaths: job.photoPaths,
-        );
+        _job = job.copyWith(id: result.value, vehicleId: vehicleId);
     }
 
     notifyListeners();

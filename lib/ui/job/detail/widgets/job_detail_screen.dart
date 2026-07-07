@@ -233,25 +233,25 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                     ).textTheme.bodyLarge,
                                   ),
                                 ),
-                              if (job.photoUrls != null &&
-                                  job.photoUrls!.isNotEmpty)
+                              if (job.photoPaths != null &&
+                                  job.photoPaths!.isNotEmpty)
                                 Wrap(
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: List.generate(
-                                    job.photoUrls!.length,
+                                    job.photoPaths!.length,
                                     (i) => Stack(
                                       alignment: Alignment.topRight,
                                       children: [
                                         GestureDetector(
                                           onTap: () =>
-                                              _openGallery(job.photoUrls!, i),
+                                              _openGallery(job.photoPaths!, i),
                                           child: ClipRRect(
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
                                             child: AppImage(
-                                              path: job.photoUrls![i],
+                                              path: job.photoPaths![i],
                                               width: 80,
                                               height: 80,
                                             ),
@@ -305,7 +305,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                                     );
                                                 if (confirm == true) {
                                                   final photoPath =
-                                                      job.photoUrls![i];
+                                                      job.photoPaths![i];
                                                   await widget
                                                       .viewModel
                                                       .deleteJobPhoto

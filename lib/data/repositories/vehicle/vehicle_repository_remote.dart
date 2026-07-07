@@ -34,7 +34,7 @@ class VehicleRepositoryRemote extends VehicleRepository {
             odometer: response.value.odometer,
             purchaseDate: response.value.purchaseDate,
             notes: response.value.notes,
-            photoUrl: response.value.photoUrl,
+            photoPath: response.value.photoUrl,
           );
 
           return Result.ok(vehicle);
@@ -71,7 +71,7 @@ class VehicleRepositoryRemote extends VehicleRepository {
                   odometer: apiModel.odometer,
                   purchaseDate: apiModel.purchaseDate,
                   notes: apiModel.notes,
-                  photoUrl: apiModel.photoUrl,
+                  photoPath: apiModel.photoUrl,
                 ),
               )
               .toList();
@@ -101,7 +101,7 @@ class VehicleRepositoryRemote extends VehicleRepository {
         nickname: vehicle.nickname,
         purchaseDate: vehicle.purchaseDate,
         notes: vehicle.notes,
-        photoUrl: vehicle.photoUrl,
+        photoUrl: vehicle.photoPath,
       );
       final response = await _apiClient.addVehicle(vehicleApiModel);
       switch (response) {
@@ -133,7 +133,7 @@ class VehicleRepositoryRemote extends VehicleRepository {
         nickname: vehicle.nickname,
         purchaseDate: vehicle.purchaseDate,
         notes: vehicle.notes,
-        photoUrl: vehicle.photoUrl,
+        photoUrl: vehicle.photoPath,
       );
       final response = await _apiClient.updateVehicle(vehicleApiModel);
       switch (response) {
@@ -150,7 +150,7 @@ class VehicleRepositoryRemote extends VehicleRepository {
             odometer: response.value.odometer,
             purchaseDate: response.value.purchaseDate,
             notes: response.value.notes,
-            photoUrl: response.value.photoUrl,
+            photoPath: response.value.photoUrl,
           );
           return Result.ok(updatedVehicle);
         case Error<VehicleApiModel>():

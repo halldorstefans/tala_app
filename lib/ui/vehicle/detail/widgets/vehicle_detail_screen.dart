@@ -119,14 +119,14 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (ApiConfig.isValidPhotoPath(vehicle.photoUrl))
+                              if (ApiConfig.isValidPhotoPath(vehicle.photoPath))
                                 Center(
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(2),
                                     child: AspectRatio(
                                       aspectRatio: 4 / 3,
                                       child: AppImage(
-                                        path: vehicle.photoUrl,
+                                        path: vehicle.photoPath,
                                         fit: BoxFit.cover,
                                       ),
                                     ),

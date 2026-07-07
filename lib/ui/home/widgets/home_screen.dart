@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: '${v.year} ${v.make} ${v.model}',
                       nickname: v.nickname,
                       registration: v.registration,
-                      imageUrl: v.photoUrl,
+                      imageUrl: v.photoPath,
                       onTap: () => context.push('/vehicle/${v.id}'),
                     ),
                   ),

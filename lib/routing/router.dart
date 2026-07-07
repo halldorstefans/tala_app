@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -12,7 +13,7 @@ import '../ui/home/view_models/home_viewmodel.dart';
 import '../ui/home/widgets/home_screen.dart';
 import '../ui/vehicle/detail/view_models/vehicle_detail_viewmodel.dart';
 import '../ui/vehicle/detail/widgets/vehicle_detail_screen.dart';
-import '../ui/vehicle/form/view_models/vehicle_form_viewmodel.dart';
+import '../ui/vehicle/form/view_models/vehicle_form_view_model.dart';
 import '../ui/vehicle/form/widgets/vehicle_form_screen.dart';
 import 'routes.dart';
 
@@ -22,50 +23,66 @@ GoRouter router() => GoRouter(
   routes: [
     GoRoute(
       path: Routes.home,
-      builder: (context, state) {
-        return HomeScreen(
-          viewModel: HomeViewModel(vehicleRepository: context.read()),
-        );
-      },
+      builder: (context, state) => ChangeNotifierProvider(
+        create: (context) => HomeViewModel(vehicleRepository: context.read()),
+        child: Builder(
+          builder: (context) =>
+              HomeScreen(viewModel: context.read<HomeViewModel>()),
+        ),
+      ),
     ),
     GoRoute(
-      path: '/vehicle-form',
-      builder: (context, state) {
-        return VehicleFormScreen(
-          viewModel: VehicleFormViewmodel(
-            vehicleRepository: context.read(),
+      path: Routes.vehicleForm,
+      builder: (context, state) => ChangeNotifierProvider(
+        create: (context) =>
+            VehicleFormViewModel(vehicleRepository: context.read()),
+        child: Builder(
+          builder: (context) => VehicleFormScreen(
+            viewModel: context.read<VehicleFormViewModel>(),
           ),
-        );
-      },
+        ),
+      ),
     ),
     GoRoute(
-      path: '/vehicle-form/:vehicleId',
+      path: '${Routes.vehicleForm}/:vehicleId',
       builder: (context, state) {
         final vehicleId = state.pathParameters['vehicleId']!;
-        final viewModel = VehicleFormViewmodel(
-          vehicleRepository: context.read(),
+        return ChangeNotifierProvider(
+          create: (context) =>
+              VehicleFormViewModel(vehicleRepository: context.read())
+                ..fetchVehicle.execute(vehicleId),
+          child: Builder(
+            builder: (context) => VehicleFormScreen(
+              viewModel: context.read<VehicleFormViewModel>(),
+            ),
+          ),
         );
-        viewModel.fetchVehicle.execute(vehicleId);
-        return VehicleFormScreen(viewModel: viewModel);
       },
     ),
     GoRoute(
       path: '/vehicle/:vehicleId',
       builder: (context, state) {
         final vehicleId = state.pathParameters['vehicleId']!;
-        final viewModel = VehicleDetailViewModel(
-          vehicleRepository: context.read(),
-        );
-        final jobListViewModel = JobListViewModel(
-          jobsRepository: context.read(),
-          vehicleId: vehicleId,
-        );
-
-        viewModel.fetchVehicle.execute(vehicleId);
-
-        return VehicleDetailScreen(
-          viewModel: viewModel,
-          jobListViewModel: jobListViewModel,
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (context) =>
+                  VehicleDetailViewModel(vehicleRepository: context.read())
+                    ..fetchVehicle.execute(vehicleId),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => JobListViewModel(
+                jobsRepository: context.read(),
+                vehicleId: vehicleId,
+              ),
+            ),
+          ],
+          child: Builder(
+            builder: (context) => VehicleDetailScreen(
+              viewModel: context.read<VehicleDetailViewModel>(),
+              jobListViewModel: context.read<JobListViewModel>(),
+            ),
+          ),
         );
       },
       routes: [
@@ -73,55 +90,73 @@ GoRouter router() => GoRouter(
           path: 'jobs',
           builder: (context, state) {
             final vehicleId = state.pathParameters['vehicleId']!;
-            final viewModel = JobListViewModel(
-              jobsRepository: context.read(),
-              vehicleId: vehicleId,
-            );
             final preselect = state.uri.queryParameters['status'];
-            if (preselect != null && JobStatus.isKnown(preselect)) {
-              viewModel.setStatusFilter({preselect});
-            }
-            return JobHistoryScreen(viewModel: viewModel);
+            return ChangeNotifierProvider(
+              create: (context) {
+                final vm = JobListViewModel(
+                  jobsRepository: context.read(),
+                  vehicleId: vehicleId,
+                );
+                if (preselect != null && JobStatus.isKnown(preselect)) {
+                  vm.setStatusFilter({preselect});
+                }
+                return vm;
+              },
+              child: Builder(
+                builder: (context) =>
+                    JobHistoryScreen(viewModel: context.read<JobListViewModel>()),
+              ),
+            );
           },
         ),
         GoRoute(
           path: 'jobs/form',
           builder: (context, state) {
             final vehicleId = state.pathParameters['vehicleId']!;
-            final viewModel = JobFormViewModel(
-              vehicleId: vehicleId,
-              jobsRepository: context.read(),
+            return ChangeNotifierProvider(
+              create: (context) => JobFormViewModel(
+                vehicleId: vehicleId,
+                jobsRepository: context.read(),
+              ),
+              child: Builder(
+                builder: (context) =>
+                    JobFormScreen(viewModel: context.read<JobFormViewModel>()),
+              ),
             );
-
-            return JobFormScreen(viewModel: viewModel);
           },
         ),
         GoRoute(
           path: 'jobs/form/:jobId',
           builder: (context, state) {
             final vehicleId = state.pathParameters['vehicleId']!;
-            final recordId = state.pathParameters['jobId']!;
-            final viewModel = JobFormViewModel(
-              vehicleId: vehicleId,
-              jobsRepository: context.read(),
+            final jobId = state.pathParameters['jobId']!;
+            return ChangeNotifierProvider(
+              create: (context) => JobFormViewModel(
+                vehicleId: vehicleId,
+                jobsRepository: context.read(),
+              )..fetchJob.execute((vehicleId, jobId)),
+              child: Builder(
+                builder: (context) =>
+                    JobFormScreen(viewModel: context.read<JobFormViewModel>()),
+              ),
             );
-
-            viewModel.fetchJob.execute((vehicleId, recordId));
-
-            return JobFormScreen(viewModel: viewModel);
           },
         ),
         GoRoute(
           path: 'jobs/:jobId',
           builder: (context, state) {
             final vehicleId = state.pathParameters['vehicleId']!;
-            final recordId = state.pathParameters['jobId']!;
-            final viewModel = JobDetailViewModel(
-              jobsRepository: context.read(),
+            final jobId = state.pathParameters['jobId']!;
+            return ChangeNotifierProvider(
+              create: (context) =>
+                  JobDetailViewModel(jobsRepository: context.read())
+                    ..fetchJob.execute((vehicleId, jobId)),
+              child: Builder(
+                builder: (context) => JobDetailScreen(
+                  viewModel: context.read<JobDetailViewModel>(),
+                ),
+              ),
             );
-            viewModel.fetchJob.execute((vehicleId, recordId));
-
-            return JobDetailScreen(viewModel: viewModel);
           },
         ),
       ],

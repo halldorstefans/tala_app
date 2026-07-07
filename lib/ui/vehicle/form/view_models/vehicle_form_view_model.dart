@@ -8,8 +8,8 @@ import '../../../../utils/command.dart';
 import '../../../../utils/photo_compressor.dart';
 import '../../../../utils/result.dart';
 
-class VehicleFormViewmodel extends ChangeNotifier {
-  VehicleFormViewmodel({
+class VehicleFormViewModel extends ChangeNotifier {
+  VehicleFormViewModel({
     required VehicleRepository vehicleRepository,
     Vehicle? vehicle,
     PhotoCompressor? compressor,
@@ -40,20 +40,7 @@ class VehicleFormViewmodel extends ChangeNotifier {
         _log.severe('Error adding vehicle: ${result.error}');
         return result;
       case Ok<String>():
-        _vehicle = Vehicle(
-          id: result.value,
-          make: vehicle.make,
-          model: vehicle.model,
-          year: vehicle.year,
-          nickname: vehicle.nickname,
-          registration: vehicle.registration,
-          vin: vehicle.vin,
-          colour: vehicle.colour,
-          odometer: vehicle.odometer,
-          purchaseDate: vehicle.purchaseDate,
-          notes: vehicle.notes,
-          photoPath: vehicle.photoPath,
-        );
+        _vehicle = vehicle.copyWith(id: result.value);
     }
 
     notifyListeners();

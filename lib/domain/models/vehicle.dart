@@ -6,18 +6,16 @@ class Vehicle {
   final String make;
   final String model;
   final int year;
-  String? nickname;
-  String? registration;
-  String? vin;
-  String? colour;
-  int? odometer;
-  DateTime? purchaseDate;
-  String? notes;
-  String? photoPath;
+  final String? nickname;
+  final String? registration;
+  final String? vin;
+  final String? colour;
+  final int? odometer;
+  final DateTime? purchaseDate;
+  final String? notes;
+  final String? photoPath;
 
-  String? get photoUrl => photoPath;
-
-  Vehicle({
+  const Vehicle({
     required this.id,
     required this.make,
     required this.model,
@@ -29,9 +27,38 @@ class Vehicle {
     this.odometer,
     this.purchaseDate,
     this.notes,
+    this.photoPath,
+  });
+
+  Vehicle copyWith({
+    String? id,
+    String? make,
+    String? model,
+    int? year,
+    String? nickname,
+    String? registration,
+    String? vin,
+    String? colour,
+    int? odometer,
+    DateTime? purchaseDate,
+    String? notes,
     String? photoPath,
-    String? photoUrl,
-  }) : photoPath = photoPath ?? photoUrl;
+  }) {
+    return Vehicle(
+      id: id ?? this.id,
+      make: make ?? this.make,
+      model: model ?? this.model,
+      year: year ?? this.year,
+      nickname: nickname ?? this.nickname,
+      registration: registration ?? this.registration,
+      vin: vin ?? this.vin,
+      colour: colour ?? this.colour,
+      odometer: odometer ?? this.odometer,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
+      notes: notes ?? this.notes,
+      photoPath: photoPath ?? this.photoPath,
+    );
+  }
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
     return Vehicle(
@@ -52,6 +79,12 @@ class Vehicle {
     );
   }
 
+  /// Builds a Companion for insert or update.
+  ///
+  /// `createdAt` is intentionally left absent: on insert the table's
+  /// `withDefault(currentDateAndTime)` fills it, and on update Drift's
+  /// `replace` treats absent values as "don't touch this column",
+  /// preserving the original timestamp.
   db.VehiclesCompanion toDrift() {
     return db.VehiclesCompanion(
       id: Value(id),
@@ -66,7 +99,6 @@ class Vehicle {
       purchaseDate: Value(purchaseDate),
       notes: Value(notes),
       photoPath: Value(photoPath),
-      createdAt: Value(DateTime.now()),
       updatedAt: Value(DateTime.now()),
     );
   }

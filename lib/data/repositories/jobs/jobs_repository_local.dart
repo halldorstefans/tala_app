@@ -58,19 +58,7 @@ class JobsRepositoryLocal implements JobsRepository {
   Future<Result<String>> addJob(String vehicleId, domain.Job job) async {
     try {
       final id = job.id.isEmpty ? _uuid.v4() : job.id;
-      final jobWithId = domain.Job(
-        id: id,
-        vehicleId: vehicleId,
-        title: job.title,
-        startDate: job.startDate,
-        completionDate: job.completionDate,
-        odometer: job.odometer,
-        category: job.category,
-        status: job.status,
-        description: job.description,
-        cost: job.cost,
-        photoPaths: job.photoPaths,
-      );
+      final jobWithId = job.copyWith(id: id, vehicleId: vehicleId);
       await _database.insertJob(jobWithId.toDrift());
       return Result.ok(id);
     } catch (e, st) {
@@ -87,25 +75,7 @@ class JobsRepositoryLocal implements JobsRepository {
         return Result.error(Exception('Job not found'));
       }
 
-      final updatedAt = DateTime.now();
-
-      await _database.updateJob(
-        db.JobsCompanion(
-          id: Value(job.id),
-          vehicleId: Value(vehicleId),
-          title: Value(job.title),
-          startDate: Value(job.startDate),
-          completionDate: Value(job.completionDate),
-          odometer: Value(job.odometer),
-          category: Value(job.category),
-          status: Value(job.status),
-          description: Value(job.description),
-          cost: Value(job.cost),
-          createdAt: Value(existing.createdAt),
-          updatedAt: Value(updatedAt),
-        ),
-      );
-
+      await _database.updateJob(job.copyWith(vehicleId: vehicleId).toDrift());
       return Result.ok(job);
     } catch (e, st) {
       _log.severe('Exception in updateJob', e, st);

@@ -12,7 +12,7 @@ class VehicleCard extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: AppImage(
-          path: vehicle.photoUrl,
+          path: vehicle.photoPath,
           width: 56,
           height: 56,
           placeholderIcon: Icons.directions_car,

@@ -78,7 +78,7 @@ class JobsRepositoryRemote extends JobsRepository {
         status: record.status,
         description: record.description,
         cost: record.cost,
-        photoUrls: photoUrls,
+        photoPaths: photoUrls,
       ));
     } catch (e, st) {
       _log.severe('Exception in getJob photo fetch', e, st);

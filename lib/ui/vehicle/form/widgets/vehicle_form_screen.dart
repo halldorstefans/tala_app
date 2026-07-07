@@ -5,443 +5,390 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../domain/models/vehicle.dart';
 import '../../../../utils/result.dart';
-import '../view_models/vehicle_form_viewmodel.dart';
+import '../view_models/vehicle_form_view_model.dart';
 
-class VehicleFormScreen extends StatefulWidget {
+class VehicleFormScreen extends StatelessWidget {
   const VehicleFormScreen({super.key, required this.viewModel});
 
-  final VehicleFormViewmodel viewModel;
-
-  @override
-  State<VehicleFormScreen> createState() => _VehicleFormScreenState();
-}
-
-class _VehicleFormScreenState extends State<VehicleFormScreen> {
-  final TextEditingController _purchaseDateController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  late String _make = '';
-  late String _model = '';
-  late int _year = DateTime.now().year;
-  String? _nickname = '';
-  String? _registration;
-  String? _vin;
-  String? _colour = '';
-  int? _odometer;
-  DateTime? _purchaseDate;
-  late String? _notes = '';
-  late String? _photoPath = '';
-  File? _selectedPhoto;
-
-  Future<void> _pickPhoto(ImageSource source) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: source,
-      maxWidth: 1920,
-      imageQuality: 85,
-    );
-    if (image != null) {
-      setState(() {
-        _selectedPhoto = File(image.path);
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.viewModel.vehicle != null) {
-      final v = widget.viewModel.vehicle!;
-      _make = v.make;
-      _model = v.model;
-      _year = v.year;
-      _nickname = v.nickname;
-      _registration = v.registration;
-      _vin = v.vin;
-      _colour = v.colour;
-      _odometer = v.odometer;
-      _purchaseDate = v.purchaseDate;
-      _notes = v.notes;
-      _photoPath = v.photoUrl;
-
-      _purchaseDateController.text =
-          _purchaseDate?.toLocal().toString().split(' ')[0] ?? '';
-    }
-
-    widget.viewModel.addListener(_updateFormFields);
-  }
-
-  void _updateFormFields() {
-    if (widget.viewModel.vehicle != null) {
-      final v = widget.viewModel.vehicle!;
-      setState(() {
-        _make = v.make;
-        _model = v.model;
-        _year = v.year;
-        _nickname = v.nickname;
-        _registration = v.registration;
-        _vin = v.vin;
-        _colour = v.colour;
-        _odometer = v.odometer;
-        _purchaseDate = v.purchaseDate;
-        _notes = v.notes;
-        _photoPath = v.photoUrl;
-
-        _purchaseDateController.text =
-            _purchaseDate?.toLocal().toString().split(' ')[0] ?? '';
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _purchaseDateController.dispose();
-    widget.viewModel.removeListener(_updateFormFields);
-    super.dispose();
-  }
-
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      final vehicle = Vehicle(
-        id: widget.viewModel.vehicle?.id ?? '',
-        make: _make,
-        model: _model,
-        year: _year,
-        nickname: _nickname,
-        registration: _registration?.isEmpty == true ? null : _registration,
-        vin: _vin?.isEmpty == true ? null : _vin,
-        colour: _colour,
-        odometer: _odometer,
-        purchaseDate: _purchaseDate,
-        notes: _notes,
-        photoUrl: _photoPath,
-      );
-
-      final bool isNewVehicle = widget.viewModel.vehicle == null;
-
-      Future<void> vehicleResult;
-      if (isNewVehicle) {
-        vehicleResult = widget.viewModel.addVehicle.execute(vehicle);
-      } else {
-        vehicleResult = widget.viewModel.updateVehicle.execute(vehicle);
-      }
-
-      final result = vehicleResult.then((_) async {
-        if (_selectedPhoto != null) {
-          final effectiveVehicleId = widget.viewModel.vehicle!.id;
-          if (effectiveVehicleId.isNotEmpty) {
-            final uploadResult = await widget.viewModel.uploadVehiclePhoto(
-              effectiveVehicleId,
-              _selectedPhoto!,
-            );
-            switch (uploadResult) {
-              case Error<String>():
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Photo upload failed: ${uploadResult.error}'),
-                  ),
-                );
-              case Ok<String>():
-            }
-          }
-        }
-      });
-
-      result.whenComplete(() {
-        if (mounted) {
-          if (isNewVehicle) {
-            // New vehicle - go to home
-            context.go('/');
-          } else {
-            // Existing vehicle - go to detail (replace form in stack)
-            context.go('/vehicle/${vehicle.id}');
-          }
-        }
-      });
-    }
-  }
+  final VehicleFormViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.viewModel.vehicle == null ? 'Add Vehicle' : 'Edit Vehicle',
-        ),
+        title: Text(viewModel.vehicle == null ? 'Add Vehicle' : 'Edit Vehicle'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: ListenableBuilder(
-        listenable: widget.viewModel.fetchVehicle,
-        builder: (context, child) {
-          if (widget.viewModel.fetchVehicle.running) {
+        listenable: viewModel.fetchVehicle,
+        builder: (context, _) {
+          if (viewModel.fetchVehicle.running) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (widget.viewModel.fetchVehicle.error) {
-            return Expanded(
-              child: Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Error: ${widget.viewModel.fetchVehicle.result}',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyLarge?.copyWith(color: Colors.red),
-                    ),
-                    SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => widget.viewModel.fetchVehicle.execute(
-                        widget.viewModel.vehicle!.id,
-                      ),
-                      child: Text('Retry'),
-                    ),
-                  ],
-                ),
+          if (viewModel.fetchVehicle.error) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Error: ${viewModel.fetchVehicle.result}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
             );
           }
-          return child!;
+          // Add-mode (never executed) OR edit-mode after successful fetch.
+          // Once mounted, _VehicleFormBody seeds its controllers from `initial`
+          // and owns the form state until this route is popped.
+          return _VehicleFormBody(
+            initial: viewModel.vehicle,
+            viewModel: viewModel,
+          );
         },
-        child: ListenableBuilder(
-          listenable: widget.viewModel,
-          builder: (context, child) {
-            return child!;
-          },
-          child: Card(
-            elevation: 1,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(2),
-              side: BorderSide(color: Theme.of(context).dividerColor),
+      ),
+    );
+  }
+}
+
+class _VehicleFormBody extends StatefulWidget {
+  const _VehicleFormBody({required this.initial, required this.viewModel});
+
+  final Vehicle? initial;
+  final VehicleFormViewModel viewModel;
+
+  @override
+  State<_VehicleFormBody> createState() => _VehicleFormBodyState();
+}
+
+class _VehicleFormBodyState extends State<_VehicleFormBody> {
+  final _formKey = GlobalKey<FormState>();
+
+  late final TextEditingController _makeController;
+  late final TextEditingController _modelController;
+  late final TextEditingController _yearController;
+  late final TextEditingController _nicknameController;
+  late final TextEditingController _registrationController;
+  late final TextEditingController _vinController;
+  late final TextEditingController _colourController;
+  late final TextEditingController _odometerController;
+  late final TextEditingController _notesController;
+  late final TextEditingController _purchaseDateController;
+
+  DateTime? _purchaseDate;
+  File? _selectedPhoto;
+
+  @override
+  void initState() {
+    super.initState();
+    final v = widget.initial;
+    _makeController = TextEditingController(text: v?.make ?? '');
+    _modelController = TextEditingController(text: v?.model ?? '');
+    _yearController = TextEditingController(
+      text: v?.year.toString() ?? DateTime.now().year.toString(),
+    );
+    _nicknameController = TextEditingController(text: v?.nickname ?? '');
+    _registrationController = TextEditingController(text: v?.registration ?? '');
+    _vinController = TextEditingController(text: v?.vin ?? '');
+    _colourController = TextEditingController(text: v?.colour ?? '');
+    _odometerController = TextEditingController(
+      text: v?.odometer?.toString() ?? '',
+    );
+    _notesController = TextEditingController(text: v?.notes ?? '');
+    _purchaseDate = v?.purchaseDate;
+    _purchaseDateController = TextEditingController(
+      text: _purchaseDate != null ? _formatDate(_purchaseDate!) : '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _makeController.dispose();
+    _modelController.dispose();
+    _yearController.dispose();
+    _nicknameController.dispose();
+    _registrationController.dispose();
+    _vinController.dispose();
+    _colourController.dispose();
+    _odometerController.dispose();
+    _notesController.dispose();
+    _purchaseDateController.dispose();
+    super.dispose();
+  }
+
+  String _formatDate(DateTime d) => d.toIso8601String().substring(0, 10);
+
+  String? _nullIfEmpty(String s) => s.isEmpty ? null : s;
+
+  Future<void> _pickPhoto(ImageSource source) async {
+    final image = await ImagePicker().pickImage(
+      source: source,
+      maxWidth: 1920,
+      imageQuality: 85,
+    );
+    if (image != null) {
+      setState(() => _selectedPhoto = File(image.path));
+    }
+  }
+
+  Future<void> _pickPurchaseDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _purchaseDate ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _purchaseDate = picked;
+        _purchaseDateController.text = _formatDate(picked);
+      });
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final vehicle = Vehicle(
+      id: widget.initial?.id ?? '',
+      make: _makeController.text,
+      model: _modelController.text,
+      year: int.tryParse(_yearController.text) ?? DateTime.now().year,
+      nickname: _nullIfEmpty(_nicknameController.text),
+      registration: _nullIfEmpty(_registrationController.text),
+      vin: _nullIfEmpty(_vinController.text),
+      colour: _nullIfEmpty(_colourController.text),
+      odometer: int.tryParse(_odometerController.text),
+      purchaseDate: _purchaseDate,
+      notes: _nullIfEmpty(_notesController.text),
+      photoPath: widget.initial?.photoPath,
+    );
+
+    final isNew = widget.initial == null;
+    if (isNew) {
+      await widget.viewModel.addVehicle.execute(vehicle);
+    } else {
+      await widget.viewModel.updateVehicle.execute(vehicle);
+    }
+
+    if (_selectedPhoto != null) {
+      final id = widget.viewModel.vehicle?.id;
+      if (id != null && id.isNotEmpty) {
+        final uploadResult = await widget.viewModel.uploadVehiclePhoto(
+          id,
+          _selectedPhoto!,
+        );
+        if (!mounted) return;
+        if (uploadResult case Error<String>()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Photo upload failed: ${uploadResult.error}'),
             ),
-            color: Theme.of(context).cardColor,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: _make,
-                              decoration: const InputDecoration(
-                                labelText: 'Make',
-                              ),
-                              onChanged: (v) => _make = v,
-                              validator: (v) =>
-                                  v == null || v.isEmpty ? 'Enter make' : null,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: _model,
-                              decoration: const InputDecoration(
-                                labelText: 'Model',
-                              ),
-                              onChanged: (v) => _model = v,
-                              validator: (v) =>
-                                  v == null || v.isEmpty ? 'Enter model' : null,
-                            ),
-                          ),
-                        ],
+          );
+        }
+      }
+    }
+
+    if (!mounted) return;
+    if (isNew) {
+      context.go('/');
+    } else {
+      context.go('/vehicle/${vehicle.id}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(2),
+        side: BorderSide(color: theme.dividerColor),
+      ),
+      color: theme.cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _makeController,
+                        decoration: const InputDecoration(labelText: 'Make'),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Enter make' : null,
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: _year.toString(),
-                              decoration: const InputDecoration(
-                                labelText: 'Year',
-                              ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (v) =>
-                                  _year = int.tryParse(v) ?? _year,
-                              validator: (v) =>
-                                  v == null || v.isEmpty ? 'Enter year' : null,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: _nickname,
-                              decoration: const InputDecoration(
-                                labelText: 'Nickname',
-                              ),
-                              onChanged: (v) => _nickname = v,
-                            ),
-                          ),
-                        ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _modelController,
+                        decoration: const InputDecoration(labelText: 'Model'),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Enter model' : null,
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: _registration,
-                              decoration: const InputDecoration(
-                                labelText: 'Registration',
-                              ),
-                              onChanged: (v) =>
-                                  _registration = v.isEmpty ? null : v,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: _vin,
-                              decoration: const InputDecoration(
-                                labelText: 'VIN',
-                              ),
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              onChanged: (v) => _vin = v.isEmpty ? null : v,
-                            ),
-                          ),
-                        ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _yearController,
+                        decoration: const InputDecoration(labelText: 'Year'),
+                        keyboardType: TextInputType.number,
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Enter year' : null,
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: _colour,
-                              decoration: const InputDecoration(
-                                labelText: 'Colour',
-                              ),
-                              onChanged: (v) => _colour = v,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: _odometer?.toString(),
-                              decoration: const InputDecoration(
-                                labelText: 'Odometer',
-                              ),
-                              keyboardType: TextInputType.number,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              onChanged: (v) => _odometer = int.tryParse(v),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      GestureDetector(
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: _purchaseDate ?? DateTime.now(),
-                            firstDate: DateTime(1900),
-                            lastDate: DateTime.now().add(
-                              const Duration(days: 365),
-                            ),
-                          );
-                          if (picked != null) {
-                            setState(() {
-                              _purchaseDate = picked;
-                              _purchaseDateController.text = picked
-                                  .toIso8601String()
-                                  .substring(0, 10);
-                            });
-                          }
-                        },
-                        child: AbsorbPointer(
-                          child: TextFormField(
-                            controller: _purchaseDateController,
-                            decoration: const InputDecoration(
-                              labelText: 'Purchase Date (optional)',
-                              suffixIcon: Icon(Icons.calendar_today),
-                            ),
-                            readOnly: true,
-                          ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _nicknameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nickname',
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        initialValue: _notes,
-                        decoration: const InputDecoration(labelText: 'Notes'),
-                        minLines: 3,
-                        maxLines: 5,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                        onChanged: (v) => _notes = v,
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  _pickPhoto(ImageSource.gallery);
-                                },
-                                icon: const Icon(Icons.photo),
-                                label: const Text('Pick Photo'),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  _pickPhoto(ImageSource.camera);
-                                },
-                                icon: const Icon(Icons.camera_alt),
-                                label: const Text('Take Photo'),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      if (_selectedPhoto != null)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  _selectedPhoto!,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => const SizedBox(
-                                    width: 80,
-                                    height: 80,
-                                    child: Icon(
-                                      Icons.broken_image,
-                                      size: 40,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text('Photo selected'),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _submit,
-                          child: Text(
-                            widget.viewModel.vehicle == null
-                                ? 'Add Vehicle'
-                                : 'Save Changes',
-                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _registrationController,
+                        decoration: const InputDecoration(
+                          labelText: 'Registration',
                         ),
                       ),
-                    ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _vinController,
+                        decoration: const InputDecoration(labelText: 'VIN'),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _colourController,
+                        decoration: const InputDecoration(labelText: 'Colour'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _odometerController,
+                        decoration: const InputDecoration(
+                          labelText: 'Odometer',
+                        ),
+                        keyboardType: TextInputType.number,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: _pickPurchaseDate,
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      controller: _purchaseDateController,
+                      decoration: const InputDecoration(
+                        labelText: 'Purchase Date (optional)',
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                      readOnly: true,
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _notesController,
+                  decoration: const InputDecoration(labelText: 'Notes'),
+                  minLines: 3,
+                  maxLines: 5,
+                  style: theme.textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _pickPhoto(ImageSource.gallery),
+                          icon: const Icon(Icons.photo),
+                          label: const Text('Pick Photo'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _pickPhoto(ImageSource.camera),
+                          icon: const Icon(Icons.camera_alt),
+                          label: const Text('Take Photo'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (_selectedPhoto != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            _selectedPhoto!,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const SizedBox(
+                              width: 80,
+                              height: 80,
+                              child: Icon(Icons.broken_image, size: 40),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text('Photo selected'),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _submit,
+                    child: Text(
+                      widget.initial == null ? 'Add Vehicle' : 'Save Changes',
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

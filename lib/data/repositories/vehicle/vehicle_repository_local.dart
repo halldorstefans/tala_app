@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' hide Column;
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -49,20 +48,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
   Future<Result<String>> addVehicle(domain.Vehicle vehicle) async {
     try {
       final id = vehicle.id.isEmpty ? _uuid.v4() : vehicle.id;
-      final vehicleWithId = domain.Vehicle(
-        id: id,
-        make: vehicle.make,
-        model: vehicle.model,
-        year: vehicle.year,
-        nickname: vehicle.nickname,
-        registration: vehicle.registration,
-        vin: vehicle.vin,
-        colour: vehicle.colour,
-        odometer: vehicle.odometer,
-        purchaseDate: vehicle.purchaseDate,
-        notes: vehicle.notes,
-        photoPath: vehicle.photoPath,
-      );
+      final vehicleWithId = vehicle.copyWith(id: id);
       await _database.insertVehicle(vehicleWithId.toDrift());
       return Result.ok(id);
     } catch (e, st) {
@@ -79,27 +65,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
         return Result.error(Exception('Vehicle not found'));
       }
 
-      final updatedAt = DateTime.now();
-
-      await _database.updateVehicle(
-        db.VehiclesCompanion(
-          id: Value(vehicle.id),
-          make: Value(vehicle.make),
-          model: Value(vehicle.model),
-          year: Value(vehicle.year),
-          nickname: Value(vehicle.nickname),
-          registrationNumber: Value(vehicle.registration),
-          vin: Value(vehicle.vin),
-          colour: Value(vehicle.colour),
-          odometer: Value(vehicle.odometer),
-          purchaseDate: Value(vehicle.purchaseDate),
-          notes: Value(vehicle.notes),
-          photoPath: Value(vehicle.photoPath),
-          createdAt: Value(existing.createdAt),
-          updatedAt: Value(updatedAt),
-        ),
-      );
-
+      await _database.updateVehicle(vehicle.toDrift());
       return Result.ok(vehicle);
     } catch (e, st) {
       _log.severe('Exception in updateVehicle', e, st);
@@ -146,24 +112,9 @@ class VehicleRepositoryLocal implements VehicleRepository {
         return Result.error(Exception('Vehicle not found'));
       }
 
-      await _database.updateVehicle(
-        db.VehiclesCompanion(
-          id: Value(existing.id),
-          make: Value(existing.make),
-          model: Value(existing.model),
-          year: Value(existing.year),
-          nickname: Value(existing.nickname),
-          registrationNumber: Value(existing.registrationNumber),
-          vin: Value(existing.vin),
-          colour: Value(existing.colour),
-          odometer: Value(existing.odometer),
-          purchaseDate: Value(existing.purchaseDate),
-          notes: Value(existing.notes),
-          photoPath: Value(relativePath),
-          createdAt: Value(existing.createdAt),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+      final vehicle = domain.Vehicle.fromDrift(existing)
+          .copyWith(photoPath: relativePath);
+      await _database.updateVehicle(vehicle.toDrift());
 
       return Result.ok(relativePath);
     } catch (e, st) {
