@@ -236,7 +236,7 @@ class _JobFormBodyState extends State<_JobFormBody> {
       cost: _nullIfEmpty(_costController.text) != null
           ? double.tryParse(_costController.text)
           : null,
-    );
+    ).normalized();
 
     if (isUpdate) {
       await widget.viewModel.updateJob.execute(job);

@@ -329,5 +329,45 @@ void main() {
       final updated = vm.jobs.firstWhere((j) => j.id == 'j1');
       expect(updated.completionDate, priorCompletion);
     });
+
+    test('snaps future startDate to completionDate when marking done',
+        () async {
+      final futureStart = DateTime.now().add(const Duration(days: 7));
+      final vm = await _vmWithJobs([
+        Job(
+          id: 'j1',
+          vehicleId: 'v1',
+          title: 'Planned for next week',
+          status: JobStatus.planned,
+          startDate: futureStart,
+        ),
+      ]);
+
+      await vm.toggleDone.execute(vm.jobs.first);
+
+      final updated = vm.jobs.firstWhere((j) => j.id == 'j1');
+      expect(updated.startDate, isNotNull);
+      expect(updated.startDate!.isAfter(updated.completionDate!), isFalse);
+      // Specifically: snapped to the completionDate we just stamped.
+      expect(updated.startDate, updated.completionDate);
+    });
+
+    test('leaves past startDate untouched when marking done', () async {
+      final pastStart = DateTime(2026, 1, 1);
+      final vm = await _vmWithJobs([
+        Job(
+          id: 'j1',
+          vehicleId: 'v1',
+          title: 'Started ages ago',
+          status: JobStatus.inProgress,
+          startDate: pastStart,
+        ),
+      ]);
+
+      await vm.toggleDone.execute(vm.jobs.first);
+
+      final updated = vm.jobs.firstWhere((j) => j.id == 'j1');
+      expect(updated.startDate, pastStart);
+    });
   });
 }

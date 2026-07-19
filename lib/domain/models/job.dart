@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:tala_app/data/database/app_database.dart' as db;
+import 'package:tala_app/domain/models/job_status.dart';
 
 class Job {
   final String id;
@@ -54,6 +55,24 @@ class Job {
       cost: cost ?? this.cost,
       photoPaths: photoPaths ?? this.photoPaths,
     );
+  }
+
+  /// Returns a copy of this job with invariants enforced.
+  ///
+  /// Currently just one: when the job is completed, `startDate` cannot be
+  /// later than `completionDate` — a job that "started next week and
+  /// finished today" reads as broken data. In that case `startDate` is
+  /// snapped back to `completionDate`.
+  ///
+  /// Call this before persisting a job that was assembled from user input
+  /// or from mutations elsewhere in the app.
+  Job normalized() {
+    if (status != JobStatus.completed) return this;
+    final s = startDate;
+    final c = completionDate;
+    if (s == null || c == null) return this;
+    if (!s.isAfter(c)) return this;
+    return copyWith(startDate: c);
   }
 
   factory Job.fromJson(Map<String, dynamic> json) {

@@ -134,15 +134,21 @@ class JobListViewModel extends ChangeNotifier {
   /// Unmarking flips the status back to in-progress; the previously
   /// stored `completionDate` is left in place (harmless — `JobCard` only
   /// surfaces it when status == completed).
+  ///
+  /// [Job.normalized] handles the "startDate can't be after completionDate
+  /// when completed" invariant.
   Future<Result<void>> _toggleDone(Job job) async {
     final markingDone = job.status != JobStatus.completed;
-    final updated = job.copyWith(
+    final proposed = job.copyWith(
       status: markingDone ? JobStatus.completed : JobStatus.inProgress,
       completionDate: markingDone
           ? (job.completionDate ?? DateTime.now())
           : job.completionDate,
     );
-    final result = await _jobsRepository.updateJob(_vehicleId, updated);
+    final result = await _jobsRepository.updateJob(
+      _vehicleId,
+      proposed.normalized(),
+    );
     switch (result) {
       case Error<Job>():
         _log.severe('Error toggling job done state: ${result.error}');
