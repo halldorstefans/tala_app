@@ -253,9 +253,13 @@ class _JobHistoryScreenState extends State<JobHistoryScreen> {
             separatorBuilder: (context, i) => SizedBox(height: Dimens.space4),
             itemBuilder: (context, i) => JobCard(
               job: records[i],
-              onTap: () {
-                context.push(
+              onTap: () async {
+                await context.push(
                   Routes.jobDetails(widget.viewModel.vehicleId, records[i].id),
+                );
+                if (!context.mounted) return;
+                widget.viewModel.fetchJobs.execute(
+                  widget.viewModel.vehicleId,
                 );
               },
               onToggleDone: (_) =>
@@ -314,8 +318,10 @@ class _JobHistoryScreenState extends State<JobHistoryScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.push(Routes.jobForm(widget.viewModel.vehicleId));
+        onPressed: () async {
+          await context.push(Routes.jobForm(widget.viewModel.vehicleId));
+          if (!context.mounted) return;
+          widget.viewModel.fetchJobs.execute(widget.viewModel.vehicleId);
         },
         icon: const Icon(Icons.add),
         label: const Text('Add Job'),

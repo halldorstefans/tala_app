@@ -26,6 +26,21 @@ class VehicleDetailScreen extends StatefulWidget {
 }
 
 class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
+  // Refetching the job list after returning from a job-related route keeps
+  // the summary + stats in sync with mutations (add/edit/delete/toggle)
+  // that happen deeper in the stack.
+  Future<void> _openJobsWithStatus(String vehicleId, String status) async {
+    await context.push(Routes.jobsWithStatus(vehicleId, status));
+    if (!mounted) return;
+    widget.jobListViewModel.fetchJobs.execute(vehicleId);
+  }
+
+  Future<void> _openFullJobHistory(String vehicleId) async {
+    await context.push(Routes.jobs(vehicleId));
+    if (!mounted) return;
+    widget.jobListViewModel.fetchJobs.execute(vehicleId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final dimens = Dimens.of(context);
@@ -47,7 +62,11 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
           final vehicle = widget.viewModel.vehicle;
           if (vehicle == null) return const SizedBox.shrink();
           return FloatingActionButton.extended(
-            onPressed: () => context.push(Routes.jobForm(vehicle.id)),
+            onPressed: () async {
+              await context.push(Routes.jobForm(vehicle.id));
+              if (!context.mounted) return;
+              widget.jobListViewModel.fetchJobs.execute(vehicle.id);
+            },
             icon: const Icon(Icons.add),
             label: const Text('Add Job'),
           );
@@ -278,12 +297,11 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                     child: _StatTile(
                                       label: 'Planned',
                                       value: stats.planned.toString(),
-                                      onTap: () => context.push(
-                                        Routes.jobsWithStatus(
-                                          vehicle.id,
-                                          JobStatus.planned,
-                                        ),
-                                      ),
+                                      onTap: () =>
+                                          _openJobsWithStatus(
+                                            vehicle.id,
+                                            JobStatus.planned,
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -291,12 +309,11 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                     child: _StatTile(
                                       label: 'In progress',
                                       value: stats.inProgress.toString(),
-                                      onTap: () => context.push(
-                                        Routes.jobsWithStatus(
-                                          vehicle.id,
-                                          JobStatus.inProgress,
-                                        ),
-                                      ),
+                                      onTap: () =>
+                                          _openJobsWithStatus(
+                                            vehicle.id,
+                                            JobStatus.inProgress,
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -304,12 +321,11 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                     child: _StatTile(
                                       label: 'Completed',
                                       value: stats.completed.toString(),
-                                      onTap: () => context.push(
-                                        Routes.jobsWithStatus(
-                                          vehicle.id,
-                                          JobStatus.completed,
-                                        ),
-                                      ),
+                                      onTap: () =>
+                                          _openJobsWithStatus(
+                                            vehicle.id,
+                                            JobStatus.completed,
+                                          ),
                                     ),
                                   ),
                                 ],
@@ -367,9 +383,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
-                          onPressed: () {
-                            context.push(Routes.jobs(vehicle.id));
-                          },
+                          onPressed: () => _openFullJobHistory(vehicle.id),
                           child: const Text('View Full Job History'),
                         ),
                       ),
