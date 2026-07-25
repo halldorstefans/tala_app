@@ -8,7 +8,7 @@ import '../ui/job/detail/view_models/job_detail_viewmodel.dart';
 import '../ui/job/detail/widgets/job_detail_screen.dart';
 import '../ui/job/form/widgets/job_form_screen.dart';
 import '../ui/job/list/view_models/job_list_viewmodel.dart';
-import '../ui/job/list/widgets/job_history_screen.dart';
+import '../ui/job/list/widgets/job_list_view.dart';
 import '../ui/home/view_models/home_viewmodel.dart';
 import '../ui/home/widgets/home_screen.dart';
 import '../ui/vehicle/detail/view_models/vehicle_detail_viewmodel.dart';
@@ -104,7 +104,7 @@ GoRouter router() => GoRouter(
               },
               child: Builder(
                 builder: (context) =>
-                    JobHistoryScreen(viewModel: context.read<JobListViewModel>()),
+                    JobListView(viewModel: context.read<JobListViewModel>()),
               ),
             );
           },

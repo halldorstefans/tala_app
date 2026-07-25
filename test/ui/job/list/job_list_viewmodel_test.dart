@@ -278,6 +278,41 @@ void main() {
     });
   });
 
+  group('JobListViewModel.inProgressJobs', () {
+    test('returns only in-progress jobs', () async {
+      final vm = await _vmWithJobs([
+        _job('a', status: JobStatus.planned),
+        _job('b', status: JobStatus.inProgress),
+        _job('c', status: JobStatus.completed),
+        _job('d', status: JobStatus.inProgress),
+      ]);
+
+      expect(
+        vm.inProgressJobs.map((j) => j.id),
+        unorderedEquals(['b', 'd']),
+      );
+    });
+
+    test('preserves order from the underlying list', () async {
+      final vm = await _vmWithJobs([
+        _job('first', status: JobStatus.inProgress),
+        _job('second', status: JobStatus.completed),
+        _job('third', status: JobStatus.inProgress),
+      ]);
+
+      expect(vm.inProgressJobs.map((j) => j.id), ['first', 'third']);
+    });
+
+    test('is empty when nothing is in progress', () async {
+      final vm = await _vmWithJobs([
+        _job('a', status: JobStatus.planned),
+        _job('b', status: JobStatus.completed),
+      ]);
+
+      expect(vm.inProgressJobs, isEmpty);
+    });
+  });
+
   group('JobListViewModel.toggleDone', () {
     test('marking planned job done flips status and stamps completionDate',
         () async {

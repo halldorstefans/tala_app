@@ -6,7 +6,7 @@ import 'package:tala_app/domain/models/job_status.dart';
 import 'package:tala_app/routing/routes.dart';
 import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
-import 'package:tala_app/ui/job/list/widgets/job_history_screen.dart';
+import 'package:tala_app/ui/job/list/widgets/job_list_view.dart';
 
 import '../view_models/vehicle_detail_viewmodel.dart';
 import 'package:tala_app/ui/core/themes/dimens.dart';
@@ -341,7 +341,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       ),
                       const SizedBox(height: 32),
                       Text(
-                        'Recent Job History',
+                        'Active Work',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 8),
@@ -356,10 +356,11 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(2),
-                          child: JobHistoryScreen(
+                          child: JobListView(
                             viewModel: widget.jobListViewModel,
                             isSummary: true,
-                            summaryCount: 3,
+                            summarySelector: (vm) => vm.inProgressJobs,
+                            summaryEmptyLabel: 'No active work.',
                           ),
                         ),
                       ),
