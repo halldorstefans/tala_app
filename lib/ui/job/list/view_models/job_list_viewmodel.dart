@@ -33,6 +33,12 @@ class JobListViewModel extends ChangeNotifier {
   final List<Job> _jobs = <Job>[];
   List<Job> get jobs => _jobs;
 
+  /// Jobs currently on the bench. `_jobs` is already ordered most-recent
+  /// first, so no extra sort is needed. Backs the "Active Work" section on
+  /// the vehicle detail screen.
+  List<Job> get inProgressJobs =>
+      _jobs.where((j) => j.status == JobStatus.inProgress).toList();
+
   Set<String> _statusFilter = {};
   Set<String> _categoryFilter = {};
   DateTimeRange? _dateRange;
