@@ -9,6 +9,12 @@ import '../ui/job/detail/widgets/job_detail_screen.dart';
 import '../ui/job/form/widgets/job_form_screen.dart';
 import '../ui/job/list/view_models/job_list_viewmodel.dart';
 import '../ui/job/list/widgets/job_list_view.dart';
+import '../ui/project/detail/view_models/project_detail_viewmodel.dart';
+import '../ui/project/detail/widgets/project_detail_screen.dart';
+import '../ui/project/form/view_models/project_form_view_model.dart';
+import '../ui/project/form/widgets/project_form_screen.dart';
+import '../ui/project/list/view_models/project_list_viewmodel.dart';
+import '../ui/project/list/widgets/project_list_screen.dart';
 import '../ui/home/view_models/home_viewmodel.dart';
 import '../ui/home/widgets/home_screen.dart';
 import '../ui/vehicle/detail/view_models/vehicle_detail_viewmodel.dart';
@@ -76,11 +82,18 @@ GoRouter router() => GoRouter(
                 vehicleId: vehicleId,
               ),
             ),
+            ChangeNotifierProvider(
+              create: (context) => ProjectListViewModel(
+                projectsRepository: context.read(),
+                vehicleId: vehicleId,
+              ),
+            ),
           ],
           child: Builder(
             builder: (context) => VehicleDetailScreen(
               viewModel: context.read<VehicleDetailViewModel>(),
               jobListViewModel: context.read<JobListViewModel>(),
+              projectListViewModel: context.read<ProjectListViewModel>(),
             ),
           ),
         );
@@ -118,7 +131,10 @@ GoRouter router() => GoRouter(
                 vehicleId: vehicleId,
                 jobsRepository: context.read(),
                 preferences: context.read(),
-              )..loadDefaultCategory.execute(),
+                projectsRepository: context.read(),
+              )
+                ..loadDefaultCategory.execute()
+                ..loadProjects.execute(),
               child: Builder(
                 builder: (context) =>
                     JobFormScreen(viewModel: context.read<JobFormViewModel>()),
@@ -136,7 +152,10 @@ GoRouter router() => GoRouter(
                 vehicleId: vehicleId,
                 jobsRepository: context.read(),
                 preferences: context.read(),
-              )..fetchJob.execute((vehicleId, jobId)),
+                projectsRepository: context.read(),
+              )
+                ..fetchJob.execute((vehicleId, jobId))
+                ..loadProjects.execute(),
               child: Builder(
                 builder: (context) =>
                     JobFormScreen(viewModel: context.read<JobFormViewModel>()),
@@ -156,6 +175,78 @@ GoRouter router() => GoRouter(
               child: Builder(
                 builder: (context) => JobDetailScreen(
                   viewModel: context.read<JobDetailViewModel>(),
+                ),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: 'projects',
+          builder: (context, state) {
+            final vehicleId = state.pathParameters['vehicleId']!;
+            return ChangeNotifierProvider(
+              create: (context) => ProjectListViewModel(
+                projectsRepository: context.read(),
+                vehicleId: vehicleId,
+              ),
+              child: Builder(
+                builder: (context) => ProjectListScreen(
+                  viewModel: context.read<ProjectListViewModel>(),
+                ),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: 'projects/form',
+          builder: (context, state) {
+            final vehicleId = state.pathParameters['vehicleId']!;
+            return ChangeNotifierProvider(
+              create: (context) => ProjectFormViewModel(
+                projectsRepository: context.read(),
+                vehicleId: vehicleId,
+              ),
+              child: Builder(
+                builder: (context) => ProjectFormScreen(
+                  viewModel: context.read<ProjectFormViewModel>(),
+                ),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: 'projects/form/:projectId',
+          builder: (context, state) {
+            final vehicleId = state.pathParameters['vehicleId']!;
+            final projectId = state.pathParameters['projectId']!;
+            return ChangeNotifierProvider(
+              create: (context) => ProjectFormViewModel(
+                projectsRepository: context.read(),
+                vehicleId: vehicleId,
+              )..fetchProject.execute(projectId),
+              child: Builder(
+                builder: (context) => ProjectFormScreen(
+                  viewModel: context.read<ProjectFormViewModel>(),
+                ),
+              ),
+            );
+          },
+        ),
+        // Declared after the `form` routes so 'form' isn't captured as an id.
+        GoRoute(
+          path: 'projects/:projectId',
+          builder: (context, state) {
+            final vehicleId = state.pathParameters['vehicleId']!;
+            final projectId = state.pathParameters['projectId']!;
+            return ChangeNotifierProvider(
+              create: (context) => ProjectDetailViewModel(
+                projectsRepository: context.read(),
+                vehicleId: vehicleId,
+                projectId: projectId,
+              ),
+              child: Builder(
+                builder: (context) => ProjectDetailScreen(
+                  viewModel: context.read<ProjectDetailViewModel>(),
                 ),
               ),
             );

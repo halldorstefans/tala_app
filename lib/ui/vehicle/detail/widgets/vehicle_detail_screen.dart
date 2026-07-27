@@ -7,6 +7,8 @@ import 'package:tala_app/routing/routes.dart';
 import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
 import 'package:tala_app/ui/job/list/widgets/job_list_view.dart';
+import 'package:tala_app/ui/project/list/view_models/project_list_viewmodel.dart';
+import 'package:tala_app/ui/project/list/widgets/project_card.dart';
 
 import '../view_models/vehicle_detail_viewmodel.dart';
 import 'package:tala_app/ui/core/themes/dimens.dart';
@@ -16,10 +18,12 @@ class VehicleDetailScreen extends StatefulWidget {
     super.key,
     required this.viewModel,
     required this.jobListViewModel,
+    required this.projectListViewModel,
   });
 
   final VehicleDetailViewModel viewModel;
   final JobListViewModel jobListViewModel;
+  final ProjectListViewModel projectListViewModel;
 
   @override
   State<VehicleDetailScreen> createState() => _VehicleDetailScreenState();
@@ -38,6 +42,25 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   Future<void> _openFullJobHistory(String vehicleId) async {
     await context.push(Routes.jobs(vehicleId));
     if (!mounted) return;
+    widget.jobListViewModel.fetchJobs.execute(vehicleId);
+  }
+
+  Future<void> _openProjects(String vehicleId) async {
+    await context.push(Routes.projects(vehicleId));
+    if (!mounted) return;
+    _refreshAfterProjects(vehicleId);
+  }
+
+  Future<void> _openProjectDetail(String vehicleId, String projectId) async {
+    await context.push(Routes.projectDetails(vehicleId, projectId));
+    if (!mounted) return;
+    _refreshAfterProjects(vehicleId);
+  }
+
+  // A project's status may have changed, and jobs may have been (un)assigned,
+  // so refresh both summaries after returning from a project route.
+  void _refreshAfterProjects(String vehicleId) {
+    widget.projectListViewModel.fetchProjects.execute(vehicleId);
     widget.jobListViewModel.fetchJobs.execute(vehicleId);
   }
 
@@ -341,6 +364,54 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       ),
                       const SizedBox(height: 32),
                       Text(
+                        'Active Projects',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Card(
+                        color: Theme.of(context).cardColor,
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(2),
+                          side: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: _ActiveProjects(
+                            viewModel: widget.projectListViewModel,
+                            onOpen: (projectId) =>
+                                _openProjectDetail(vehicle.id, projectId),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          onPressed: () => _openProjects(vehicle.id),
+                          child: const Text('View Projects'),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
                         'Active Work',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
@@ -446,6 +517,60 @@ class _StatTile extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: onTap != null ? InkWell(onTap: onTap, child: content) : content,
+    );
+  }
+}
+
+/// In-progress projects for the vehicle, rendered inline on the detail screen
+/// (the projects counterpart to the "Active Work" job summary).
+class _ActiveProjects extends StatelessWidget {
+  const _ActiveProjects({required this.viewModel, required this.onOpen});
+
+  final ProjectListViewModel viewModel;
+  final ValueChanged<String> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListenableBuilder(
+      listenable: Listenable.merge([viewModel, viewModel.fetchProjects]),
+      builder: (context, _) {
+        if (viewModel.fetchProjects.running) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.secondary,
+              ),
+            ),
+          );
+        }
+        final active = viewModel.activeProjects;
+        if (active.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: Text(
+                'No active projects.',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+          );
+        }
+        return Column(
+          children: [
+            for (var i = 0; i < active.length; i++) ...[
+              if (i > 0) const SizedBox(height: Dimens.space2),
+              ProjectCard(
+                project: active[i],
+                onTap: () => onOpen(active[i].id),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }

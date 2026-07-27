@@ -98,4 +98,29 @@ void main() {
       expect(result.completionDate, completion);
     });
   });
+
+  group('Job project assignment', () {
+    const job = Job(
+      id: 'j1',
+      vehicleId: 'v1',
+      title: 'Test',
+      projectId: 'p1',
+    );
+
+    test('withProject assigns a project id', () {
+      final assigned = const Job(
+        id: 'j1',
+        vehicleId: 'v1',
+        title: 'Test',
+      ).withProject('p2');
+
+      expect(assigned.projectId, 'p2');
+    });
+
+    test('withProject(null) unassigns — which copyWith cannot express', () {
+      expect(job.withProject(null).projectId, isNull);
+      // copyWith keeps the existing projectId (its `x ?? this.x` idiom).
+      expect(job.copyWith(title: 'Renamed').projectId, 'p1');
+    });
+  });
 }

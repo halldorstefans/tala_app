@@ -4,9 +4,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tala_app/data/repositories/jobs/jobs_repository.dart';
+import 'package:tala_app/data/repositories/projects/projects_repository.dart';
 import 'package:tala_app/data/services/shared_preferences_service.dart';
 
 import '../../../../domain/models/job.dart';
+import '../../../../domain/models/project.dart';
 import '../../../../utils/command.dart';
 import '../../../../utils/photo_compressor.dart';
 import '../../../../utils/result.dart';
@@ -18,23 +20,32 @@ class JobFormViewModel extends ChangeNotifier {
     Job? job,
     PhotoCompressor? compressor,
     SharedPreferencesService? preferences,
+    ProjectsRepository? projectsRepository,
   }) : _jobsRepository = jobsRepository,
        _vehicleId = vehicleId,
        _job = job,
        _compressor = compressor ?? defaultPhotoCompressor,
-       _preferences = preferences {
+       _preferences = preferences,
+       _projectsRepository = projectsRepository {
     addJob = Command1(_addJob);
     updateJob = Command1(_updateJob);
     fetchJob = Command1(_fetchJob);
     loadDefaultCategory = Command0(_loadDefaultCategory);
+    loadProjects = Command0(_loadProjects);
   }
   final _log = Logger('JobFormViewModel');
   final JobsRepository _jobsRepository;
   final PhotoCompressor _compressor;
   final SharedPreferencesService? _preferences;
+  final ProjectsRepository? _projectsRepository;
 
   String? _defaultCategory;
   String? get defaultCategory => _defaultCategory;
+
+  /// Projects this job can be assigned to. Empty when no projects repository
+  /// is wired (e.g. some tests) — the form then hides the project field.
+  final List<Project> _projects = <Project>[];
+  List<Project> get projects => _projects;
 
   int _uploadedCount = 0;
   int _uploadTotal = 0;
@@ -50,6 +61,7 @@ class JobFormViewModel extends ChangeNotifier {
   late final Command1<void, Job> updateJob;
   late final Command1<void, (String vehicleId, String jobId)> fetchJob;
   late final Command0<void> loadDefaultCategory;
+  late final Command0<void> loadProjects;
 
   Future<Result<void>> _loadDefaultCategory() async {
     final prefs = _preferences;
@@ -61,6 +73,23 @@ class JobFormViewModel extends ChangeNotifier {
     } on Exception catch (e) {
       _log.warning('Failed to load default job category', e);
       return Result.error(e);
+    }
+  }
+
+  Future<Result<void>> _loadProjects() async {
+    final repo = _projectsRepository;
+    if (repo == null) return const Result.ok(null);
+    final result = await repo.getProjects(_vehicleId);
+    switch (result) {
+      case Error<List<Project>>():
+        _log.warning('Failed to load projects for form', result.error);
+        return result;
+      case Ok<List<Project>>():
+        _projects
+          ..clear()
+          ..addAll(result.value);
+        notifyListeners();
+        return const Result.ok(null);
     }
   }
 

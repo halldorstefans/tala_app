@@ -8,15 +8,29 @@ import 'package:path/path.dart' as p;
 import 'tables/vehicles.dart';
 import 'tables/jobs.dart';
 import 'tables/job_photos.dart';
+import 'tables/projects.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Vehicles, Jobs, JobPhotos])
+@DriftDatabase(tables: [Vehicles, Jobs, JobPhotos, Projects])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      // v1 -> v2: the projects grouping (Phase 2, Slice 3). A job belongs to
+      // at most one project via the new nullable jobs.projectId column.
+      if (from < 2) {
+        await m.createTable(projects);
+        await m.addColumn(jobs, jobs.projectId);
+      }
+    },
+  );
 
   // Vehicle operations
   Future<List<Vehicle>> getAllVehicles() => select(vehicles).get();
@@ -91,6 +105,60 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deletePhotosForJob(String jobId) =>
       (delete(jobPhotos)..where((t) => t.jobId.equals(jobId))).go();
+
+  // Project operations
+  Future<List<Project>> getProjectsForVehicle(String vehicleId) =>
+      (select(projects)
+            ..where((t) => t.vehicleId.equals(vehicleId))
+            ..orderBy([
+              (t) => OrderingTerm(
+                expression: t.startDate,
+                mode: OrderingMode.desc,
+              ),
+              (t) => OrderingTerm(
+                expression: t.createdAt,
+                mode: OrderingMode.desc,
+              ),
+            ]))
+          .get();
+
+  Future<Project?> getProjectById(String id) =>
+      (select(projects)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertProject(ProjectsCompanion project) =>
+      into(projects).insert(project);
+
+  Future<bool> updateProject(ProjectsCompanion project) =>
+      update(projects).replace(project);
+
+  Future<int> deleteProject(String id) =>
+      (delete(projects)..where((t) => t.id.equals(id))).go();
+
+  /// Jobs assigned to a project, newest first (mirrors [getJobsForVehicle]).
+  Future<List<Job>> getJobsForProject(String projectId) =>
+      (select(jobs)
+            ..where((t) => t.projectId.equals(projectId))
+            ..orderBy([
+              (t) => OrderingTerm(
+                expression: t.startDate,
+                mode: OrderingMode.desc,
+              ),
+              (t) => OrderingTerm(
+                expression: t.createdAt,
+                mode: OrderingMode.desc,
+              ),
+            ]))
+          .get();
+
+  /// Unassigns every job pointing at [projectId] (sets `project_id` to null).
+  /// Used before deleting a project so its jobs survive, unlinked.
+  Future<int> clearProjectFromJobs(String projectId) =>
+      (update(jobs)..where((t) => t.projectId.equals(projectId))).write(
+        JobsCompanion(
+          projectId: const Value(null),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 }
 
 LazyDatabase _openConnection() {

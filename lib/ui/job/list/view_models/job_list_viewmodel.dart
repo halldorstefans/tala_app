@@ -14,6 +14,34 @@ typedef JobStats = ({
   double totalCost,
 });
 
+/// Aggregate status counts + total cost over [jobs]. Shared by the job list
+/// and the project detail view so both compute the summary the same way.
+/// Unknown statuses are counted in none of the buckets but their cost still
+/// contributes to the total.
+JobStats computeJobStats(Iterable<Job> jobs) {
+  var planned = 0;
+  var inProgress = 0;
+  var completed = 0;
+  var totalCost = 0.0;
+  for (final j in jobs) {
+    switch (j.status) {
+      case JobStatus.planned:
+        planned++;
+      case JobStatus.inProgress:
+        inProgress++;
+      case JobStatus.completed:
+        completed++;
+    }
+    if (j.cost != null) totalCost += j.cost!;
+  }
+  return (
+    planned: planned,
+    inProgress: inProgress,
+    completed: completed,
+    totalCost: totalCost,
+  );
+}
+
 class JobListViewModel extends ChangeNotifier {
   JobListViewModel({
     required JobsRepository jobsRepository,
@@ -74,29 +102,7 @@ class JobListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  JobStats get stats {
-    var planned = 0;
-    var inProgress = 0;
-    var completed = 0;
-    var totalCost = 0.0;
-    for (final j in _jobs) {
-      switch (j.status) {
-        case JobStatus.planned:
-          planned++;
-        case JobStatus.inProgress:
-          inProgress++;
-        case JobStatus.completed:
-          completed++;
-      }
-      if (j.cost != null) totalCost += j.cost!;
-    }
-    return (
-      planned: planned,
-      inProgress: inProgress,
-      completed: completed,
-      totalCost: totalCost,
-    );
-  }
+  JobStats get stats => computeJobStats(_jobs);
 
   List<Job> get filteredJobs {
     if (!hasActiveFilters) return _jobs;

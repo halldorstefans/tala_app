@@ -5,6 +5,7 @@ import 'package:tala_app/domain/models/job_status.dart';
 class Job {
   final String id;
   final String vehicleId;
+  final String? projectId;
   final String title;
   final DateTime? startDate;
   final DateTime? completionDate;
@@ -19,6 +20,7 @@ class Job {
     required this.id,
     required this.vehicleId,
     required this.title,
+    this.projectId,
     this.startDate,
     this.completionDate,
     this.odometer,
@@ -46,6 +48,7 @@ class Job {
       id: id ?? this.id,
       vehicleId: vehicleId ?? this.vehicleId,
       title: title ?? this.title,
+      projectId: projectId,
       startDate: startDate ?? this.startDate,
       completionDate: completionDate ?? this.completionDate,
       odometer: odometer ?? this.odometer,
@@ -56,6 +59,26 @@ class Job {
       photoPaths: photoPaths ?? this.photoPaths,
     );
   }
+
+  /// Returns a copy assigned to [projectId], or unassigned when it is null.
+  ///
+  /// Separate from [copyWith] because `copyWith`'s `x ?? this.x` idiom cannot
+  /// express "set back to null" — which is exactly what unassigning a job from
+  /// a project requires.
+  Job withProject(String? projectId) => Job(
+    id: id,
+    vehicleId: vehicleId,
+    title: title,
+    projectId: projectId,
+    startDate: startDate,
+    completionDate: completionDate,
+    odometer: odometer,
+    category: category,
+    status: status,
+    description: description,
+    cost: cost,
+    photoPaths: photoPaths,
+  );
 
   /// Returns a copy of this job with invariants enforced.
   ///
@@ -79,6 +102,7 @@ class Job {
     return Job(
       id: json['id'] as String,
       vehicleId: json['vehicleId'] as String,
+      projectId: json['projectId'] as String?,
       title: json['title'] as String,
       startDate: json['startDate'] != null
           ? DateTime.parse(json['startDate'] as String)
@@ -100,6 +124,7 @@ class Job {
     return db.JobsCompanion(
       id: Value(id),
       vehicleId: Value(vehicleId),
+      projectId: Value(projectId),
       title: Value(title),
       startDate: Value(startDate),
       completionDate: Value(completionDate),
@@ -116,6 +141,7 @@ class Job {
     return Job(
       id: data.id,
       vehicleId: data.vehicleId,
+      projectId: data.projectId,
       title: data.title,
       startDate: data.startDate,
       completionDate: data.completionDate,
