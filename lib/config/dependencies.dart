@@ -6,6 +6,8 @@ import '../data/repositories/auth/auth_repository_local.dart';
 import '../data/repositories/auth/auth_repository.dart';
 import '../data/repositories/jobs/jobs_repository_local.dart';
 import '../data/repositories/jobs/jobs_repository.dart';
+import '../data/repositories/projects/projects_repository_local.dart';
+import '../data/repositories/projects/projects_repository.dart';
 import '../data/repositories/vehicle/vehicle_repository_local.dart';
 import '../data/repositories/vehicle/vehicle_repository.dart';
 import '../data/services/shared_preferences_service.dart';
@@ -31,6 +33,11 @@ List<SingleChildWidget> get providersLocal {
       create: (context) =>
           JobsRepositoryLocal(database: context.read()) as JobsRepository,
     ),
+    Provider(
+      create: (context) =>
+          ProjectsRepositoryLocal(database: context.read())
+              as ProjectsRepository,
+    ),
   ];
 }
 
@@ -46,6 +53,9 @@ List<SingleChildWidget> get providersRemote {
     ),
     Provider(
       create: (context) => throw UnimplementedError('Use providersLocal or implement JobsRepositoryRemote for sync'),
+    ),
+    Provider(
+      create: (context) => throw UnimplementedError('Use providersLocal or implement ProjectsRepositoryRemote for sync'),
     ),
   ];
 }

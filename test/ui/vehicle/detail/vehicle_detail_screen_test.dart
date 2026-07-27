@@ -3,12 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tala_app/domain/models/job.dart';
 import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/domain/models/vehicle.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
+import 'package:tala_app/ui/project/list/view_models/project_list_viewmodel.dart';
 import 'package:tala_app/ui/vehicle/detail/view_models/vehicle_detail_viewmodel.dart';
 import 'package:tala_app/ui/vehicle/detail/widgets/vehicle_detail_screen.dart';
 
 import '../../../helpers/fake_jobs_repository.dart';
+import '../../../helpers/fake_projects_repository.dart';
 import '../../../helpers/fake_vehicle_repository.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: child);
@@ -20,11 +23,14 @@ Job _job(String id, String title, String status) => Job(
   status: status,
 );
 
-/// Builds the screen with both fetches kicked off (fire-and-forget). The
-/// fake repos resolve on microtasks, so a `pump()` in the test drains them
-/// and rebuilds to content — do not hand-settle with timers here, as the
-/// test's fake clock only advances on pump.
-VehicleDetailScreen _screen(List<Job> jobs) {
+/// Builds the screen with fetches kicked off (fire-and-forget). The fake repos
+/// resolve on microtasks, so a `pump()` in the test drains them and rebuilds to
+/// content — do not hand-settle with timers here, as the test's fake clock only
+/// advances on pump.
+VehicleDetailScreen _screen(
+  List<Job> jobs, {
+  List<Project> projects = const [],
+}) {
   final vehicleRepo = FakeVehicleRepository()
     ..seededVehicle = const Vehicle(
       id: 'v1',
@@ -41,7 +47,20 @@ VehicleDetailScreen _screen(List<Job> jobs) {
   }
   final jobListVm = JobListViewModel(jobsRepository: jobsRepo, vehicleId: 'v1');
 
-  return VehicleDetailScreen(viewModel: detailVm, jobListViewModel: jobListVm);
+  final projectsRepo = FakeProjectsRepository();
+  for (final p in projects) {
+    projectsRepo.seed(p);
+  }
+  final projectListVm = ProjectListViewModel(
+    projectsRepository: projectsRepo,
+    vehicleId: 'v1',
+  );
+
+  return VehicleDetailScreen(
+    viewModel: detailVm,
+    jobListViewModel: jobListVm,
+    projectListViewModel: projectListVm,
+  );
 }
 
 void main() {
@@ -89,6 +108,61 @@ void main() {
       await tester.pump();
 
       expect(find.text('No active work.'), findsOneWidget);
+    });
+  });
+
+  group('VehicleDetailScreen Active Projects section', () {
+    testWidgets('shows only in-progress projects', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          _screen(
+            const [],
+            projects: const [
+              Project(
+                id: 'p1',
+                vehicleId: 'v1',
+                title: 'Electrical rewire',
+                status: JobStatus.inProgress,
+              ),
+              Project(
+                id: 'p2',
+                vehicleId: 'v1',
+                title: 'Future paint',
+                status: JobStatus.planned,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Active Projects'), findsOneWidget);
+      expect(find.text('Electrical rewire'), findsOneWidget);
+      expect(find.text('Future paint'), findsNothing);
+    });
+
+    testWidgets('shows the empty label when no project is in progress',
+        (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          _screen(
+            const [],
+            projects: const [
+              Project(
+                id: 'p1',
+                vehicleId: 'v1',
+                title: 'Future paint',
+                status: JobStatus.planned,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('No active projects.'), findsOneWidget);
     });
   });
 }

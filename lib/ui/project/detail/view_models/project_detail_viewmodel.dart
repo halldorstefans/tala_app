@@ -1,0 +1,76 @@
+import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
+
+import '../../../../data/repositories/projects/projects_repository.dart';
+import '../../../../domain/models/job.dart';
+import '../../../../domain/models/project.dart';
+import '../../../../utils/command.dart';
+import '../../../../utils/result.dart';
+import '../../../job/list/view_models/job_list_viewmodel.dart' show JobStats, computeJobStats;
+
+class ProjectDetailViewModel extends ChangeNotifier {
+  ProjectDetailViewModel({
+    required ProjectsRepository projectsRepository,
+    required String vehicleId,
+    required String projectId,
+  }) : _projectsRepository = projectsRepository,
+       _vehicleId = vehicleId,
+       _projectId = projectId {
+    load = Command0(_load)..execute();
+    delete = Command0(_delete);
+  }
+
+  final _log = Logger('ProjectDetailViewModel');
+  final ProjectsRepository _projectsRepository;
+
+  final String _vehicleId;
+  String get vehicleId => _vehicleId;
+  final String _projectId;
+  String get projectId => _projectId;
+
+  Project? _project;
+  Project? get project => _project;
+
+  final List<Job> _jobs = <Job>[];
+  List<Job> get jobs => _jobs;
+
+  /// Status counts + total cost for this project's jobs. Same shape and rules
+  /// as the job list's stats (parts fold in later via Slice 5).
+  JobStats get stats => computeJobStats(_jobs);
+
+  late final Command0<void> load;
+  late final Command0<void> delete;
+
+  Future<Result<void>> _load() async {
+    final projectResult = await _projectsRepository.getProject(_projectId);
+    switch (projectResult) {
+      case Error<Project>():
+        _log.severe('Error fetching project: ${projectResult.error}');
+        return projectResult;
+      case Ok<Project>():
+        _project = projectResult.value;
+    }
+
+    final jobsResult = await _projectsRepository.getJobsForProject(_projectId);
+    switch (jobsResult) {
+      case Error<List<Job>>():
+        _log.severe('Error fetching project jobs: ${jobsResult.error}');
+        return jobsResult;
+      case Ok<List<Job>>():
+        _jobs
+          ..clear()
+          ..addAll(jobsResult.value);
+    }
+
+    notifyListeners();
+    return const Result.ok(null);
+  }
+
+  Future<Result<void>> _delete() async {
+    final result = await _projectsRepository.deleteProject(_projectId);
+    if (result is Error<void>) {
+      _log.severe('Error deleting project: ${result.error}');
+    }
+    return result;
+  }
+}

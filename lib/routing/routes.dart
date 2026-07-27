@@ -18,5 +18,15 @@ abstract final class Routes {
   static String jobFormWithId(String vehicleId, String? jobId) =>
       jobId != null ? '${jobForm(vehicleId)}/$jobId' : jobForm(vehicleId);
 
+  static String projects(String vehicleId) => '/vehicle/$vehicleId/projects';
+  static String projectDetails(String vehicleId, String projectId) =>
+      '/vehicle/$vehicleId/projects/$projectId';
+  static String projectForm(String vehicleId) =>
+      '/vehicle/$vehicleId/projects/form';
+  static String projectFormWithId(String vehicleId, String? projectId) =>
+      projectId != null
+      ? '${projectForm(vehicleId)}/$projectId'
+      : projectForm(vehicleId);
+
   static const profile = '/profile';
 }

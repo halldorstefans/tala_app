@@ -7,6 +7,7 @@ import 'package:tala_app/routing/routes.dart';
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
 import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/project.dart';
 import '../../../../utils/result.dart';
 import '../view_models/job_form_view_model.dart';
 
@@ -24,14 +25,16 @@ class JobFormScreen extends StatelessWidget {
         title: Text(viewModel.job == null ? 'Add Job' : 'Edit Job'),
       ),
       body: ListenableBuilder(
-        // Rebuild when either data-load command changes state.
+        // Rebuild when any data-load command changes state.
         listenable: Listenable.merge([
           viewModel.fetchJob,
           viewModel.loadDefaultCategory,
+          viewModel.loadProjects,
         ]),
         builder: (context, _) {
           final loading = viewModel.fetchJob.running ||
-              viewModel.loadDefaultCategory.running;
+              viewModel.loadDefaultCategory.running ||
+              viewModel.loadProjects.running;
           if (loading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -49,6 +52,7 @@ class JobFormScreen extends StatelessWidget {
           return _JobFormBody(
             initial: viewModel.job,
             defaultCategory: viewModel.defaultCategory,
+            projects: viewModel.projects,
             viewModel: viewModel,
           );
         },
@@ -61,11 +65,13 @@ class _JobFormBody extends StatefulWidget {
   const _JobFormBody({
     required this.initial,
     required this.defaultCategory,
+    required this.projects,
     required this.viewModel,
   });
 
   final Job? initial;
   final String? defaultCategory;
+  final List<Project> projects;
   final JobFormViewModel viewModel;
 
   @override
@@ -88,6 +94,7 @@ class _JobFormBodyState extends State<_JobFormBody> {
   String? _status;
   String? _category;
   String? _categoryDropdownValue;
+  String? _projectId;
   final List<File> _selectedPhotos = [];
 
   @override
@@ -111,6 +118,7 @@ class _JobFormBodyState extends State<_JobFormBody> {
     _syncCategoryControls();
 
     _status = j?.status ?? JobStatus.planned;
+    _projectId = j?.projectId;
 
     // Start date is intentionally NOT defaulted — a blank field signals
     // "not scheduled yet" and supports the todo-list use case.
@@ -226,6 +234,7 @@ class _JobFormBodyState extends State<_JobFormBody> {
     final job = Job(
       id: widget.initial?.id ?? '',
       vehicleId: widget.viewModel.vehicleId,
+      projectId: _projectId,
       title: _titleController.text,
       odometer: int.tryParse(_odometerController.text),
       startDate: _startDate,
@@ -347,6 +356,32 @@ class _JobFormBodyState extends State<_JobFormBody> {
                   onChanged: (v) => setState(() => _status = v),
                 ),
                 const SizedBox(height: 16),
+
+                if (widget.projects.isNotEmpty) ...[
+                  DropdownButtonFormField<String?>(
+                    // Guard against a stale id not present in the list.
+                    initialValue:
+                        widget.projects.any((p) => p.id == _projectId)
+                        ? _projectId
+                        : null,
+                    decoration: const InputDecoration(
+                      labelText: 'Project (optional)',
+                    ),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('None'),
+                      ),
+                      for (final p in widget.projects)
+                        DropdownMenuItem<String?>(
+                          value: p.id,
+                          child: Text(p.title),
+                        ),
+                    ],
+                    onChanged: (v) => setState(() => _projectId = v),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 TextFormField(
                   controller: _descriptionController,
