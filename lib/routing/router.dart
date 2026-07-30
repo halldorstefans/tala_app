@@ -15,6 +15,8 @@ import '../ui/project/form/view_models/project_form_view_model.dart';
 import '../ui/project/form/widgets/project_form_screen.dart';
 import '../ui/project/list/view_models/project_list_viewmodel.dart';
 import '../ui/project/list/widgets/project_list_screen.dart';
+import '../ui/backup/view_models/backup_viewmodel.dart';
+import '../ui/backup/widgets/backup_screen.dart';
 import '../ui/home/view_models/home_viewmodel.dart';
 import '../ui/home/widgets/home_screen.dart';
 import '../ui/vehicle/detail/view_models/vehicle_detail_viewmodel.dart';
@@ -34,6 +36,16 @@ GoRouter router() => GoRouter(
         child: Builder(
           builder: (context) =>
               HomeScreen(viewModel: context.read<HomeViewModel>()),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: Routes.backup,
+      builder: (context, state) => ChangeNotifierProvider(
+        create: (context) => BackupViewModel(backupService: context.read()),
+        child: Builder(
+          builder: (context) =>
+              BackupScreen(viewModel: context.read<BackupViewModel>()),
         ),
       ),
     ),

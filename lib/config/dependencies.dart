@@ -10,6 +10,8 @@ import '../data/repositories/projects/projects_repository_local.dart';
 import '../data/repositories/projects/projects_repository.dart';
 import '../data/repositories/vehicle/vehicle_repository_local.dart';
 import '../data/repositories/vehicle/vehicle_repository.dart';
+import '../data/services/backup/backup_service.dart';
+import '../data/services/backup/backup_service_local.dart';
 import '../data/services/shared_preferences_service.dart';
 import '../data/services/tala_api/api_client.dart';
 
@@ -37,6 +39,10 @@ List<SingleChildWidget> get providersLocal {
       create: (context) =>
           ProjectsRepositoryLocal(database: context.read())
               as ProjectsRepository,
+    ),
+    Provider(
+      create: (context) =>
+          BackupServiceLocal(database: context.read()) as BackupService,
     ),
   ];
 }

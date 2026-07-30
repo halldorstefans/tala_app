@@ -56,6 +56,14 @@ dependencies:
 
   # Typography
   google_fonts: ^6.2.1
+  # <13.1 keeps win32 at ^5 (13.1+ forces win32 ^6, which conflicts with the
+  # file-selector Windows plugin). Same SharePlus.instance/ShareParams API.
+  share_plus: ">=12.0.0 <13.1.0"
+  archive: ^4.0.9
+  # file_selector (Flutter-team) over file_picker: the latter pins its own
+  # legacy Kotlin Gradle Plugin, which AGP 9 / built-in Kotlin refuses to
+  # apply, so its Android plugin class never compiles.
+  file_selector: ^1.0.0
 
 dev_dependencies:
   flutter_test:
