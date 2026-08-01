@@ -29,4 +29,6 @@ abstract final class Routes {
       : projectForm(vehicleId);
 
   static const profile = '/profile';
+
+  static const backup = '/backup';
 }

@@ -96,6 +96,13 @@ class _HomeScreenState extends State<HomeScreen> {
           height: 36,
           fit: BoxFit.contain,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.backup_outlined),
+            tooltip: 'Backup & restore',
+            onPressed: () => context.push(Routes.backup),
+          ),
+        ],
       ),
       body: ListenableBuilder(
         listenable: widget.viewModel.fetchVehicles,
