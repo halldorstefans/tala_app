@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/domain/models/job.dart';
 import 'package:tala_app/domain/models/job_category.dart';
+import 'package:tala_app/domain/models/job_part.dart';
 import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/part.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
 
 import '../../../helpers/fake_jobs_repository.dart';
+import '../../../helpers/fake_parts_repository.dart';
 
 Job _job(
   String id, {
@@ -275,6 +278,43 @@ void main() {
       vm.setStatusFilter({JobStatus.planned});
 
       expect(vm.filteredJobs.map((j) => j.id), ['first', 'third']);
+    });
+  });
+
+  group('JobListViewModel.totalCostWithParts', () {
+    test('folds the vehicle parts total into the jobs total', () async {
+      final jobsRepo = FakeJobsRepository()
+        ..seed(
+          const Job(id: 'a', vehicleId: 'v1', title: 'a', cost: 100),
+        );
+      final partsRepo = FakePartsRepository()
+        ..seedPart(const Part(id: 'p1', name: 'Filter'))
+        ..seedJobPart(
+          const JobPart(
+            id: 'jp1',
+            jobId: 'a',
+            partId: 'p1',
+            unitCost: 10,
+            quantity: 3,
+          ),
+        );
+      final vm = JobListViewModel(
+        jobsRepository: jobsRepo,
+        vehicleId: 'v1',
+        partsRepository: partsRepo,
+      );
+      await _settle(vm);
+
+      // 100 (other) + 30 (parts).
+      expect(vm.totalCostWithParts, closeTo(130, 1e-9));
+    });
+
+    test('equals the jobs total when no parts repository is wired', () async {
+      final vm = await _vmWithJobs([
+        const Job(id: 'a', vehicleId: 'v1', title: 'a', cost: 50),
+      ]);
+
+      expect(vm.totalCostWithParts, closeTo(50, 1e-9));
     });
   });
 

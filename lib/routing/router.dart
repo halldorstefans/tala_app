@@ -15,6 +15,12 @@ import '../ui/project/form/view_models/project_form_view_model.dart';
 import '../ui/project/form/widgets/project_form_screen.dart';
 import '../ui/project/list/view_models/project_list_viewmodel.dart';
 import '../ui/project/list/widgets/project_list_screen.dart';
+import '../ui/part/detail/view_models/part_detail_viewmodel.dart';
+import '../ui/part/detail/widgets/part_detail_screen.dart';
+import '../ui/part/form/view_models/part_form_view_model.dart';
+import '../ui/part/form/widgets/part_form_screen.dart';
+import '../ui/part/catalogue/view_models/parts_catalogue_viewmodel.dart';
+import '../ui/part/catalogue/widgets/parts_catalogue_screen.dart';
 import '../ui/backup/view_models/backup_viewmodel.dart';
 import '../ui/backup/widgets/backup_screen.dart';
 import '../ui/home/view_models/home_viewmodel.dart';
@@ -48,6 +54,52 @@ GoRouter router() => GoRouter(
               BackupScreen(viewModel: context.read<BackupViewModel>()),
         ),
       ),
+    ),
+    GoRoute(
+      path: Routes.parts,
+      builder: (context, state) => ChangeNotifierProvider(
+        create: (context) =>
+            PartsCatalogueViewModel(partsRepository: context.read()),
+        child: Builder(
+          builder: (context) => PartsCatalogueScreen(
+            viewModel: context.read<PartsCatalogueViewModel>(),
+          ),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/part/:partId',
+      builder: (context, state) {
+        final partId = state.pathParameters['partId']!;
+        return ChangeNotifierProvider(
+          create: (context) =>
+              PartDetailViewModel(partsRepository: context.read())
+                ..load.execute(partId),
+          child: Builder(
+            builder: (context) => PartDetailScreen(
+              viewModel: context.read<PartDetailViewModel>(),
+            ),
+          ),
+        );
+      },
+      routes: [
+        GoRoute(
+          path: 'edit',
+          builder: (context, state) {
+            final partId = state.pathParameters['partId']!;
+            return ChangeNotifierProvider(
+              create: (context) =>
+                  PartFormViewModel(partsRepository: context.read())
+                    ..fetchPart.execute(partId),
+              child: Builder(
+                builder: (context) => PartFormScreen(
+                  viewModel: context.read<PartFormViewModel>(),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     ),
     GoRoute(
       path: Routes.vehicleForm,
@@ -92,6 +144,7 @@ GoRouter router() => GoRouter(
               create: (context) => JobListViewModel(
                 jobsRepository: context.read(),
                 vehicleId: vehicleId,
+                partsRepository: context.read(),
               ),
             ),
             ChangeNotifierProvider(
@@ -182,8 +235,10 @@ GoRouter router() => GoRouter(
             final jobId = state.pathParameters['jobId']!;
             return ChangeNotifierProvider(
               create: (context) =>
-                  JobDetailViewModel(jobsRepository: context.read())
-                    ..fetchJob.execute((vehicleId, jobId)),
+                  JobDetailViewModel(
+                    jobsRepository: context.read(),
+                    partsRepository: context.read(),
+                  )..fetchJob.execute((vehicleId, jobId)),
               child: Builder(
                 builder: (context) => JobDetailScreen(
                   viewModel: context.read<JobDetailViewModel>(),
@@ -253,6 +308,7 @@ GoRouter router() => GoRouter(
             return ChangeNotifierProvider(
               create: (context) => ProjectDetailViewModel(
                 projectsRepository: context.read(),
+                partsRepository: context.read(),
                 vehicleId: vehicleId,
                 projectId: projectId,
               ),

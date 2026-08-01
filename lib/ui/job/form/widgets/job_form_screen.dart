@@ -400,7 +400,8 @@ class _JobFormBodyState extends State<_JobFormBody> {
                 TextFormField(
                   controller: _costController,
                   decoration: const InputDecoration(
-                    labelText: 'Cost',
+                    labelText: 'Other cost',
+                    helperText: 'Non-part spend (machine shop, paint…)',
                     prefixText: '€ ',
                   ),
                   keyboardType: const TextInputType.numberWithOptions(

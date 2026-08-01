@@ -2444,6 +2444,1336 @@ class JobPhotosCompanion extends UpdateCompanion<JobPhoto> {
   }
 }
 
+class $PartsTable extends Parts with TableInfo<$PartsTable, Part> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PartsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _partNumberMeta = const VerificationMeta(
+    'partNumber',
+  );
+  @override
+  late final GeneratedColumn<String> partNumber = GeneratedColumn<String>(
+    'part_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
+  @override
+  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
+    'brand',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _supplierMeta = const VerificationMeta(
+    'supplier',
+  );
+  @override
+  late final GeneratedColumn<String> supplier = GeneratedColumn<String>(
+    'supplier',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    partNumber,
+    brand,
+    supplier,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'parts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Part> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('part_number')) {
+      context.handle(
+        _partNumberMeta,
+        partNumber.isAcceptableOrUnknown(data['part_number']!, _partNumberMeta),
+      );
+    }
+    if (data.containsKey('brand')) {
+      context.handle(
+        _brandMeta,
+        brand.isAcceptableOrUnknown(data['brand']!, _brandMeta),
+      );
+    }
+    if (data.containsKey('supplier')) {
+      context.handle(
+        _supplierMeta,
+        supplier.isAcceptableOrUnknown(data['supplier']!, _supplierMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Part map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Part(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      partNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_number'],
+      ),
+      brand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}brand'],
+      ),
+      supplier: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PartsTable createAlias(String alias) {
+    return $PartsTable(attachedDatabase, alias);
+  }
+}
+
+class Part extends DataClass implements Insertable<Part> {
+  final String id;
+  final String name;
+  final String? partNumber;
+  final String? brand;
+  final String? supplier;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Part({
+    required this.id,
+    required this.name,
+    this.partNumber,
+    this.brand,
+    this.supplier,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || partNumber != null) {
+      map['part_number'] = Variable<String>(partNumber);
+    }
+    if (!nullToAbsent || brand != null) {
+      map['brand'] = Variable<String>(brand);
+    }
+    if (!nullToAbsent || supplier != null) {
+      map['supplier'] = Variable<String>(supplier);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PartsCompanion toCompanion(bool nullToAbsent) {
+    return PartsCompanion(
+      id: Value(id),
+      name: Value(name),
+      partNumber: partNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(partNumber),
+      brand: brand == null && nullToAbsent
+          ? const Value.absent()
+          : Value(brand),
+      supplier: supplier == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplier),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Part.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Part(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      partNumber: serializer.fromJson<String?>(json['partNumber']),
+      brand: serializer.fromJson<String?>(json['brand']),
+      supplier: serializer.fromJson<String?>(json['supplier']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'partNumber': serializer.toJson<String?>(partNumber),
+      'brand': serializer.toJson<String?>(brand),
+      'supplier': serializer.toJson<String?>(supplier),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Part copyWith({
+    String? id,
+    String? name,
+    Value<String?> partNumber = const Value.absent(),
+    Value<String?> brand = const Value.absent(),
+    Value<String?> supplier = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Part(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    partNumber: partNumber.present ? partNumber.value : this.partNumber,
+    brand: brand.present ? brand.value : this.brand,
+    supplier: supplier.present ? supplier.value : this.supplier,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Part copyWithCompanion(PartsCompanion data) {
+    return Part(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      partNumber: data.partNumber.present
+          ? data.partNumber.value
+          : this.partNumber,
+      brand: data.brand.present ? data.brand.value : this.brand,
+      supplier: data.supplier.present ? data.supplier.value : this.supplier,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Part(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('partNumber: $partNumber, ')
+          ..write('brand: $brand, ')
+          ..write('supplier: $supplier, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    partNumber,
+    brand,
+    supplier,
+    notes,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Part &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.partNumber == this.partNumber &&
+          other.brand == this.brand &&
+          other.supplier == this.supplier &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PartsCompanion extends UpdateCompanion<Part> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> partNumber;
+  final Value<String?> brand;
+  final Value<String?> supplier;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const PartsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.partNumber = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.supplier = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PartsCompanion.insert({
+    required String id,
+    required String name,
+    this.partNumber = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.supplier = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
+  static Insertable<Part> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? partNumber,
+    Expression<String>? brand,
+    Expression<String>? supplier,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (partNumber != null) 'part_number': partNumber,
+      if (brand != null) 'brand': brand,
+      if (supplier != null) 'supplier': supplier,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PartsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String?>? partNumber,
+    Value<String?>? brand,
+    Value<String?>? supplier,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return PartsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      partNumber: partNumber ?? this.partNumber,
+      brand: brand ?? this.brand,
+      supplier: supplier ?? this.supplier,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (partNumber.present) {
+      map['part_number'] = Variable<String>(partNumber.value);
+    }
+    if (brand.present) {
+      map['brand'] = Variable<String>(brand.value);
+    }
+    if (supplier.present) {
+      map['supplier'] = Variable<String>(supplier.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PartsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('partNumber: $partNumber, ')
+          ..write('brand: $brand, ')
+          ..write('supplier: $supplier, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $JobPartsTable extends JobParts with TableInfo<$JobPartsTable, JobPart> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $JobPartsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _jobIdMeta = const VerificationMeta('jobId');
+  @override
+  late final GeneratedColumn<String> jobId = GeneratedColumn<String>(
+    'job_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES jobs (id)',
+    ),
+  );
+  static const VerificationMeta _partIdMeta = const VerificationMeta('partId');
+  @override
+  late final GeneratedColumn<String> partId = GeneratedColumn<String>(
+    'part_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES parts (id)',
+    ),
+  );
+  static const VerificationMeta _unitCostMeta = const VerificationMeta(
+    'unitCost',
+  );
+  @override
+  late final GeneratedColumn<double> unitCost = GeneratedColumn<double>(
+    'unit_cost',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<int> quantity = GeneratedColumn<int>(
+    'quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _purchaseDateMeta = const VerificationMeta(
+    'purchaseDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> purchaseDate = GeneratedColumn<DateTime>(
+    'purchase_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    jobId,
+    partId,
+    unitCost,
+    quantity,
+    purchaseDate,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'job_parts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<JobPart> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('job_id')) {
+      context.handle(
+        _jobIdMeta,
+        jobId.isAcceptableOrUnknown(data['job_id']!, _jobIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_jobIdMeta);
+    }
+    if (data.containsKey('part_id')) {
+      context.handle(
+        _partIdMeta,
+        partId.isAcceptableOrUnknown(data['part_id']!, _partIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_partIdMeta);
+    }
+    if (data.containsKey('unit_cost')) {
+      context.handle(
+        _unitCostMeta,
+        unitCost.isAcceptableOrUnknown(data['unit_cost']!, _unitCostMeta),
+      );
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    }
+    if (data.containsKey('purchase_date')) {
+      context.handle(
+        _purchaseDateMeta,
+        purchaseDate.isAcceptableOrUnknown(
+          data['purchase_date']!,
+          _purchaseDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  JobPart map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return JobPart(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      jobId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}job_id'],
+      )!,
+      partId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_id'],
+      )!,
+      unitCost: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}unit_cost'],
+      ),
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quantity'],
+      )!,
+      purchaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}purchase_date'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $JobPartsTable createAlias(String alias) {
+    return $JobPartsTable(attachedDatabase, alias);
+  }
+}
+
+class JobPart extends DataClass implements Insertable<JobPart> {
+  final String id;
+  final String jobId;
+  final String partId;
+  final double? unitCost;
+  final int quantity;
+  final DateTime? purchaseDate;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const JobPart({
+    required this.id,
+    required this.jobId,
+    required this.partId,
+    this.unitCost,
+    required this.quantity,
+    this.purchaseDate,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['job_id'] = Variable<String>(jobId);
+    map['part_id'] = Variable<String>(partId);
+    if (!nullToAbsent || unitCost != null) {
+      map['unit_cost'] = Variable<double>(unitCost);
+    }
+    map['quantity'] = Variable<int>(quantity);
+    if (!nullToAbsent || purchaseDate != null) {
+      map['purchase_date'] = Variable<DateTime>(purchaseDate);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  JobPartsCompanion toCompanion(bool nullToAbsent) {
+    return JobPartsCompanion(
+      id: Value(id),
+      jobId: Value(jobId),
+      partId: Value(partId),
+      unitCost: unitCost == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unitCost),
+      quantity: Value(quantity),
+      purchaseDate: purchaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(purchaseDate),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory JobPart.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return JobPart(
+      id: serializer.fromJson<String>(json['id']),
+      jobId: serializer.fromJson<String>(json['jobId']),
+      partId: serializer.fromJson<String>(json['partId']),
+      unitCost: serializer.fromJson<double?>(json['unitCost']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+      purchaseDate: serializer.fromJson<DateTime?>(json['purchaseDate']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'jobId': serializer.toJson<String>(jobId),
+      'partId': serializer.toJson<String>(partId),
+      'unitCost': serializer.toJson<double?>(unitCost),
+      'quantity': serializer.toJson<int>(quantity),
+      'purchaseDate': serializer.toJson<DateTime?>(purchaseDate),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  JobPart copyWith({
+    String? id,
+    String? jobId,
+    String? partId,
+    Value<double?> unitCost = const Value.absent(),
+    int? quantity,
+    Value<DateTime?> purchaseDate = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => JobPart(
+    id: id ?? this.id,
+    jobId: jobId ?? this.jobId,
+    partId: partId ?? this.partId,
+    unitCost: unitCost.present ? unitCost.value : this.unitCost,
+    quantity: quantity ?? this.quantity,
+    purchaseDate: purchaseDate.present ? purchaseDate.value : this.purchaseDate,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  JobPart copyWithCompanion(JobPartsCompanion data) {
+    return JobPart(
+      id: data.id.present ? data.id.value : this.id,
+      jobId: data.jobId.present ? data.jobId.value : this.jobId,
+      partId: data.partId.present ? data.partId.value : this.partId,
+      unitCost: data.unitCost.present ? data.unitCost.value : this.unitCost,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      purchaseDate: data.purchaseDate.present
+          ? data.purchaseDate.value
+          : this.purchaseDate,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('JobPart(')
+          ..write('id: $id, ')
+          ..write('jobId: $jobId, ')
+          ..write('partId: $partId, ')
+          ..write('unitCost: $unitCost, ')
+          ..write('quantity: $quantity, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    jobId,
+    partId,
+    unitCost,
+    quantity,
+    purchaseDate,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is JobPart &&
+          other.id == this.id &&
+          other.jobId == this.jobId &&
+          other.partId == this.partId &&
+          other.unitCost == this.unitCost &&
+          other.quantity == this.quantity &&
+          other.purchaseDate == this.purchaseDate &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class JobPartsCompanion extends UpdateCompanion<JobPart> {
+  final Value<String> id;
+  final Value<String> jobId;
+  final Value<String> partId;
+  final Value<double?> unitCost;
+  final Value<int> quantity;
+  final Value<DateTime?> purchaseDate;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const JobPartsCompanion({
+    this.id = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.partId = const Value.absent(),
+    this.unitCost = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  JobPartsCompanion.insert({
+    required String id,
+    required String jobId,
+    required String partId,
+    this.unitCost = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       jobId = Value(jobId),
+       partId = Value(partId);
+  static Insertable<JobPart> custom({
+    Expression<String>? id,
+    Expression<String>? jobId,
+    Expression<String>? partId,
+    Expression<double>? unitCost,
+    Expression<int>? quantity,
+    Expression<DateTime>? purchaseDate,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (jobId != null) 'job_id': jobId,
+      if (partId != null) 'part_id': partId,
+      if (unitCost != null) 'unit_cost': unitCost,
+      if (quantity != null) 'quantity': quantity,
+      if (purchaseDate != null) 'purchase_date': purchaseDate,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  JobPartsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? jobId,
+    Value<String>? partId,
+    Value<double?>? unitCost,
+    Value<int>? quantity,
+    Value<DateTime?>? purchaseDate,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return JobPartsCompanion(
+      id: id ?? this.id,
+      jobId: jobId ?? this.jobId,
+      partId: partId ?? this.partId,
+      unitCost: unitCost ?? this.unitCost,
+      quantity: quantity ?? this.quantity,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (jobId.present) {
+      map['job_id'] = Variable<String>(jobId.value);
+    }
+    if (partId.present) {
+      map['part_id'] = Variable<String>(partId.value);
+    }
+    if (unitCost.present) {
+      map['unit_cost'] = Variable<double>(unitCost.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (purchaseDate.present) {
+      map['purchase_date'] = Variable<DateTime>(purchaseDate.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('JobPartsCompanion(')
+          ..write('id: $id, ')
+          ..write('jobId: $jobId, ')
+          ..write('partId: $partId, ')
+          ..write('unitCost: $unitCost, ')
+          ..write('quantity: $quantity, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PartPhotosTable extends PartPhotos
+    with TableInfo<$PartPhotosTable, PartPhoto> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PartPhotosTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _partIdMeta = const VerificationMeta('partId');
+  @override
+  late final GeneratedColumn<String> partId = GeneratedColumn<String>(
+    'part_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES parts (id)',
+    ),
+  );
+  static const VerificationMeta _photoPathMeta = const VerificationMeta(
+    'photoPath',
+  );
+  @override
+  late final GeneratedColumn<String> photoPath = GeneratedColumn<String>(
+    'photo_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, partId, photoPath, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'part_photos';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PartPhoto> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('part_id')) {
+      context.handle(
+        _partIdMeta,
+        partId.isAcceptableOrUnknown(data['part_id']!, _partIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_partIdMeta);
+    }
+    if (data.containsKey('photo_path')) {
+      context.handle(
+        _photoPathMeta,
+        photoPath.isAcceptableOrUnknown(data['photo_path']!, _photoPathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_photoPathMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PartPhoto map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PartPhoto(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      partId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_id'],
+      )!,
+      photoPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_path'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PartPhotosTable createAlias(String alias) {
+    return $PartPhotosTable(attachedDatabase, alias);
+  }
+}
+
+class PartPhoto extends DataClass implements Insertable<PartPhoto> {
+  final String id;
+  final String partId;
+  final String photoPath;
+  final DateTime createdAt;
+  const PartPhoto({
+    required this.id,
+    required this.partId,
+    required this.photoPath,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['part_id'] = Variable<String>(partId);
+    map['photo_path'] = Variable<String>(photoPath);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  PartPhotosCompanion toCompanion(bool nullToAbsent) {
+    return PartPhotosCompanion(
+      id: Value(id),
+      partId: Value(partId),
+      photoPath: Value(photoPath),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory PartPhoto.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PartPhoto(
+      id: serializer.fromJson<String>(json['id']),
+      partId: serializer.fromJson<String>(json['partId']),
+      photoPath: serializer.fromJson<String>(json['photoPath']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'partId': serializer.toJson<String>(partId),
+      'photoPath': serializer.toJson<String>(photoPath),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  PartPhoto copyWith({
+    String? id,
+    String? partId,
+    String? photoPath,
+    DateTime? createdAt,
+  }) => PartPhoto(
+    id: id ?? this.id,
+    partId: partId ?? this.partId,
+    photoPath: photoPath ?? this.photoPath,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  PartPhoto copyWithCompanion(PartPhotosCompanion data) {
+    return PartPhoto(
+      id: data.id.present ? data.id.value : this.id,
+      partId: data.partId.present ? data.partId.value : this.partId,
+      photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PartPhoto(')
+          ..write('id: $id, ')
+          ..write('partId: $partId, ')
+          ..write('photoPath: $photoPath, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, partId, photoPath, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PartPhoto &&
+          other.id == this.id &&
+          other.partId == this.partId &&
+          other.photoPath == this.photoPath &&
+          other.createdAt == this.createdAt);
+}
+
+class PartPhotosCompanion extends UpdateCompanion<PartPhoto> {
+  final Value<String> id;
+  final Value<String> partId;
+  final Value<String> photoPath;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const PartPhotosCompanion({
+    this.id = const Value.absent(),
+    this.partId = const Value.absent(),
+    this.photoPath = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PartPhotosCompanion.insert({
+    required String id,
+    required String partId,
+    required String photoPath,
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       partId = Value(partId),
+       photoPath = Value(photoPath);
+  static Insertable<PartPhoto> custom({
+    Expression<String>? id,
+    Expression<String>? partId,
+    Expression<String>? photoPath,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (partId != null) 'part_id': partId,
+      if (photoPath != null) 'photo_path': photoPath,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PartPhotosCompanion copyWith({
+    Value<String>? id,
+    Value<String>? partId,
+    Value<String>? photoPath,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return PartPhotosCompanion(
+      id: id ?? this.id,
+      partId: partId ?? this.partId,
+      photoPath: photoPath ?? this.photoPath,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (partId.present) {
+      map['part_id'] = Variable<String>(partId.value);
+    }
+    if (photoPath.present) {
+      map['photo_path'] = Variable<String>(photoPath.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PartPhotosCompanion(')
+          ..write('id: $id, ')
+          ..write('partId: $partId, ')
+          ..write('photoPath: $photoPath, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2451,6 +3781,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ProjectsTable projects = $ProjectsTable(this);
   late final $JobsTable jobs = $JobsTable(this);
   late final $JobPhotosTable jobPhotos = $JobPhotosTable(this);
+  late final $PartsTable parts = $PartsTable(this);
+  late final $JobPartsTable jobParts = $JobPartsTable(this);
+  late final $PartPhotosTable partPhotos = $PartPhotosTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2460,6 +3793,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     projects,
     jobs,
     jobPhotos,
+    parts,
+    jobParts,
+    partPhotos,
   ];
 }
 
@@ -3583,6 +4919,25 @@ final class $$JobsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$JobPartsTable, List<JobPart>> _jobPartsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.jobParts,
+    aliasName: $_aliasNameGenerator(db.jobs.id, db.jobParts.jobId),
+  );
+
+  $$JobPartsTableProcessedTableManager get jobPartsRefs {
+    final manager = $$JobPartsTableTableManager(
+      $_db,
+      $_db.jobParts,
+    ).filter((f) => f.jobId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_jobPartsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$JobsTableFilterComposer extends Composer<_$AppDatabase, $JobsTable> {
@@ -3710,6 +5065,31 @@ class $$JobsTableFilterComposer extends Composer<_$AppDatabase, $JobsTable> {
           }) => $$JobPhotosTableFilterComposer(
             $db: $db,
             $table: $db.jobPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> jobPartsRefs(
+    Expression<bool> Function($$JobPartsTableFilterComposer f) f,
+  ) {
+    final $$JobPartsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.jobParts,
+      getReferencedColumn: (t) => t.jobId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$JobPartsTableFilterComposer(
+            $db: $db,
+            $table: $db.jobParts,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3946,6 +5326,31 @@ class $$JobsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> jobPartsRefs<T extends Object>(
+    Expression<T> Function($$JobPartsTableAnnotationComposer a) f,
+  ) {
+    final $$JobPartsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.jobParts,
+      getReferencedColumn: (t) => t.jobId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$JobPartsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.jobParts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$JobsTableTableManager
@@ -3965,6 +5370,7 @@ class $$JobsTableTableManager
             bool vehicleId,
             bool projectId,
             bool jobPhotosRefs,
+            bool jobPartsRefs,
           })
         > {
   $$JobsTableTableManager(_$AppDatabase db, $JobsTable table)
@@ -4049,10 +5455,18 @@ class $$JobsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({vehicleId = false, projectId = false, jobPhotosRefs = false}) {
+              ({
+                vehicleId = false,
+                projectId = false,
+                jobPhotosRefs = false,
+                jobPartsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
-                  explicitlyWatchedTables: [if (jobPhotosRefs) db.jobPhotos],
+                  explicitlyWatchedTables: [
+                    if (jobPhotosRefs) db.jobPhotos,
+                    if (jobPartsRefs) db.jobParts,
+                  ],
                   addJoins:
                       <
                         T extends TableManagerState<
@@ -4116,6 +5530,19 @@ class $$JobsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (jobPartsRefs)
+                        await $_getPrefetchedData<Job, $JobsTable, JobPart>(
+                          currentTable: table,
+                          referencedTable: $$JobsTableReferences
+                              ._jobPartsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$JobsTableReferences(db, table, p0).jobPartsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.jobId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4140,6 +5567,7 @@ typedef $$JobsTableProcessedTableManager =
         bool vehicleId,
         bool projectId,
         bool jobPhotosRefs,
+        bool jobPartsRefs,
       })
     >;
 typedef $$JobPhotosTableCreateCompanionBuilder =
@@ -4440,6 +5868,1213 @@ typedef $$JobPhotosTableProcessedTableManager =
       JobPhoto,
       PrefetchHooks Function({bool jobId})
     >;
+typedef $$PartsTableCreateCompanionBuilder =
+    PartsCompanion Function({
+      required String id,
+      required String name,
+      Value<String?> partNumber,
+      Value<String?> brand,
+      Value<String?> supplier,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$PartsTableUpdateCompanionBuilder =
+    PartsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String?> partNumber,
+      Value<String?> brand,
+      Value<String?> supplier,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$PartsTableReferences
+    extends BaseReferences<_$AppDatabase, $PartsTable, Part> {
+  $$PartsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$JobPartsTable, List<JobPart>> _jobPartsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.jobParts,
+    aliasName: $_aliasNameGenerator(db.parts.id, db.jobParts.partId),
+  );
+
+  $$JobPartsTableProcessedTableManager get jobPartsRefs {
+    final manager = $$JobPartsTableTableManager(
+      $_db,
+      $_db.jobParts,
+    ).filter((f) => f.partId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_jobPartsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PartPhotosTable, List<PartPhoto>>
+  _partPhotosRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.partPhotos,
+    aliasName: $_aliasNameGenerator(db.parts.id, db.partPhotos.partId),
+  );
+
+  $$PartPhotosTableProcessedTableManager get partPhotosRefs {
+    final manager = $$PartPhotosTableTableManager(
+      $_db,
+      $_db.partPhotos,
+    ).filter((f) => f.partId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_partPhotosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$PartsTableFilterComposer extends Composer<_$AppDatabase, $PartsTable> {
+  $$PartsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partNumber => $composableBuilder(
+    column: $table.partNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplier => $composableBuilder(
+    column: $table.supplier,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> jobPartsRefs(
+    Expression<bool> Function($$JobPartsTableFilterComposer f) f,
+  ) {
+    final $$JobPartsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.jobParts,
+      getReferencedColumn: (t) => t.partId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$JobPartsTableFilterComposer(
+            $db: $db,
+            $table: $db.jobParts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> partPhotosRefs(
+    Expression<bool> Function($$PartPhotosTableFilterComposer f) f,
+  ) {
+    final $$PartPhotosTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.partPhotos,
+      getReferencedColumn: (t) => t.partId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartPhotosTableFilterComposer(
+            $db: $db,
+            $table: $db.partPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PartsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PartsTable> {
+  $$PartsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partNumber => $composableBuilder(
+    column: $table.partNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplier => $composableBuilder(
+    column: $table.supplier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PartsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PartsTable> {
+  $$PartsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get partNumber => $composableBuilder(
+    column: $table.partNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get brand =>
+      $composableBuilder(column: $table.brand, builder: (column) => column);
+
+  GeneratedColumn<String> get supplier =>
+      $composableBuilder(column: $table.supplier, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> jobPartsRefs<T extends Object>(
+    Expression<T> Function($$JobPartsTableAnnotationComposer a) f,
+  ) {
+    final $$JobPartsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.jobParts,
+      getReferencedColumn: (t) => t.partId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$JobPartsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.jobParts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> partPhotosRefs<T extends Object>(
+    Expression<T> Function($$PartPhotosTableAnnotationComposer a) f,
+  ) {
+    final $$PartPhotosTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.partPhotos,
+      getReferencedColumn: (t) => t.partId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartPhotosTableAnnotationComposer(
+            $db: $db,
+            $table: $db.partPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PartsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PartsTable,
+          Part,
+          $$PartsTableFilterComposer,
+          $$PartsTableOrderingComposer,
+          $$PartsTableAnnotationComposer,
+          $$PartsTableCreateCompanionBuilder,
+          $$PartsTableUpdateCompanionBuilder,
+          (Part, $$PartsTableReferences),
+          Part,
+          PrefetchHooks Function({bool jobPartsRefs, bool partPhotosRefs})
+        > {
+  $$PartsTableTableManager(_$AppDatabase db, $PartsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PartsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PartsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PartsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> partNumber = const Value.absent(),
+                Value<String?> brand = const Value.absent(),
+                Value<String?> supplier = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PartsCompanion(
+                id: id,
+                name: name,
+                partNumber: partNumber,
+                brand: brand,
+                supplier: supplier,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String?> partNumber = const Value.absent(),
+                Value<String?> brand = const Value.absent(),
+                Value<String?> supplier = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PartsCompanion.insert(
+                id: id,
+                name: name,
+                partNumber: partNumber,
+                brand: brand,
+                supplier: supplier,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$PartsTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({jobPartsRefs = false, partPhotosRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (jobPartsRefs) db.jobParts,
+                    if (partPhotosRefs) db.partPhotos,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (jobPartsRefs)
+                        await $_getPrefetchedData<Part, $PartsTable, JobPart>(
+                          currentTable: table,
+                          referencedTable: $$PartsTableReferences
+                              ._jobPartsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PartsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).jobPartsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.partId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (partPhotosRefs)
+                        await $_getPrefetchedData<Part, $PartsTable, PartPhoto>(
+                          currentTable: table,
+                          referencedTable: $$PartsTableReferences
+                              ._partPhotosRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PartsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).partPhotosRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.partId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$PartsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PartsTable,
+      Part,
+      $$PartsTableFilterComposer,
+      $$PartsTableOrderingComposer,
+      $$PartsTableAnnotationComposer,
+      $$PartsTableCreateCompanionBuilder,
+      $$PartsTableUpdateCompanionBuilder,
+      (Part, $$PartsTableReferences),
+      Part,
+      PrefetchHooks Function({bool jobPartsRefs, bool partPhotosRefs})
+    >;
+typedef $$JobPartsTableCreateCompanionBuilder =
+    JobPartsCompanion Function({
+      required String id,
+      required String jobId,
+      required String partId,
+      Value<double?> unitCost,
+      Value<int> quantity,
+      Value<DateTime?> purchaseDate,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$JobPartsTableUpdateCompanionBuilder =
+    JobPartsCompanion Function({
+      Value<String> id,
+      Value<String> jobId,
+      Value<String> partId,
+      Value<double?> unitCost,
+      Value<int> quantity,
+      Value<DateTime?> purchaseDate,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$JobPartsTableReferences
+    extends BaseReferences<_$AppDatabase, $JobPartsTable, JobPart> {
+  $$JobPartsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $JobsTable _jobIdTable(_$AppDatabase db) =>
+      db.jobs.createAlias($_aliasNameGenerator(db.jobParts.jobId, db.jobs.id));
+
+  $$JobsTableProcessedTableManager get jobId {
+    final $_column = $_itemColumn<String>('job_id')!;
+
+    final manager = $$JobsTableTableManager(
+      $_db,
+      $_db.jobs,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_jobIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $PartsTable _partIdTable(_$AppDatabase db) => db.parts.createAlias(
+    $_aliasNameGenerator(db.jobParts.partId, db.parts.id),
+  );
+
+  $$PartsTableProcessedTableManager get partId {
+    final $_column = $_itemColumn<String>('part_id')!;
+
+    final manager = $$PartsTableTableManager(
+      $_db,
+      $_db.parts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_partIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$JobPartsTableFilterComposer
+    extends Composer<_$AppDatabase, $JobPartsTable> {
+  $$JobPartsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get unitCost => $composableBuilder(
+    column: $table.unitCost,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$JobsTableFilterComposer get jobId {
+    final $$JobsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.jobId,
+      referencedTable: $db.jobs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$JobsTableFilterComposer(
+            $db: $db,
+            $table: $db.jobs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PartsTableFilterComposer get partId {
+    final $$PartsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableFilterComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$JobPartsTableOrderingComposer
+    extends Composer<_$AppDatabase, $JobPartsTable> {
+  $$JobPartsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get unitCost => $composableBuilder(
+    column: $table.unitCost,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$JobsTableOrderingComposer get jobId {
+    final $$JobsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.jobId,
+      referencedTable: $db.jobs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$JobsTableOrderingComposer(
+            $db: $db,
+            $table: $db.jobs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PartsTableOrderingComposer get partId {
+    final $$PartsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableOrderingComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$JobPartsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $JobPartsTable> {
+  $$JobPartsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get unitCost =>
+      $composableBuilder(column: $table.unitCost, builder: (column) => column);
+
+  GeneratedColumn<int> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$JobsTableAnnotationComposer get jobId {
+    final $$JobsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.jobId,
+      referencedTable: $db.jobs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$JobsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.jobs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PartsTableAnnotationComposer get partId {
+    final $$PartsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$JobPartsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $JobPartsTable,
+          JobPart,
+          $$JobPartsTableFilterComposer,
+          $$JobPartsTableOrderingComposer,
+          $$JobPartsTableAnnotationComposer,
+          $$JobPartsTableCreateCompanionBuilder,
+          $$JobPartsTableUpdateCompanionBuilder,
+          (JobPart, $$JobPartsTableReferences),
+          JobPart,
+          PrefetchHooks Function({bool jobId, bool partId})
+        > {
+  $$JobPartsTableTableManager(_$AppDatabase db, $JobPartsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$JobPartsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$JobPartsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$JobPartsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> jobId = const Value.absent(),
+                Value<String> partId = const Value.absent(),
+                Value<double?> unitCost = const Value.absent(),
+                Value<int> quantity = const Value.absent(),
+                Value<DateTime?> purchaseDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => JobPartsCompanion(
+                id: id,
+                jobId: jobId,
+                partId: partId,
+                unitCost: unitCost,
+                quantity: quantity,
+                purchaseDate: purchaseDate,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String jobId,
+                required String partId,
+                Value<double?> unitCost = const Value.absent(),
+                Value<int> quantity = const Value.absent(),
+                Value<DateTime?> purchaseDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => JobPartsCompanion.insert(
+                id: id,
+                jobId: jobId,
+                partId: partId,
+                unitCost: unitCost,
+                quantity: quantity,
+                purchaseDate: purchaseDate,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$JobPartsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({jobId = false, partId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (jobId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.jobId,
+                                referencedTable: $$JobPartsTableReferences
+                                    ._jobIdTable(db),
+                                referencedColumn: $$JobPartsTableReferences
+                                    ._jobIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (partId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.partId,
+                                referencedTable: $$JobPartsTableReferences
+                                    ._partIdTable(db),
+                                referencedColumn: $$JobPartsTableReferences
+                                    ._partIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$JobPartsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $JobPartsTable,
+      JobPart,
+      $$JobPartsTableFilterComposer,
+      $$JobPartsTableOrderingComposer,
+      $$JobPartsTableAnnotationComposer,
+      $$JobPartsTableCreateCompanionBuilder,
+      $$JobPartsTableUpdateCompanionBuilder,
+      (JobPart, $$JobPartsTableReferences),
+      JobPart,
+      PrefetchHooks Function({bool jobId, bool partId})
+    >;
+typedef $$PartPhotosTableCreateCompanionBuilder =
+    PartPhotosCompanion Function({
+      required String id,
+      required String partId,
+      required String photoPath,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$PartPhotosTableUpdateCompanionBuilder =
+    PartPhotosCompanion Function({
+      Value<String> id,
+      Value<String> partId,
+      Value<String> photoPath,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$PartPhotosTableReferences
+    extends BaseReferences<_$AppDatabase, $PartPhotosTable, PartPhoto> {
+  $$PartPhotosTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $PartsTable _partIdTable(_$AppDatabase db) => db.parts.createAlias(
+    $_aliasNameGenerator(db.partPhotos.partId, db.parts.id),
+  );
+
+  $$PartsTableProcessedTableManager get partId {
+    final $_column = $_itemColumn<String>('part_id')!;
+
+    final manager = $$PartsTableTableManager(
+      $_db,
+      $_db.parts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_partIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PartPhotosTableFilterComposer
+    extends Composer<_$AppDatabase, $PartPhotosTable> {
+  $$PartPhotosTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$PartsTableFilterComposer get partId {
+    final $$PartsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableFilterComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PartPhotosTableOrderingComposer
+    extends Composer<_$AppDatabase, $PartPhotosTable> {
+  $$PartPhotosTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$PartsTableOrderingComposer get partId {
+    final $$PartsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableOrderingComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PartPhotosTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PartPhotosTable> {
+  $$PartPhotosTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get photoPath =>
+      $composableBuilder(column: $table.photoPath, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$PartsTableAnnotationComposer get partId {
+    final $$PartsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PartPhotosTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PartPhotosTable,
+          PartPhoto,
+          $$PartPhotosTableFilterComposer,
+          $$PartPhotosTableOrderingComposer,
+          $$PartPhotosTableAnnotationComposer,
+          $$PartPhotosTableCreateCompanionBuilder,
+          $$PartPhotosTableUpdateCompanionBuilder,
+          (PartPhoto, $$PartPhotosTableReferences),
+          PartPhoto,
+          PrefetchHooks Function({bool partId})
+        > {
+  $$PartPhotosTableTableManager(_$AppDatabase db, $PartPhotosTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PartPhotosTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PartPhotosTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PartPhotosTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> partId = const Value.absent(),
+                Value<String> photoPath = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PartPhotosCompanion(
+                id: id,
+                partId: partId,
+                photoPath: photoPath,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String partId,
+                required String photoPath,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PartPhotosCompanion.insert(
+                id: id,
+                partId: partId,
+                photoPath: photoPath,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PartPhotosTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({partId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (partId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.partId,
+                                referencedTable: $$PartPhotosTableReferences
+                                    ._partIdTable(db),
+                                referencedColumn: $$PartPhotosTableReferences
+                                    ._partIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PartPhotosTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PartPhotosTable,
+      PartPhoto,
+      $$PartPhotosTableFilterComposer,
+      $$PartPhotosTableOrderingComposer,
+      $$PartPhotosTableAnnotationComposer,
+      $$PartPhotosTableCreateCompanionBuilder,
+      $$PartPhotosTableUpdateCompanionBuilder,
+      (PartPhoto, $$PartPhotosTableReferences),
+      PartPhoto,
+      PrefetchHooks Function({bool partId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4451,4 +7086,10 @@ class $AppDatabaseManager {
   $$JobsTableTableManager get jobs => $$JobsTableTableManager(_db, _db.jobs);
   $$JobPhotosTableTableManager get jobPhotos =>
       $$JobPhotosTableTableManager(_db, _db.jobPhotos);
+  $$PartsTableTableManager get parts =>
+      $$PartsTableTableManager(_db, _db.parts);
+  $$JobPartsTableTableManager get jobParts =>
+      $$JobPartsTableTableManager(_db, _db.jobParts);
+  $$PartPhotosTableTableManager get partPhotos =>
+      $$PartPhotosTableTableManager(_db, _db.partPhotos);
 }

@@ -356,7 +356,8 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                               const SizedBox(height: 8),
                               _StatTile(
                                 label: 'Total cost',
-                                value: '€${stats.totalCost.toStringAsFixed(2)}',
+                                value:
+                                    '€${widget.jobListViewModel.totalCostWithParts.toStringAsFixed(2)}',
                               ),
                             ],
                           );

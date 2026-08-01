@@ -22,7 +22,7 @@ void main() {
       expect(find.text('Job Title'), findsOneWidget);
       expect(find.text('Category'), findsOneWidget);
       expect(find.text('Status'), findsOneWidget);
-      expect(find.text('Cost'), findsOneWidget);
+      expect(find.text('Other cost'), findsOneWidget);
     });
   });
 }

@@ -79,6 +79,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
       final jobs = await _database.getJobsForVehicle(vehicleId);
       for (final job in jobs) {
         await _database.deletePhotosForJob(job.id);
+        await _database.deleteJobPartsForJob(job.id);
       }
       await _database.deleteJobsForVehicle(vehicleId);
       await _database.deleteVehicle(vehicleId);

@@ -87,6 +87,7 @@ class JobsRepositoryLocal implements JobsRepository {
   Future<Result<void>> deleteJob(String vehicleId, String jobId) async {
     try {
       await _database.deletePhotosForJob(jobId);
+      await _database.deleteJobPartsForJob(jobId);
       await _database.deleteJob(jobId);
       return Result.ok(null);
     } catch (e, st) {

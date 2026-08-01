@@ -31,4 +31,8 @@ abstract final class Routes {
   static const profile = '/profile';
 
   static const backup = '/backup';
+
+  static const parts = '/parts';
+  static String partDetails(String partId) => '/part/$partId';
+  static String partEdit(String partId) => '/part/$partId/edit';
 }
