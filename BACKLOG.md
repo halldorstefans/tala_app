@@ -1,8 +1,8 @@
 # Backlog
 
-Pending work, grouped by phase. Phase 2 is the current focus; Phase 3 is the
-next body of work (largely reassembly-era); Phase 4 is "design the schema/
-architecture to allow it, but don't build it yet."
+Pending work, grouped by phase. Phase 2 is done bar some deferred polish;
+Phase 3 (largely reassembly-era) is the current focus; Phase 4 is "design the
+schema/architecture to allow it, but don't build it yet."
 
 For the *why* behind a decision, `DESIGN.md` and `tala_design_core.md` still hold product/UX intent.
 
@@ -19,41 +19,32 @@ Carry these into any new work so choices stay consistent:
   consumables). Total job cost will be Other + Σ parts once Parts lands.
 - **No FK enforcement.** No `PRAGMA foreign_keys`; cascades are done manually
   in the repositories (e.g. deleting a project unassigns its jobs).
-- **Migrations exist now.** `schemaVersion` is at 2 with a `MigrationStrategy`
-  (added in the Projects slice). New tables/columns bump the version and add an
+- **Migrations exist now.** `schemaVersion` is at 3 with a `MigrationStrategy`
+  (v2 projects, v3 parts). New tables/columns bump the version and add an
   `onUpgrade` step.
 
 ---
 
-## Phase 2 — Organization & Tracking (current)
+## Phase 2 — Organization & Tracking ✅ (deferred polish aside)
 
 - **Active Work section** ✅ Done — in-progress jobs on the vehicle page.
 - **Projects** ✅ Done — group a vehicle's jobs into phases; project detail,
   job assignment via the job form, Active Projects summary.
 
-- **Backup / export** ← next. The safety net: a broken phone shouldn't lose
-  months of logs. Export the full database as a raw SQLite copy and/or JSON,
-  plus the photos directory, to device storage. A one-tap "backup
-  now" button (optionally a periodic reminder); restore replaces the current
-  database. No schema change. Needs a share/save dependency (`share_plus` or
-  `file_picker` — neither is in `pubspec` yet).
+- **Backup & restore** ✅ Done (PR #4) — export a ZIP (`VACUUM INTO` db +
+  photos) via the OS share sheet; stage-then-restart restore. Deferred: a
+  periodic backup reminder.
 
-- **Parts + job_parts** ⏸ On hold (nothing being bought mid-teardown). Two
-  tables (`parts` catalogue + `job_parts` link with `unit_cost`, `quantity`,
-  `purchase_date`); compute `total_cost` in Dart. Relabel the job form's
-  `Cost` field → `Other cost`. Resume when parts start flowing.
-  - **Part photos** (optional, 0..n): a `part_photos` table linked to
-    `parts.id`, mirroring the existing `job_photos` infra (upload/compress via
-    `photo_compressor`, display via `AppImage`, cascade-delete). Photos live on
-    the *part* (reusable catalogue entry — a picture of the part, its box, the
-    part-number label), so they follow the part wherever it's used. A photo is
-    never required; parts themselves stay optional on a job. No dependency on
-    Attachments — reuses the proven per-feature photo pattern; the future
-    Attachments migration folds `part_photos` in (see Phase 3).
+- **Parts** ✅ Done (PR #5) — `parts` catalogue + `job_parts` (unit cost,
+  quantity, purchase date) + optional `part_photos` on the part. Parts on the
+  job with a Parts/Other/Total cost card; add inline or reuse from a searchable
+  catalogue; edit parts and per-line cost/qty/date. `Job.cost` reframed as
+  "Other cost". Deferred: a per-vehicle "parts used" list; hard dedup (search-
+  to-reuse only). `part_photos` folds into the future Attachments migration
+  (see Phase 3).
 
-- **Cost rollups** — gated on Parts. Per-job = Other + Σ parts; fold parts into
-  the per-project and per-vehicle totals (which already sum `job.cost`).
-  Little to do until Parts lands.
+- **Cost rollups** ✅ Done (with Parts) — per-job Parts/Other/Total; parts
+  folded into the per-vehicle and per-project totals.
 
 - **Deferred polish** (small, do opportunistically):
   - Project-side bulk "manage jobs" UI (assignment is already covered by the
@@ -61,13 +52,12 @@ Carry these into any new work so choices stay consistent:
   - Progress/cost on the project **list** cards (currently only on detail).
   - Cross-vehicle "what's next" / planned-work view (deferred while single-car;
     revisit with multiple vehicles or as a project-grouped view).
-  - **Nit:** job detail prints `Cost: $…` (`job_detail_screen.dart:215`) while
-    the rest of the app uses `€` — standardise on `€` (parked in the Parts
-    relabel, but cheap to fix independently).
+  - Per-vehicle "parts used" list (distinct parts + total spent; the
+    `getPartsForVehicle` helper already backs it).
 
 ---
 
-## Phase 3 — Photos & Documentation
+## Phase 3 — Photos & Documentation ← current
 
 Mostly reassembly-era. **Attachments → Gallery → Annotations is a strict build
 order** — all operate on the photo model, so do them together to avoid
