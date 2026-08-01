@@ -42,6 +42,14 @@ Carry these into any new work so choices stay consistent:
   tables (`parts` catalogue + `job_parts` link with `unit_cost`, `quantity`,
   `purchase_date`); compute `total_cost` in Dart. Relabel the job form's
   `Cost` field → `Other cost`. Resume when parts start flowing.
+  - **Part photos** (optional, 0..n): a `part_photos` table linked to
+    `parts.id`, mirroring the existing `job_photos` infra (upload/compress via
+    `photo_compressor`, display via `AppImage`, cascade-delete). Photos live on
+    the *part* (reusable catalogue entry — a picture of the part, its box, the
+    part-number label), so they follow the part wherever it's used. A photo is
+    never required; parts themselves stay optional on a job. No dependency on
+    Attachments — reuses the proven per-feature photo pattern; the future
+    Attachments migration folds `part_photos` in (see Phase 3).
 
 - **Cost rollups** — gated on Parts. Per-job = Other + Σ parts; fold parts into
   the per-project and per-vehicle totals (which already sum `job.cost`).
@@ -67,10 +75,13 @@ reworking the gallery/annotations across the `job_photos` migration.
 
 - **Attachments (generalized)** — the foundation. Polymorphic `attachments`
   table linking to vehicle / project / job with a `type` (photo, receipt,
-  document, other) + caption. Migrate existing `job_photos` in and move the
-  on-disk photo plumbing (storage path, cascade-delete-files) into this layer.
-  Riskiest item (data migration + rewrite of photo wiring); do it as its own
-  slice. Note: no `part_id` — a parts receipt attaches to the job.
+  document, other) + caption. Migrate existing `job_photos` **and**
+  `part_photos` in, and move the on-disk photo plumbing (storage path,
+  cascade-delete-files) into this layer. Riskiest item (data migration +
+  rewrite of photo wiring); do it as its own slice. Add a **`part_id`** so part
+  photos fold in — the current backend schema has vehicle/project/job only, so
+  reconcile that too (see Phase 4 debt). A parts *receipt*, lacking a part
+  link, still attaches to the job.
 
 - **Better photo gallery** — full-screen viewer with swipe + pinch-to-zoom
   (`photo_view: ^0.15.0` already in deps). A timeline view across all jobs as a
@@ -93,9 +104,10 @@ Keep the schema/architecture compatible; don't implement now.
 
 - **Sync layer to the Go backend** — local-first with push-to-server; conflict
   strategy TBD. UUID PKs + `updated_at` on every table keep this feasible.
-  **Debt to clear first:** reconcile the backend schema with the app's
-  one-project-per-job model (drop `project_jobs`, add `jobs.project_id`) — it's
-  unimplemented, so cheap, but sync breaks on projects until it's done.
+  **Debt to clear first:** reconcile the backend schema with the app's model
+  — drop `project_jobs`, add `jobs.project_id` (one project per job); and add
+  `attachments.part_id` once part photos exist. All unimplemented server-side,
+  so cheap, but sync breaks on those tables until it's done.
 - **Sensor data ingestion** — BLE battery readings, GPS tracks. Likely a
   separate time-series table (TimescaleDB server-side); app receives BLE, stores
   locally, then syncs.
