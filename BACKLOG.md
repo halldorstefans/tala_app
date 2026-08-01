@@ -50,8 +50,6 @@ Carry these into any new work so choices stay consistent:
   - Project-side bulk "manage jobs" UI (assignment is already covered by the
     job-form Project dropdown).
   - Progress/cost on the project **list** cards (currently only on detail).
-  - Cross-vehicle "what's next" / planned-work view (deferred while single-car;
-    revisit with multiple vehicles or as a project-grouped view).
   - Per-vehicle "parts used" list (distinct parts + total spent; the
     `getPartsForVehicle` helper already backs it).
 
@@ -105,5 +103,9 @@ Keep the schema/architecture compatible; don't implement now.
   relevant once the car is running and driven.
 - **Multi-vehicle** — schema already supports it; UI needs a vehicle selector.
   YAGNI on a single car for now.
+- **Cross-vehicle "what's next" / planned-work view** — a to-do list of planned
+  jobs spanning vehicles (a per-vehicle planned filter already exists). Only
+  earns its keep once there are multiple vehicles, so it rides with
+  Multi-vehicle.
 - **Web interface** — review logs on a laptop; needs the Go backend + a simple
   frontend.
