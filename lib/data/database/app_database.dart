@@ -9,15 +9,20 @@ import 'tables/vehicles.dart';
 import 'tables/jobs.dart';
 import 'tables/job_photos.dart';
 import 'tables/projects.dart';
+import 'tables/parts.dart';
+import 'tables/job_parts.dart';
+import 'tables/part_photos.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Vehicles, Jobs, JobPhotos, Projects])
+@DriftDatabase(
+  tables: [Vehicles, Jobs, JobPhotos, Projects, Parts, JobParts, PartPhotos],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -28,6 +33,13 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await m.createTable(projects);
         await m.addColumn(jobs, jobs.projectId);
+      }
+      // v2 -> v3: parts (Phase 2). A reusable catalogue, linked to jobs via
+      // job_parts, with optional photos on the part.
+      if (from < 3) {
+        await m.createTable(parts);
+        await m.createTable(jobParts);
+        await m.createTable(partPhotos);
       }
     },
   );
@@ -159,6 +171,55 @@ class AppDatabase extends _$AppDatabase {
           updatedAt: Value(DateTime.now()),
         ),
       );
+
+  // Part (catalogue) operations
+  Future<List<Part>> getAllParts() =>
+      (select(parts)..orderBy([(t) => OrderingTerm(expression: t.name)])).get();
+
+  Future<Part?> getPartById(String id) =>
+      (select(parts)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertPart(PartsCompanion part) => into(parts).insert(part);
+
+  Future<bool> updatePart(PartsCompanion part) => update(parts).replace(part);
+
+  Future<int> deletePart(String id) =>
+      (delete(parts)..where((t) => t.id.equals(id))).go();
+
+  // Part photo operations
+  Future<List<PartPhoto>> getPhotosForPart(String partId) =>
+      (select(partPhotos)..where((t) => t.partId.equals(partId))).get();
+
+  Future<int> insertPartPhoto(PartPhotosCompanion photo) =>
+      into(partPhotos).insert(photo);
+
+  Future<int> deletePartPhoto(String id) =>
+      (delete(partPhotos)..where((t) => t.id.equals(id))).go();
+
+  Future<int> deletePhotosForPart(String partId) =>
+      (delete(partPhotos)..where((t) => t.partId.equals(partId))).go();
+
+  // Job-part (link) operations
+  Future<List<JobPart>> getJobPartsForJob(String jobId) =>
+      (select(jobParts)
+            ..where((t) => t.jobId.equals(jobId))
+            ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
+          .get();
+
+  Future<int> insertJobPart(JobPartsCompanion jobPart) =>
+      into(jobParts).insert(jobPart);
+
+  Future<bool> updateJobPart(JobPartsCompanion jobPart) =>
+      update(jobParts).replace(jobPart);
+
+  Future<int> deleteJobPart(String id) =>
+      (delete(jobParts)..where((t) => t.id.equals(id))).go();
+
+  Future<int> deleteJobPartsForJob(String jobId) =>
+      (delete(jobParts)..where((t) => t.jobId.equals(jobId))).go();
+
+  Future<int> deleteJobPartsForPart(String partId) =>
+      (delete(jobParts)..where((t) => t.partId.equals(partId))).go();
 }
 
 LazyDatabase _openConnection() {

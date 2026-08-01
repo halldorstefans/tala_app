@@ -130,7 +130,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     planned: viewModel.stats.planned,
                     inProgress: viewModel.stats.inProgress,
                     completed: viewModel.stats.completed,
-                    totalCost: viewModel.stats.totalCost,
+                    totalCost: viewModel.totalCostWithParts,
                   ),
                   const SizedBox(height: 24),
                   Text('Jobs', style: theme.textTheme.headlineMedium),

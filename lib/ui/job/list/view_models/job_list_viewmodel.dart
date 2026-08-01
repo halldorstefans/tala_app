@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
 import '../../../../data/repositories/jobs/jobs_repository.dart';
+import '../../../../data/repositories/parts/parts_repository.dart';
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_status.dart';
 import '../../../../utils/command.dart';
@@ -46,8 +47,10 @@ class JobListViewModel extends ChangeNotifier {
   JobListViewModel({
     required JobsRepository jobsRepository,
     required String vehicleId,
+    PartsRepository? partsRepository,
   }) : _jobsRepository = jobsRepository,
-       _vehicleId = vehicleId {
+       _vehicleId = vehicleId,
+       _partsRepository = partsRepository {
     fetchJobs = Command1(_fetchJobs)..execute(vehicleId);
     toggleDone = Command1(_toggleDone);
   }
@@ -55,11 +58,21 @@ class JobListViewModel extends ChangeNotifier {
   final _log = Logger('JobListViewmodel');
   final JobsRepository _jobsRepository;
 
+  /// Optional: when wired, the vehicle's parts total is folded into
+  /// [totalCostWithParts]. Left null where a parts total isn't shown.
+  final PartsRepository? _partsRepository;
+
   final String _vehicleId;
   String get vehicleId => _vehicleId;
 
   final List<Job> _jobs = <Job>[];
   List<Job> get jobs => _jobs;
+
+  double _partsTotal = 0;
+
+  /// The vehicle's total spend: jobs' own ("other") cost plus all parts.
+  /// Equals `stats.totalCost` when no parts repository is wired.
+  double get totalCostWithParts => stats.totalCost + _partsTotal;
 
   /// Jobs currently on the bench. `_jobs` is already ordered most-recent
   /// first, so no extra sort is needed. Backs the "Active Work" section on
@@ -184,6 +197,13 @@ class JobListViewModel extends ChangeNotifier {
     _jobs
       ..clear()
       ..addAll(result.value);
+
+    final partsRepo = _partsRepository;
+    if (partsRepo != null) {
+      final totalResult = await partsRepo.partsTotalForVehicle(_vehicleId);
+      if (totalResult is Ok<double>) _partsTotal = totalResult.value;
+    }
+
     notifyListeners();
 
     return result;

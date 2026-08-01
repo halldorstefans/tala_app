@@ -98,6 +98,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.inventory_2_outlined),
+            tooltip: 'Parts',
+            onPressed: () => context.push(Routes.parts),
+          ),
+          IconButton(
             icon: const Icon(Icons.backup_outlined),
             tooltip: 'Backup & restore',
             onPressed: () => context.push(Routes.backup),

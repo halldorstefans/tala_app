@@ -10,6 +10,8 @@ import '../../../../domain/models/job_category.dart';
 import '../../../../domain/models/job_status.dart';
 import '../../../../routing/routes.dart';
 import '../../../core/themes/dimens.dart';
+import 'job_cost_breakdown.dart';
+import 'job_parts_section.dart';
 
 class JobDetailScreen extends StatefulWidget {
   const JobDetailScreen({super.key, required this.viewModel});
@@ -125,6 +127,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   );
                 }
                 return SingleChildScrollView(
+                  // Clear the system nav bar so the last card isn't cut off.
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.paddingOf(context).bottom + 24,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -203,16 +209,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                   Expanded(
                                     child: Text(
                                       'Odometer: ${widget.viewModel.job!.odometer ?? 0} km',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      'Cost: \$${widget.viewModel.job!.cost?.toStringAsFixed(2) ?? '0.00'}',
                                       style: GoogleFonts.jetBrainsMono(
                                         textStyle: Theme.of(
                                           context,
@@ -396,6 +392,46 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Card(
+                        color: Theme.of(context).cardColor,
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Cost',
+                                style: Theme.of(context).textTheme.headlineMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              JobCostBreakdown(viewModel: widget.viewModel),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Card(
+                        color: Theme.of(context).cardColor,
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: JobPartsSection(viewModel: widget.viewModel),
                         ),
                       ),
                     ],

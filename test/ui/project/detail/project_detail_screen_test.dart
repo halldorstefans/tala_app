@@ -8,6 +8,7 @@ import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/ui/project/detail/view_models/project_detail_viewmodel.dart';
 import 'package:tala_app/ui/project/detail/widgets/project_detail_screen.dart';
 
+import '../../../helpers/fake_parts_repository.dart';
 import '../../../helpers/fake_projects_repository.dart';
 
 /// The screen uses go_router navigation in callbacks, so a Router must be in
@@ -21,6 +22,7 @@ Widget _app(Widget home) => MaterialApp.router(
 ProjectDetailScreen _screen(FakeProjectsRepository repo) => ProjectDetailScreen(
   viewModel: ProjectDetailViewModel(
     projectsRepository: repo,
+    partsRepository: FakePartsRepository(),
     vehicleId: 'v1',
     projectId: 'p1',
   ),

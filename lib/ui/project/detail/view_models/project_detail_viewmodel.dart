@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
+import '../../../../data/repositories/parts/parts_repository.dart';
 import '../../../../data/repositories/projects/projects_repository.dart';
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/project.dart';
@@ -11,9 +12,11 @@ import '../../../job/list/view_models/job_list_viewmodel.dart' show JobStats, co
 class ProjectDetailViewModel extends ChangeNotifier {
   ProjectDetailViewModel({
     required ProjectsRepository projectsRepository,
+    required PartsRepository partsRepository,
     required String vehicleId,
     required String projectId,
   }) : _projectsRepository = projectsRepository,
+       _partsRepository = partsRepository,
        _vehicleId = vehicleId,
        _projectId = projectId {
     load = Command0(_load)..execute();
@@ -22,6 +25,7 @@ class ProjectDetailViewModel extends ChangeNotifier {
 
   final _log = Logger('ProjectDetailViewModel');
   final ProjectsRepository _projectsRepository;
+  final PartsRepository _partsRepository;
 
   final String _vehicleId;
   String get vehicleId => _vehicleId;
@@ -34,9 +38,13 @@ class ProjectDetailViewModel extends ChangeNotifier {
   final List<Job> _jobs = <Job>[];
   List<Job> get jobs => _jobs;
 
-  /// Status counts + total cost for this project's jobs. Same shape and rules
-  /// as the job list's stats (parts fold in later via Slice 5).
+  double _partsTotal = 0;
+
+  /// Status counts + jobs' own ("other") cost for this project.
   JobStats get stats => computeJobStats(_jobs);
+
+  /// The project's total spend: jobs' own cost plus the parts on those jobs.
+  double get totalCostWithParts => stats.totalCost + _partsTotal;
 
   late final Command0<void> load;
   late final Command0<void> delete;
@@ -61,6 +69,14 @@ class ProjectDetailViewModel extends ChangeNotifier {
           ..clear()
           ..addAll(jobsResult.value);
     }
+
+    // Fold in the parts on this project's jobs.
+    var partsTotal = 0.0;
+    for (final job in _jobs) {
+      final totalResult = await _partsRepository.partsTotalForJob(job.id);
+      if (totalResult is Ok<double>) partsTotal += totalResult.value;
+    }
+    _partsTotal = partsTotal;
 
     notifyListeners();
     return const Result.ok(null);
