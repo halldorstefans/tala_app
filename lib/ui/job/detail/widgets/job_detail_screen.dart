@@ -6,6 +6,7 @@ import 'package:tala_app/ui/job/detail/view_models/job_detail_viewmodel.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:photo_view/photo_view.dart';
 
+import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
 import '../../../../domain/models/job_status.dart';
 import '../../../../routing/routes.dart';
@@ -45,19 +46,13 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                       maxScale: PhotoViewComputedScale.covered * 2,
                     );
                   },
-                  backgroundDecoration: const BoxDecoration(
-                    color: Colors.black,
-                  ),
+                  backgroundDecoration: const BoxDecoration(color: Colors.black),
                 ),
                 Positioned(
                   top: 40,
                   right: 20,
                   child: IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 32,
-                    ),
+                    icon: const Icon(Icons.close, color: Colors.white, size: 32),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),
@@ -69,379 +64,321 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
+  Future<void> _deletePhoto(Job job, String photoPath) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete photo?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    await widget.viewModel.deleteJobPhoto.execute((
+      job.vehicleId,
+      job.id,
+      photoPath,
+    ));
+    await widget.viewModel.fetchJob.execute((job.vehicleId, job.id));
+  }
+
+  Future<void> _openEdit(Job job) async {
+    await context.push(Routes.jobFormWithId(job.vehicleId, job.id));
+    if (!mounted) return;
+    widget.viewModel.fetchJob.execute((job.vehicleId, job.id));
+  }
+
+  Future<void> _confirmRemove(Job job) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete job?'),
+        content: const Text('This job and its photos will be removed.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await widget.viewModel.removeJob.execute((job.vehicleId, job.id));
+    if (!mounted) return;
+    context.go(Routes.vehicleDetails(job.vehicleId));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final dimens = Dimens.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.viewModel.job != null
-              ? widget.viewModel.job!.title
-              : 'Job Details',
+      // Rebuild the bar when the job loads (it's fetched async) so the
+      // title + Edit/Delete actions appear.
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(
+          theme.appBarTheme.toolbarHeight ?? kToolbarHeight,
         ),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        elevation: 1,
-      ),
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Padding(
-        padding: dimens.edgeInsetsScreenSymmetric,
         child: ListenableBuilder(
-          listenable: widget.viewModel.fetchJob,
-          builder: (context, child) {
-            if (widget.viewModel.fetchJob.running) {
-              return Center(
-                child: CircularProgressIndicator(
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              );
-            }
-            if (widget.viewModel.fetchJob.error) {
-              return Center(
-                child: Column(
-                  children: [
-                    Text('Error: ${widget.viewModel.fetchJob.result}'),
-                    SizedBox(height: 16),
-                    if (widget.viewModel.job != null)
-                      ElevatedButton(
-                        onPressed: () => widget.viewModel.fetchJob.execute((
-                          widget.viewModel.job!.vehicleId,
-                          widget.viewModel.job!.id,
-                        )),
-                        child: Text('Retry'),
-                      ),
-                  ],
-                ),
-              );
-            }
-            return ListenableBuilder(
-              listenable: widget.viewModel,
-              builder: (context, child) {
-                final job = widget.viewModel.job;
-                if (job == null) {
-                  return Center(
-                    child: Text(
-                      'Job not found',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  );
-                }
-                return SingleChildScrollView(
-                  // Clear the system nav bar so the last card isn't cut off.
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.paddingOf(context).bottom + 24,
+          listenable: widget.viewModel,
+          builder: (context, _) {
+            final job = widget.viewModel.job;
+            return AppBar(
+              title: Text(job?.title ?? 'Job'),
+              actions: [
+                if (job != null) ...[
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: 'Edit job',
+                    onPressed: () => _openEdit(job),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Card(
-                        color: Theme.of(context).cardColor,
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: Theme.of(context).dividerColor,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.viewModel.job?.title ?? 'Job Detail',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'Start Date: ${widget.viewModel.job!.startDate?.toLocal().toString().split(' ')[0] ?? ''}',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      'Completion Date: ${widget.viewModel.job!.completionDate?.toLocal().toString().split(' ')[0] ?? ''}',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'Status: ${statusLabel(widget.viewModel.job!.status)}',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      'Category: ${categoryLabel(widget.viewModel.job!.category)}',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'Odometer: ${widget.viewModel.job!.odometer ?? 0} km',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (job.description != null &&
-                                  job.description!.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 12.0),
-                                  child: Text(
-                                    'Description: ${job.description!}',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge,
-                                  ),
-                                ),
-                              if (job.photoPaths != null &&
-                                  job.photoPaths!.isNotEmpty)
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: List.generate(
-                                    job.photoPaths!.length,
-                                    (i) => Stack(
-                                      alignment: Alignment.topRight,
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () =>
-                                              _openGallery(job.photoPaths!, i),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            child: AppImage(
-                                              path: job.photoPaths![i],
-                                              width: 80,
-                                              height: 80,
-                                            ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 2,
-                                          right: 2,
-                                          child: Material(
-                                            color: Colors.transparent,
-                                            child: InkWell(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              onTap: () async {
-                                                final confirm =
-                                                    await showDialog<bool>(
-                                                      context: context,
-                                                      builder: (context) =>
-                                                          AlertDialog(
-                                                            title: const Text(
-                                                              'Delete Photo',
-                                                            ),
-                                                            content: const Text(
-                                                              'Are you sure you want to delete this photo?',
-                                                            ),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () =>
-                                                                    Navigator.of(
-                                                                      context,
-                                                                    ).pop(
-                                                                      false,
-                                                                    ),
-                                                                child:
-                                                                    const Text(
-                                                                      'Cancel',
-                                                                    ),
-                                                              ),
-                                                              TextButton(
-                                                                onPressed: () =>
-                                                                    Navigator.of(
-                                                                      context,
-                                                                    ).pop(true),
-                                                                child:
-                                                                    const Text(
-                                                                      'Delete',
-                                                                    ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                    );
-                                                if (confirm == true) {
-                                                  final photoPath =
-                                                      job.photoPaths![i];
-                                                  await widget
-                                                      .viewModel
-                                                      .deleteJobPhoto
-                                                      .execute((
-                                                        job.vehicleId,
-                                                        job.id,
-                                                        photoPath,
-                                                      ));
-                                                  await widget
-                                                      .viewModel
-                                                      .fetchJob
-                                                      .execute((
-                                                        job.vehicleId,
-                                                        job.id,
-                                                      ));
-                                                }
-                                              },
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black54,
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                padding: const EdgeInsets.all(
-                                                  2,
-                                                ),
-                                                child: const Icon(
-                                                  Icons.delete,
-                                                  color: Colors.white,
-                                                  size: 18,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: 24),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        context.push(
-                                          Routes.jobFormWithId(
-                                            widget.viewModel.job!.vehicleId,
-                                            widget.viewModel.job!.id,
-                                          ),
-                                        );
-                                      },
-                                      child: const Text('Edit'),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Theme.of(
-                                          context,
-                                        ).colorScheme.secondary,
-                                        foregroundColor: Theme.of(
-                                          context,
-                                        ).colorScheme.onSecondary,
-                                      ),
-
-                                      onPressed: () {
-                                        Future<void> result = widget
-                                            .viewModel
-                                            .removeJob
-                                            .execute((
-                                              widget.viewModel.job!.vehicleId,
-                                              widget.viewModel.job!.id,
-                                            ));
-                                        result.whenComplete(() {
-                                          if (mounted) {
-                                            context.push(
-                                              '/vehicle/${widget.viewModel.job!.vehicleId}',
-                                            );
-                                          }
-                                        });
-                                      },
-                                      child: const Text('Remove'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Card(
-                        color: Theme.of(context).cardColor,
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: Theme.of(context).dividerColor,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Cost',
-                                style: Theme.of(context).textTheme.headlineMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              JobCostBreakdown(viewModel: widget.viewModel),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Card(
-                        color: Theme.of(context).cardColor,
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: Theme.of(context).dividerColor,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: JobPartsSection(viewModel: widget.viewModel),
-                        ),
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Delete job',
+                    onPressed: () => _confirmRemove(job),
                   ),
-                );
-              },
+                ],
+              ],
             );
           },
         ),
       ),
+      body: ListenableBuilder(
+        listenable: widget.viewModel.fetchJob,
+        builder: (context, child) {
+          if (widget.viewModel.fetchJob.running) {
+            return Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.secondary,
+              ),
+            );
+          }
+          if (widget.viewModel.fetchJob.error) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Error: ${widget.viewModel.fetchJob.result}'),
+                  const SizedBox(height: 16),
+                  if (widget.viewModel.job != null)
+                    ElevatedButton(
+                      onPressed: () => widget.viewModel.fetchJob.execute((
+                        widget.viewModel.job!.vehicleId,
+                        widget.viewModel.job!.id,
+                      )),
+                      child: const Text('Retry'),
+                    ),
+                ],
+              ),
+            );
+          }
+          return ListenableBuilder(
+            listenable: widget.viewModel,
+            builder: (context, child) {
+              final job = widget.viewModel.job;
+              if (job == null) {
+                return Center(
+                  child: Text('Job not found', style: theme.textTheme.bodyLarge),
+                );
+              }
+              return ListView(
+                padding: EdgeInsets.fromLTRB(
+                  dimens.paddingScreenHorizontal,
+                  dimens.paddingScreenVertical,
+                  dimens.paddingScreenHorizontal,
+                  dimens.paddingScreenVertical +
+                      MediaQuery.paddingOf(context).bottom,
+                ),
+                children: [
+                  _Header(job: job),
+                  if (job.photoPaths != null && job.photoPaths!.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    _Section(
+                      title: 'Photos',
+                      child: _PhotoGrid(
+                        paths: job.photoPaths!,
+                        onOpen: (i) => _openGallery(job.photoPaths!, i),
+                        onDelete: (path) => _deletePhoto(job, path),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  _Section(
+                    title: 'Cost',
+                    child: JobCostBreakdown(viewModel: widget.viewModel),
+                  ),
+                  const SizedBox(height: 24),
+                  JobPartsSection(viewModel: widget.viewModel),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Title-less header (the title is in the AppBar): status + category chips,
+/// a spec block (dates, odometer) in mono, and the description.
+class _Header extends StatelessWidget {
+  const _Header({required this.job});
+
+  final Job job;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    String? d(DateTime? date) =>
+        date == null ? null : date.toLocal().toString().split(' ')[0];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            if (job.status != null && job.status!.isNotEmpty)
+              Chip(
+                label: Text(statusLabel(job.status)),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            if (job.category != null && job.category!.isNotEmpty)
+              Chip(
+                label: Text(categoryLabel(job.category)),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _SpecRow(label: 'Started', value: d(job.startDate) ?? '—'),
+        _SpecRow(label: 'Completed', value: d(job.completionDate) ?? '—'),
+        _SpecRow(label: 'Odometer', value: '${job.odometer ?? 0} km'),
+        if (job.description != null && job.description!.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(job.description!, style: theme.textTheme.bodyLarge),
+        ],
+      ],
+    );
+  }
+}
+
+/// A label (muted) on the left and a mono data value on the right.
+class _SpecRow extends StatelessWidget {
+  const _SpecRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.jetBrainsMono(
+              textStyle: theme.textTheme.bodyMedium,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A section: an uppercase-ish headline followed by its content.
+class _Section extends StatelessWidget {
+  const _Section({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: theme.textTheme.headlineMedium),
+        const SizedBox(height: 8),
+        child,
+      ],
+    );
+  }
+}
+
+class _PhotoGrid extends StatelessWidget {
+  const _PhotoGrid({
+    required this.paths,
+    required this.onOpen,
+    required this.onDelete,
+  });
+
+  final List<String> paths;
+  final void Function(int index) onOpen;
+  final void Function(String path) onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (var i = 0; i < paths.length; i++)
+          Stack(
+            alignment: Alignment.topRight,
+            children: [
+              GestureDetector(
+                onTap: () => onOpen(i),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: AppImage(path: paths[i], width: 80, height: 80),
+                ),
+              ),
+              Positioned(
+                top: 2,
+                right: 2,
+                child: Material(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => onDelete(paths[i]),
+                    child: const Padding(
+                      padding: EdgeInsets.all(2),
+                      child: Icon(Icons.delete, color: Colors.white, size: 18),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }

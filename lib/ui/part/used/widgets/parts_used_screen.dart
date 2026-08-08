@@ -24,16 +24,7 @@ class PartsUsedScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final dimens = Dimens.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Parts used',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
-        backgroundColor: theme.colorScheme.primary,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Parts used')),
       body: ListenableBuilder(
         listenable: viewModel.fetchUsage,
         builder: (context, _) {
