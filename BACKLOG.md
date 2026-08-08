@@ -47,11 +47,10 @@ Carry these into any new work so choices stay consistent:
   folded into the per-vehicle and per-project totals.
 
 - **Deferred polish** (small, do opportunistically):
-  - Project-side bulk "manage jobs" UI (assignment is already covered by the
-    job-form Project dropdown).
-  - Progress/cost on the project **list** cards (currently only on detail).
+  - ✅ Project-side "manage jobs" UI (PR #6).
+  - ✅ Progress bar + status/cost on the project list cards (PR #6).
   - Per-vehicle "parts used" list (distinct parts + total spent; the
-    `getPartsForVehicle` helper already backs it).
+    `getPartsForVehicle` helper already backs it) — only one still open.
 
 ---
 
