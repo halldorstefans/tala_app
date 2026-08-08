@@ -29,6 +29,11 @@ abstract class PartsRepository {
 
   // Usage / totals
   Future<Result<List<Part>>> getPartsForVehicle(String vehicleId);
+
+  /// Distinct parts used across the vehicle's jobs, each with its total
+  /// quantity and total spent. Sorted by total spent, highest first.
+  Future<Result<List<PartUsage>>> getPartsUsageForVehicle(String vehicleId);
+
   Future<Result<double>> partsTotalForJob(String jobId);
   Future<Result<double>> partsTotalForVehicle(String vehicleId);
 }

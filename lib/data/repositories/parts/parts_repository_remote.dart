@@ -55,6 +55,11 @@ class PartsRepositoryRemote implements PartsRepository {
       _unimplemented();
 
   @override
+  Future<Result<List<PartUsage>>> getPartsUsageForVehicle(
+    String vehicleId,
+  ) async => _unimplemented();
+
+  @override
   Future<Result<double>> partsTotalForJob(String jobId) async =>
       _unimplemented();
 

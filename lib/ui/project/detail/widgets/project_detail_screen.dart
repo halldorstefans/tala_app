@@ -130,9 +130,13 @@ class ProjectDetailScreen extends StatelessWidget {
                 );
               }
               return ListView(
-                padding: EdgeInsets.symmetric(
-                  vertical: dimens.paddingScreenVertical,
-                  horizontal: dimens.paddingScreenHorizontal,
+                padding: EdgeInsets.fromLTRB(
+                  dimens.paddingScreenHorizontal,
+                  dimens.paddingScreenVertical,
+                  dimens.paddingScreenHorizontal,
+                  // Clear the system nav bar so the last job card isn't cut off.
+                  dimens.paddingScreenVertical +
+                      MediaQuery.paddingOf(context).bottom,
                 ),
                 children: [
                   _Header(project: project),

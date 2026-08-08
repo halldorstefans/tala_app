@@ -21,6 +21,8 @@ import '../ui/part/form/view_models/part_form_view_model.dart';
 import '../ui/part/form/widgets/part_form_screen.dart';
 import '../ui/part/catalogue/view_models/parts_catalogue_viewmodel.dart';
 import '../ui/part/catalogue/widgets/parts_catalogue_screen.dart';
+import '../ui/part/used/view_models/parts_used_viewmodel.dart';
+import '../ui/part/used/widgets/parts_used_screen.dart';
 import '../ui/backup/view_models/backup_viewmodel.dart';
 import '../ui/backup/widgets/backup_screen.dart';
 import '../ui/home/view_models/home_viewmodel.dart';
@@ -243,6 +245,23 @@ GoRouter router() => GoRouter(
               child: Builder(
                 builder: (context) => JobDetailScreen(
                   viewModel: context.read<JobDetailViewModel>(),
+                ),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: 'parts',
+          builder: (context, state) {
+            final vehicleId = state.pathParameters['vehicleId']!;
+            return ChangeNotifierProvider(
+              create: (context) => PartsUsedViewModel(
+                partsRepository: context.read(),
+                vehicleId: vehicleId,
+              ),
+              child: Builder(
+                builder: (context) => PartsUsedScreen(
+                  viewModel: context.read<PartsUsedViewModel>(),
                 ),
               ),
             );

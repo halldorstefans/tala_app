@@ -18,6 +18,8 @@ abstract final class Routes {
   static String jobFormWithId(String vehicleId, String? jobId) =>
       jobId != null ? '${jobForm(vehicleId)}/$jobId' : jobForm(vehicleId);
 
+  static String partsUsed(String vehicleId) => '/vehicle/$vehicleId/parts';
+
   static String projects(String vehicleId) => '/vehicle/$vehicleId/projects';
   static String projectDetails(String vehicleId, String projectId) =>
       '/vehicle/$vehicleId/projects/$projectId';

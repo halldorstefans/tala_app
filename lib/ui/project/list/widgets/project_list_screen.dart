@@ -84,9 +84,14 @@ class ProjectListScreen extends StatelessWidget {
                 );
               }
               return ListView.separated(
-                padding: EdgeInsets.symmetric(
-                  vertical: dimens.paddingScreenVertical,
-                  horizontal: dimens.paddingScreenHorizontal,
+                padding: EdgeInsets.fromLTRB(
+                  dimens.paddingScreenHorizontal,
+                  dimens.paddingScreenVertical,
+                  dimens.paddingScreenHorizontal,
+                  // Clear the FAB + system nav bar at the bottom.
+                  dimens.paddingScreenVertical +
+                      MediaQuery.paddingOf(context).bottom +
+                      72,
                 ),
                 itemCount: projects.length,
                 separatorBuilder: (context, _) =>

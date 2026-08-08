@@ -82,9 +82,13 @@ class PartsCatalogueScreen extends StatelessWidget {
                       return _empty(theme, 'No parts match your search.');
                     }
                     return ListView.separated(
-                      padding: EdgeInsets.symmetric(
-                        vertical: dimens.paddingScreenVertical,
-                        horizontal: dimens.paddingScreenHorizontal,
+                      padding: EdgeInsets.fromLTRB(
+                        dimens.paddingScreenHorizontal,
+                        dimens.paddingScreenVertical,
+                        dimens.paddingScreenHorizontal,
+                        // Clear the system nav bar at the bottom.
+                        dimens.paddingScreenVertical +
+                            MediaQuery.paddingOf(context).bottom,
                       ),
                       itemCount: parts.length,
                       separatorBuilder: (context, _) =>

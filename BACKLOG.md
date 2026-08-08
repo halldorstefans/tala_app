@@ -49,8 +49,7 @@ Carry these into any new work so choices stay consistent:
 - **Deferred polish** (small, do opportunistically):
   - ✅ Project-side "manage jobs" UI (PR #6).
   - ✅ Progress bar + status/cost on the project list cards (PR #6).
-  - Per-vehicle "parts used" list (distinct parts + total spent; the
-    `getPartsForVehicle` helper already backs it) — only one still open.
+  - ✅ Per-vehicle "parts used" list (PR #7). Phase 2 polish complete.
 
 ---
 
