@@ -130,6 +130,31 @@ class FakePartsRepository implements PartsRepository {
   }
 
   @override
+  Future<Result<List<PartUsage>>> getPartsUsageForVehicle(
+    String vehicleId,
+  ) async {
+    if (error != null) return Result.error(error!);
+    final quantities = <String, int>{};
+    final spent = <String, double>{};
+    for (final link in _jobParts) {
+      quantities[link.partId] = (quantities[link.partId] ?? 0) + link.quantity;
+      spent[link.partId] = (spent[link.partId] ?? 0) + link.totalCost;
+    }
+    final usages = <PartUsage>[];
+    for (final partId in quantities.keys) {
+      final part = _parts[partId];
+      if (part == null) continue;
+      usages.add((
+        part: part,
+        totalQuantity: quantities[partId]!,
+        totalSpent: spent[partId] ?? 0,
+      ));
+    }
+    usages.sort((a, b) => b.totalSpent.compareTo(a.totalSpent));
+    return Result.ok(usages);
+  }
+
+  @override
   Future<Result<double>> partsTotalForJob(String jobId) async {
     if (error != null) return Result.error(error!);
     final total = _jobParts

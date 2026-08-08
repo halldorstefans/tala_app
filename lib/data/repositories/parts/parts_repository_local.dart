@@ -225,6 +225,41 @@ class PartsRepositoryLocal implements PartsRepository {
   }
 
   @override
+  Future<Result<List<domain.PartUsage>>> getPartsUsageForVehicle(
+    String vehicleId,
+  ) async {
+    try {
+      final jobs = await _database.getJobsForVehicle(vehicleId);
+      final quantities = <String, int>{};
+      final spent = <String, double>{};
+      for (final job in jobs) {
+        for (final link in await _database.getJobPartsForJob(job.id)) {
+          quantities[link.partId] =
+              (quantities[link.partId] ?? 0) + link.quantity;
+          spent[link.partId] =
+              (spent[link.partId] ?? 0) + (link.unitCost ?? 0) * link.quantity;
+        }
+      }
+
+      final usages = <domain.PartUsage>[];
+      for (final partId in quantities.keys) {
+        final partRow = await _database.getPartById(partId);
+        if (partRow == null) continue;
+        usages.add((
+          part: domain.Part.fromDrift(partRow),
+          totalQuantity: quantities[partId]!,
+          totalSpent: spent[partId] ?? 0,
+        ));
+      }
+      usages.sort((a, b) => b.totalSpent.compareTo(a.totalSpent));
+      return Result.ok(usages);
+    } catch (e, st) {
+      _log.severe('Exception in getPartsUsageForVehicle', e, st);
+      return Result.error(Exception('Failed to get parts usage for vehicle'));
+    }
+  }
+
+  @override
   Future<Result<double>> partsTotalForJob(String jobId) async {
     try {
       final links = await _database.getJobPartsForJob(jobId);

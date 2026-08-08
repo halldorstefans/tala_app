@@ -83,3 +83,7 @@ class JobPart {
 /// A job's use of a part, paired with the part it points at. The read shape
 /// for a job's parts list.
 typedef JobPartLine = ({JobPart link, Part part});
+
+/// A part rolled up across a vehicle's jobs: how many were used and the total
+/// spent. Backs the per-vehicle "parts used" list.
+typedef PartUsage = ({Part part, int totalQuantity, double totalSpent});

@@ -51,6 +51,14 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     _refreshAfterProjects(vehicleId);
   }
 
+  Future<void> _openPartsUsed(String vehicleId) async {
+    await context.push(Routes.partsUsed(vehicleId));
+    if (!mounted) return;
+    // Parts may have been edited/deleted from the usage list; keep the total
+    // in sync.
+    widget.jobListViewModel.fetchJobs.execute(vehicleId);
+  }
+
   Future<void> _openProjectDetail(String vehicleId, String projectId) async {
     await context.push(Routes.projectDetails(vehicleId, projectId));
     if (!mounted) return;
@@ -355,9 +363,10 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                               ),
                               const SizedBox(height: 8),
                               _StatTile(
-                                label: 'Total cost',
+                                label: 'Total cost · parts used ›',
                                 value:
                                     '€${widget.jobListViewModel.totalCostWithParts.toStringAsFixed(2)}',
+                                onTap: () => _openPartsUsed(vehicle.id),
                               ),
                             ],
                           );
