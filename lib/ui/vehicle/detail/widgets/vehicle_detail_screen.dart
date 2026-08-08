@@ -566,6 +566,7 @@ class _ActiveProjects extends StatelessWidget {
               if (i > 0) const SizedBox(height: Dimens.space2),
               ProjectCard(
                 project: active[i],
+                summary: viewModel.summaryFor(active[i].id),
                 onTap: () => onOpen(active[i].id),
               ),
             ],

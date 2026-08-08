@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../../../../domain/models/job_status.dart';
 import '../../../../domain/models/project.dart';
+import '../view_models/project_list_viewmodel.dart' show ProjectSummary;
 
 class ProjectCard extends StatelessWidget {
-  const ProjectCard({super.key, required this.project, this.onTap});
+  const ProjectCard({
+    super.key,
+    required this.project,
+    this.onTap,
+    this.summary,
+  });
 
   final Project project;
   final VoidCallback? onTap;
+  final ProjectSummary? summary;
 
   @override
   Widget build(BuildContext context) {
@@ -58,11 +65,29 @@ class ProjectCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+              if (summary != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  _summaryLine(summary!),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  static String _summaryLine(ProjectSummary s) {
+    final total = s.planned + s.inProgress + s.completed;
+    final jobs = total == 0
+        ? 'No jobs'
+        : '${s.completed}/$total done'
+              '${s.inProgress > 0 ? ' · ${s.inProgress} in progress' : ''}';
+    return '$jobs · €${s.totalCost.toStringAsFixed(2)}';
   }
 
   /// A `start → end` line, using an em dash for whichever end is unset. Null

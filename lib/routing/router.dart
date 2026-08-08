@@ -151,6 +151,7 @@ GoRouter router() => GoRouter(
               create: (context) => ProjectListViewModel(
                 projectsRepository: context.read(),
                 vehicleId: vehicleId,
+                partsRepository: context.read(),
               ),
             ),
           ],
@@ -255,6 +256,7 @@ GoRouter router() => GoRouter(
               create: (context) => ProjectListViewModel(
                 projectsRepository: context.read(),
                 vehicleId: vehicleId,
+                partsRepository: context.read(),
               ),
               child: Builder(
                 builder: (context) => ProjectListScreen(
