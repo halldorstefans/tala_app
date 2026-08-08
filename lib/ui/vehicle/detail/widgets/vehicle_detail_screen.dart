@@ -72,18 +72,74 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     widget.jobListViewModel.fetchJobs.execute(vehicleId);
   }
 
+  Future<void> _openEdit(String vehicleId) async {
+    await context.push(Routes.vehicleFormWithId(vehicleId));
+    if (!mounted) return;
+    widget.viewModel.fetchVehicle.execute(vehicleId);
+  }
+
+  Future<void> _confirmRemove(String vehicleId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete vehicle?'),
+        content: const Text(
+          'This vehicle and all its jobs, projects, and photos will be '
+          'removed. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await widget.viewModel.remove.execute(vehicleId);
+    if (!mounted) return;
+    context.go(Routes.home);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final dimens = Dimens.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Vehicle Details'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.home),
-          onPressed: () => context.go('/'),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(
+          theme.appBarTheme.toolbarHeight ?? kToolbarHeight,
+        ),
+        child: ListenableBuilder(
+          listenable: widget.viewModel,
+          builder: (context, _) {
+            final vehicle = widget.viewModel.vehicle;
+            return AppBar(
+              title: const Text('Vehicle'),
+              leading: IconButton(
+                icon: const Icon(Icons.home),
+                onPressed: () => context.go('/'),
+              ),
+              actions: [
+                if (vehicle != null) ...[
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: 'Edit vehicle',
+                    onPressed: () => _openEdit(vehicle.id),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Delete vehicle',
+                    onPressed: () => _confirmRemove(vehicle.id),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -155,160 +211,60 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Card(
-                        color: Theme.of(context).cardColor,
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(2),
-                          side: BorderSide(
-                            color: Theme.of(context).dividerColor,
+                      if (ApiConfig.isValidPhotoPath(vehicle.photoPath)) ...[
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(2),
+                            child: AspectRatio(
+                              aspectRatio: 4 / 3,
+                              child: AppImage(
+                                path: vehicle.photoPath,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (ApiConfig.isValidPhotoPath(vehicle.photoPath))
-                                Center(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(2),
-                                    child: AspectRatio(
-                                      aspectRatio: 4 / 3,
-                                      child: AppImage(
-                                        path: vehicle.photoPath,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: 16),
-                              Text(
-                                '${vehicle.make} ${vehicle.model}',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineMedium,
-                              ),
-                              Text(
-                                '${vehicle.year}',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              if (vehicle.nickname != null &&
-                                  vehicle.nickname!.isNotEmpty)
-                                Text(
-                                  'Nickname: ${vehicle.nickname}',
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                ),
-                              if (vehicle.colour != null &&
-                                  vehicle.colour!.isNotEmpty)
-                                Text(
-                                  'Colour: ${vehicle.colour}',
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'Odometer: ${vehicle.odometer ?? 0} km',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      'Registration: ${vehicle.registration ?? ''}',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'VIN: ${vehicle.vin ?? ''}',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      'Purchase: ${vehicle.purchaseDate?.toLocal().toString().split(' ').first ?? ''}',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        textStyle: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (vehicle.notes != null &&
-                                  vehicle.notes!.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Text(
-                                    'Notes: ${vehicle.notes}',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge,
-                                  ),
-                                ),
-                              const SizedBox(height: 24),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        context.push(
-                                          Routes.vehicleFormWithId(vehicle.id),
-                                        );
-                                      },
-                                      child: const Text('Edit'),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Theme.of(
-                                          context,
-                                        ).colorScheme.secondary,
-                                        foregroundColor: Theme.of(
-                                          context,
-                                        ).colorScheme.onSecondary,
-                                      ),
-                                      onPressed: () {
-                                        Future<void> result = widget
-                                            .viewModel
-                                            .remove
-                                            .execute(vehicle.id);
-                                        result.whenComplete(() {
-                                          if (mounted) {
-                                            context.go(Routes.home);
-                                          }
-                                        });
-                                      },
-                                      child: const Text('Remove'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      Text(
+                        '${vehicle.make} ${vehicle.model}',
+                        style: theme.textTheme.headlineMedium,
                       ),
+                      Text('${vehicle.year}', style: theme.textTheme.bodyMedium),
+                      if (vehicle.nickname != null &&
+                          vehicle.nickname!.isNotEmpty)
+                        Text(
+                          '"${vehicle.nickname}"',
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                      const SizedBox(height: 12),
+                      _SpecRow(
+                        label: 'Odometer',
+                        value: '${vehicle.odometer ?? 0} km',
+                      ),
+                      if (vehicle.registration != null &&
+                          vehicle.registration!.isNotEmpty)
+                        _SpecRow(
+                          label: 'Registration',
+                          value: vehicle.registration!,
+                        ),
+                      if (vehicle.vin != null && vehicle.vin!.isNotEmpty)
+                        _SpecRow(label: 'VIN', value: vehicle.vin!),
+                      if (vehicle.colour != null && vehicle.colour!.isNotEmpty)
+                        _SpecRow(label: 'Colour', value: vehicle.colour!),
+                      if (vehicle.purchaseDate != null)
+                        _SpecRow(
+                          label: 'Purchased',
+                          value: vehicle.purchaseDate!
+                              .toLocal()
+                              .toString()
+                              .split(' ')
+                              .first,
+                        ),
+                      if (vehicle.notes != null && vehicle.notes!.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(vehicle.notes!, style: theme.textTheme.bodyLarge),
+                      ],
                       const SizedBox(height: 32),
                       Text(
                         'Stats',
@@ -476,6 +432,42 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// A label (muted) on the left and a mono data value on the right.
+class _SpecRow extends StatelessWidget {
+  const _SpecRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: GoogleFonts.jetBrainsMono(
+                textStyle: theme.textTheme.bodyMedium,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

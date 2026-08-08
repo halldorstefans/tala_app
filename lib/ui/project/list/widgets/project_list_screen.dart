@@ -28,16 +28,7 @@ class ProjectListScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final dimens = Dimens.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Projects',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
-        backgroundColor: theme.colorScheme.primary,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Projects')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openForm(context),
         icon: const Icon(Icons.add),

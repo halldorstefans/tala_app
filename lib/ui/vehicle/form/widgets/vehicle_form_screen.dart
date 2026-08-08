@@ -17,7 +17,6 @@ class VehicleFormScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(viewModel.vehicle == null ? 'Add Vehicle' : 'Edit Vehicle'),
-        backgroundColor: Theme.of(context).primaryColor,
       ),
       body: ListenableBuilder(
         listenable: viewModel.fetchVehicle,

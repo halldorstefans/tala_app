@@ -303,14 +303,7 @@ class _JobListViewState extends State<JobListView> {
     // Full screen mode with Scaffold
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Job History',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
-        backgroundColor: theme.colorScheme.primary,
-        elevation: 0,
+        title: const Text('Job History'),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
