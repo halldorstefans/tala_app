@@ -311,6 +311,7 @@ GoRouter router() => GoRouter(
               create: (context) => ProjectDetailViewModel(
                 projectsRepository: context.read(),
                 partsRepository: context.read(),
+                jobsRepository: context.read(),
                 vehicleId: vehicleId,
                 projectId: projectId,
               ),

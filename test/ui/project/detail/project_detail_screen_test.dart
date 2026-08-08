@@ -8,6 +8,7 @@ import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/ui/project/detail/view_models/project_detail_viewmodel.dart';
 import 'package:tala_app/ui/project/detail/widgets/project_detail_screen.dart';
 
+import '../../../helpers/fake_jobs_repository.dart';
 import '../../../helpers/fake_parts_repository.dart';
 import '../../../helpers/fake_projects_repository.dart';
 
@@ -23,6 +24,7 @@ ProjectDetailScreen _screen(FakeProjectsRepository repo) => ProjectDetailScreen(
   viewModel: ProjectDetailViewModel(
     projectsRepository: repo,
     partsRepository: FakePartsRepository(),
+    jobsRepository: FakeJobsRepository(),
     vehicleId: 'v1',
     projectId: 'p1',
   ),

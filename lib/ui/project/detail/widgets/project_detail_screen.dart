@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../domain/models/job_status.dart';
 import '../../../../domain/models/project.dart';
 import '../../../../routing/routes.dart';
+import '../../../../utils/result.dart';
 import '../../../core/themes/dimens.dart';
 import '../../../job/list/widgets/job_card.dart';
 import '../view_models/project_detail_viewmodel.dart';
@@ -25,6 +26,16 @@ class ProjectDetailScreen extends StatelessWidget {
     await context.push(Routes.jobDetails(viewModel.vehicleId, jobId));
     if (!context.mounted) return;
     viewModel.load.execute();
+  }
+
+  Future<void> _manageJobs(BuildContext context) async {
+    await viewModel.loadVehicleJobs();
+    if (!context.mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _ManageJobsSheet(viewModel: viewModel),
+    );
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -133,12 +144,22 @@ class ProjectDetailScreen extends StatelessWidget {
                     totalCost: viewModel.totalCostWithParts,
                   ),
                   const SizedBox(height: 24),
-                  Text('Jobs', style: theme.textTheme.headlineMedium),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Jobs', style: theme.textTheme.headlineMedium),
+                      TextButton.icon(
+                        onPressed: () => _manageJobs(context),
+                        icon: const Icon(Icons.playlist_add_check),
+                        label: const Text('Manage'),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   if (viewModel.jobs.isEmpty)
                     Text(
-                      'No jobs in this project yet. Assign a job from its '
-                      'form.',
+                      'No jobs in this project yet. Use "Manage" to add some, '
+                      'or assign one from its form.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.7,
@@ -247,6 +268,117 @@ class _StatsSummary extends StatelessWidget {
           style: theme.textTheme.titleMedium,
         ),
       ],
+    );
+  }
+}
+
+/// Bottom sheet to add/remove the vehicle's jobs from this project. Checked =
+/// in this project. Since a job belongs to at most one project, a job already
+/// in another project shows that inline and checking it moves it here.
+class _ManageJobsSheet extends StatefulWidget {
+  const _ManageJobsSheet({required this.viewModel});
+
+  final ProjectDetailViewModel viewModel;
+
+  @override
+  State<_ManageJobsSheet> createState() => _ManageJobsSheetState();
+}
+
+class _ManageJobsSheetState extends State<_ManageJobsSheet> {
+  late Set<String> _selected;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.viewModel.vehicleJobs
+        .where((j) => j.projectId == widget.viewModel.projectId)
+        .map((j) => j.id)
+        .toSet();
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    final result = await widget.viewModel.setJobMembership(_selected);
+    if (!mounted) return;
+    if (result is Error<void>) {
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update jobs')),
+      );
+      return;
+    }
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final media = MediaQuery.of(context);
+    final jobs = widget.viewModel.vehicleJobs;
+    final projectId = widget.viewModel.projectId;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: media.padding.bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Manage jobs', style: theme.textTheme.titleLarge),
+                FilledButton(
+                  onPressed: _saving ? null : _save,
+                  child: Text(_saving ? 'Saving…' : 'Save'),
+                ),
+              ],
+            ),
+          ),
+          if (jobs.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'This vehicle has no jobs yet.',
+                style: theme.textTheme.bodyMedium,
+              ),
+            )
+          else
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: jobs.length,
+                itemBuilder: (context, i) {
+                  final job = jobs[i];
+                  final inOther =
+                      job.projectId != null && job.projectId != projectId;
+                  return CheckboxListTile(
+                    value: _selected.contains(job.id),
+                    title: Text(
+                      job.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: inOther
+                        ? Text(
+                            'In another project',
+                            style: theme.textTheme.bodySmall,
+                          )
+                        : null,
+                    onChanged: (checked) => setState(() {
+                      if (checked ?? false) {
+                        _selected.add(job.id);
+                      } else {
+                        _selected.remove(job.id);
+                      }
+                    }),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

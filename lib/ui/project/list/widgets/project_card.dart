@@ -67,6 +67,17 @@ class ProjectCard extends StatelessWidget {
               ],
               if (summary != null) ...[
                 const SizedBox(height: 6),
+                if (_totalJobs(summary!) > 0) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: _completionFraction(summary!),
+                      minHeight: 6,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
                 Text(
                   _summaryLine(summary!),
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -81,8 +92,18 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
+  static int _totalJobs(ProjectSummary s) =>
+      s.planned + s.inProgress + s.completed;
+
+  /// Share of jobs completed, 0..1. (In-progress jobs aren't sub-tracked, so
+  /// they count as not-yet-done.)
+  static double _completionFraction(ProjectSummary s) {
+    final total = _totalJobs(s);
+    return total == 0 ? 0 : s.completed / total;
+  }
+
   static String _summaryLine(ProjectSummary s) {
-    final total = s.planned + s.inProgress + s.completed;
+    final total = _totalJobs(s);
     final jobs = total == 0
         ? 'No jobs'
         : '${s.completed}/$total done'
