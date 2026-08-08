@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
+import '../../../../data/repositories/jobs/jobs_repository.dart';
 import '../../../../data/repositories/parts/parts_repository.dart';
 import '../../../../data/repositories/projects/projects_repository.dart';
 import '../../../../domain/models/job.dart';
@@ -13,10 +14,12 @@ class ProjectDetailViewModel extends ChangeNotifier {
   ProjectDetailViewModel({
     required ProjectsRepository projectsRepository,
     required PartsRepository partsRepository,
+    required JobsRepository jobsRepository,
     required String vehicleId,
     required String projectId,
   }) : _projectsRepository = projectsRepository,
        _partsRepository = partsRepository,
+       _jobsRepository = jobsRepository,
        _vehicleId = vehicleId,
        _projectId = projectId {
     load = Command0(_load)..execute();
@@ -26,6 +29,7 @@ class ProjectDetailViewModel extends ChangeNotifier {
   final _log = Logger('ProjectDetailViewModel');
   final ProjectsRepository _projectsRepository;
   final PartsRepository _partsRepository;
+  final JobsRepository _jobsRepository;
 
   final String _vehicleId;
   String get vehicleId => _vehicleId;
@@ -37,6 +41,10 @@ class ProjectDetailViewModel extends ChangeNotifier {
 
   final List<Job> _jobs = <Job>[];
   List<Job> get jobs => _jobs;
+
+  /// All of the vehicle's jobs, for the "manage jobs" picker. Loaded on demand.
+  final List<Job> _vehicleJobs = <Job>[];
+  List<Job> get vehicleJobs => _vehicleJobs;
 
   double _partsTotal = 0;
 
@@ -79,6 +87,39 @@ class ProjectDetailViewModel extends ChangeNotifier {
     _partsTotal = partsTotal;
 
     notifyListeners();
+    return const Result.ok(null);
+  }
+
+  /// Loads all the vehicle's jobs so the manage-jobs picker can show which
+  /// belong to this project.
+  Future<void> loadVehicleJobs() async {
+    final result = await _jobsRepository.getJobs(_vehicleId);
+    if (result is Ok<List<Job>>) {
+      _vehicleJobs
+        ..clear()
+        ..addAll(result.value);
+      notifyListeners();
+    }
+  }
+
+  /// Sets this project's job membership to exactly [selectedJobIds]. Since a
+  /// job belongs to at most one project, checking a job assigns it here
+  /// (moving it out of any other project); unchecking clears its project.
+  /// Only jobs whose membership actually changes are written.
+  Future<Result<void>> setJobMembership(Set<String> selectedJobIds) async {
+    for (final job in _vehicleJobs) {
+      final shouldBelong = selectedJobIds.contains(job.id);
+      final belongsNow = job.projectId == _projectId;
+      if (shouldBelong == belongsNow) continue;
+      final updated = job.withProject(shouldBelong ? _projectId : null);
+      final result = await _jobsRepository.updateJob(_vehicleId, updated);
+      if (result is Error<Job>) {
+        _log.severe('Error updating job membership: ${result.error}');
+        return Result.error(result.error);
+      }
+    }
+    await _load();
+    await loadVehicleJobs();
     return const Result.ok(null);
   }
 

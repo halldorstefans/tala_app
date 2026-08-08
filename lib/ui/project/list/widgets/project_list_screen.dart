@@ -93,6 +93,7 @@ class ProjectListScreen extends StatelessWidget {
                     const SizedBox(height: Dimens.space2),
                 itemBuilder: (context, i) => ProjectCard(
                   project: projects[i],
+                  summary: viewModel.summaryFor(projects[i].id),
                   onTap: () => _openDetail(context, projects[i].id),
                 ),
               );

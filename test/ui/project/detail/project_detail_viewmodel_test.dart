@@ -5,7 +5,9 @@ import 'package:tala_app/domain/models/job_status.dart';
 import 'package:tala_app/domain/models/part.dart';
 import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/ui/project/detail/view_models/project_detail_viewmodel.dart';
+import 'package:tala_app/utils/result.dart';
 
+import '../../../helpers/fake_jobs_repository.dart';
 import '../../../helpers/fake_parts_repository.dart';
 import '../../../helpers/fake_projects_repository.dart';
 
@@ -14,9 +16,10 @@ Job _job(
   String? projectId, {
   String? status,
   double? cost,
+  String vehicleId = 'v1',
 }) => Job(
   id: id,
-  vehicleId: 'v1',
+  vehicleId: vehicleId,
   projectId: projectId,
   title: id,
   status: status,
@@ -26,9 +29,11 @@ Job _job(
 ProjectDetailViewModel _vm(
   FakeProjectsRepository repo, {
   FakePartsRepository? parts,
+  FakeJobsRepository? jobs,
 }) => ProjectDetailViewModel(
   projectsRepository: repo,
   partsRepository: parts ?? FakePartsRepository(),
+  jobsRepository: jobs ?? FakeJobsRepository(),
   vehicleId: 'v1',
   projectId: 'p1',
 );
@@ -98,6 +103,36 @@ void main() {
       await _settle(vm);
 
       expect(vm.load.error, isTrue);
+    });
+
+    test('setJobMembership assigns, unassigns, and moves jobs', () async {
+      final projects = FakeProjectsRepository()
+        ..seed(const Project(id: 'p1', vehicleId: 'v1', title: 'Disassembly'))
+        ..seedJob(_job('j1', 'p1')); // already in this project
+      // The jobs repo is the source of truth the VM reads + writes.
+      final jobs = FakeJobsRepository()
+        ..seed(_job('j1', 'p1'))
+        ..seed(_job('j2', null)) // unassigned
+        ..seed(_job('j3', 'other')); // in another project
+      final vm = _vm(projects, jobs: jobs);
+      await _settle(vm);
+      await vm.loadVehicleJobs();
+
+      Future<Map<String, String?>> projectIds() async {
+        final result = await jobs.getJobs('v1') as Ok<List<Job>>;
+        return {for (final j in result.value) j.id: j.projectId};
+      }
+
+      // Keep j1, add j2, move j3 here.
+      await vm.setJobMembership({'j1', 'j2', 'j3'});
+      final ids = await projectIds();
+      expect(ids['j1'], 'p1'); // unchanged
+      expect(ids['j2'], 'p1'); // assigned
+      expect(ids['j3'], 'p1'); // moved from 'other'
+
+      // Now drop j2 back out.
+      await vm.setJobMembership({'j1', 'j3'});
+      expect((await projectIds())['j2'], isNull);
     });
   });
 }
