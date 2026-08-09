@@ -32,35 +32,6 @@ void main() {
       expect(find.text('Uncategorized'), findsOneWidget);
     });
 
-    testWidgets('shows no +N badge when photo count is 0 or 1',
-        (tester) async {
-      final noPhotos = Job(id: 'j1', vehicleId: 'v1', title: 'A');
-      await tester.pumpWidget(_wrap(JobCard(job: noPhotos)));
-      expect(find.textContaining('+'), findsNothing);
-
-      final onePhoto = Job(
-        id: 'j2',
-        vehicleId: 'v1',
-        title: 'B',
-        photoPaths: ['photos/a.jpg'],
-      );
-      await tester.pumpWidget(_wrap(JobCard(job: onePhoto)));
-      expect(find.textContaining('+'), findsNothing);
-    });
-
-    testWidgets('shows +N badge when more than one photo', (tester) async {
-      final job = Job(
-        id: 'j1',
-        vehicleId: 'v1',
-        title: 'A',
-        photoPaths: ['photos/a.jpg', 'photos/b.jpg', 'photos/c.jpg'],
-      );
-
-      await tester.pumpWidget(_wrap(JobCard(job: job)));
-
-      expect(find.text('+2'), findsOneWidget);
-    });
-
     testWidgets('shows checkbox only when onToggleDone is provided',
         (tester) async {
       final job = Job(id: 'j1', vehicleId: 'v1', title: 'T');

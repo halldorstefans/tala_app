@@ -6,7 +6,7 @@ import 'package:tala_app/domain/models/job_status.dart';
 import 'package:tala_app/routing/routes.dart';
 import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
-import 'package:tala_app/ui/job/list/widgets/job_list_view.dart';
+import 'package:tala_app/ui/job/list/widgets/job_card.dart';
 import 'package:tala_app/ui/project/list/view_models/project_list_viewmodel.dart';
 import 'package:tala_app/ui/project/list/widgets/project_card.dart';
 
@@ -392,12 +392,9 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                           ),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(2),
-                          child: JobListView(
+                          padding: const EdgeInsets.all(8),
+                          child: _ActiveJobs(
                             viewModel: widget.jobListViewModel,
-                            isSummary: true,
-                            summarySelector: (vm) => vm.inProgressJobs,
-                            summaryEmptyLabel: 'No active work.',
                           ),
                         ),
                       ),
@@ -564,11 +561,71 @@ class _ActiveProjects extends StatelessWidget {
         return Column(
           children: [
             for (var i = 0; i < active.length; i++) ...[
-              if (i > 0) const SizedBox(height: Dimens.space2),
+              if (i > 0) const SizedBox(height: Dimens.space3),
               ProjectCard(
                 project: active[i],
                 summary: viewModel.summaryFor(active[i].id),
                 onTap: () => onOpen(active[i].id),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// In-progress jobs for the vehicle, rendered inline on the detail screen —
+/// the jobs counterpart to [_ActiveProjects], built the same way.
+class _ActiveJobs extends StatelessWidget {
+  const _ActiveJobs({required this.viewModel});
+
+  final JobListViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListenableBuilder(
+      listenable: Listenable.merge([viewModel, viewModel.fetchJobs]),
+      builder: (context, _) {
+        if (viewModel.fetchJobs.running) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.secondary,
+              ),
+            ),
+          );
+        }
+        final active = viewModel.inProgressJobs;
+        if (active.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: Text(
+                'No active work.',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+          );
+        }
+        return Column(
+          children: [
+            for (var i = 0; i < active.length; i++) ...[
+              if (i > 0) const SizedBox(height: Dimens.space3),
+              JobCard(
+                job: active[i],
+                onTap: () async {
+                  await context.push(
+                    Routes.jobDetails(viewModel.vehicleId, active[i].id),
+                  );
+                  if (!context.mounted) return;
+                  viewModel.fetchJobs.execute(viewModel.vehicleId);
+                },
+                onToggleDone: (_) => viewModel.toggleDone.execute(active[i]),
               ),
             ],
           ],
