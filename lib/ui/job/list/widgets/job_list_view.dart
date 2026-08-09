@@ -3,41 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
 import 'package:tala_app/ui/core/themes/dimens.dart';
 
-import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
 import '../../../../domain/models/job_status.dart';
 import '../../../../routing/routes.dart';
 import 'job_card.dart';
 
-/// Renders a list of jobs for a single vehicle. Runs in two modes:
-///
-/// - **Full screen** (`isSummary: false`): a scaffolded, filterable "Job
-///   History" screen with a status filter row and an add-job FAB.
-/// - **Summary** (`isSummary: true`): an embedded, unscrollable slice for
-///   host screens (e.g. the "Active Work" section on vehicle detail). Use
-///   [summarySelector] to choose which jobs appear.
+/// The full, scaffolded, filterable "Job History" screen for a single vehicle
+/// — a status filter row plus an add-job FAB. (The vehicle detail page renders
+/// its own lightweight "Active Work" summary instead of embedding this.)
 class JobListView extends StatefulWidget {
-  const JobListView({
-    super.key,
-    required this.viewModel,
-    this.isSummary = false,
-    this.summaryCount = 3,
-    this.summarySelector,
-    this.summaryEmptyLabel = 'No jobs found.',
-  });
+  const JobListView({super.key, required this.viewModel});
 
   final JobListViewModel viewModel;
-  final bool isSummary;
-  final int summaryCount;
-
-  /// In summary mode, chooses which jobs to show. When null, falls back to
-  /// the most-recent `summaryCount` jobs of any status. When provided, all
-  /// selected jobs are shown (no `summaryCount` cap) — an active-work list
-  /// shouldn't silently hide entries.
-  final List<Job> Function(JobListViewModel vm)? summarySelector;
-
-  /// Empty-state text shown in summary mode.
-  final String summaryEmptyLabel;
 
   @override
   State<JobListView> createState() => _JobListViewState();
@@ -247,16 +224,13 @@ class _JobListViewState extends State<JobListView> {
       child: ListenableBuilder(
         listenable: widget.viewModel,
         builder: (context, child) {
-          final records = widget.isSummary
-              ? (widget.summarySelector?.call(widget.viewModel) ??
-                    widget.viewModel.jobs.take(widget.summaryCount).toList())
-              : widget.viewModel.filteredJobs;
+          final records = widget.viewModel.filteredJobs;
           if (records.isEmpty) {
             return Center(
               child: Text(
-                widget.isSummary || !widget.viewModel.hasActiveFilters
-                    ? widget.summaryEmptyLabel
-                    : 'No jobs match the current filters.',
+                widget.viewModel.hasActiveFilters
+                    ? 'No jobs match the current filters.'
+                    : 'No jobs found.',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
@@ -264,12 +238,8 @@ class _JobListViewState extends State<JobListView> {
             );
           }
           return ListView.separated(
-            shrinkWrap: widget.isSummary,
-            physics: widget.isSummary
-                ? const NeverScrollableScrollPhysics()
-                : null,
             itemCount: records.length,
-            separatorBuilder: (context, i) => SizedBox(height: Dimens.space4),
+            separatorBuilder: (context, i) => SizedBox(height: Dimens.space3),
             itemBuilder: (context, i) => JobCard(
               job: records[i],
               onTap: () async {
@@ -289,18 +259,6 @@ class _JobListViewState extends State<JobListView> {
       ),
     );
 
-    if (widget.isSummary) {
-      // For summary, just return the content (no Scaffold, AppBar, or FAB)
-      return Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: dimens.paddingScreenVertical,
-          horizontal: dimens.paddingScreenHorizontal,
-        ),
-        child: content,
-      );
-    }
-
-    // Full screen mode with Scaffold
     return Scaffold(
       appBar: AppBar(
         title: const Text('Job History'),

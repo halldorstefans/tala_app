@@ -86,7 +86,7 @@ class ProjectListScreen extends StatelessWidget {
                 ),
                 itemCount: projects.length,
                 separatorBuilder: (context, _) =>
-                    const SizedBox(height: Dimens.space2),
+                    const SizedBox(height: Dimens.space3),
                 itemBuilder: (context, i) => ProjectCard(
                   project: projects[i],
                   summary: viewModel.summaryFor(projects[i].id),
