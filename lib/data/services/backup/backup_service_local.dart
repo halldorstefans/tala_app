@@ -115,11 +115,12 @@ class BackupServiceLocal implements BackupService {
     }
   }
 
-  /// `YYYYMMDD-HHmmss`, filename-safe and sortable.
+  /// `YYYY-MM-DD_HH-MM-SS`, filename-safe (no colons), sortable, and readable
+  /// at a glance in a file listing.
   String _timestamp(DateTime d) {
     String two(int n) => n.toString().padLeft(2, '0');
-    return '${d.year}${two(d.month)}${two(d.day)}'
-        '-${two(d.hour)}${two(d.minute)}${two(d.second)}';
+    return '${d.year}-${two(d.month)}-${two(d.day)}'
+        '_${two(d.hour)}-${two(d.minute)}-${two(d.second)}';
   }
 }
 

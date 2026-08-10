@@ -10,7 +10,7 @@ import 'job_card.dart';
 
 /// The full, scaffolded, filterable "Job History" screen for a single vehicle
 /// — a status filter row plus an add-job FAB. (The vehicle detail page renders
-/// its own lightweight "Active Work" summary instead of embedding this.)
+/// its own lightweight "Active Jobs" summary instead of embedding this.)
 class JobListView extends StatefulWidget {
   const JobListView({super.key, required this.viewModel});
 
