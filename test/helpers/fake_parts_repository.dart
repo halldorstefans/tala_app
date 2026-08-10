@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:tala_app/data/repositories/parts/parts_repository.dart';
 import 'package:tala_app/domain/models/job_part.dart';
 import 'package:tala_app/domain/models/part.dart';
+import 'package:tala_app/utils/app_exception.dart';
 import 'package:tala_app/utils/result.dart';
 
 /// In-memory fake. Note: [getPartsForVehicle] / [partsTotalForVehicle] can't
@@ -37,7 +38,7 @@ class FakePartsRepository implements PartsRepository {
   Future<Result<Part>> getPart(String partId) async {
     if (error != null) return Result.error(error!);
     final part = _parts[partId];
-    if (part == null) return Result.error(Exception('not found'));
+    if (part == null) return Result.error(const NotFoundException('Part'));
     return Result.ok(part);
   }
 

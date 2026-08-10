@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../domain/models/job.dart' as domain;
 import '../../../utils/result.dart';
+import '../../../utils/app_exception.dart';
 import '../../database/app_database.dart' as db;
 import 'jobs_repository.dart';
 
@@ -24,7 +25,7 @@ class JobsRepositoryLocal implements JobsRepository {
     try {
       final result = await _database.getJobById(jobId);
       if (result == null || result.vehicleId != vehicleId) {
-        return Result.error(Exception('Job not found'));
+        return Result.error(const NotFoundException('Job'));
       }
 
       final photos = await _database.getPhotosForJob(jobId);
@@ -33,7 +34,7 @@ class JobsRepositoryLocal implements JobsRepository {
       return Result.ok(domain.Job.fromDrift(result, photoPaths: photoPaths));
     } catch (e, st) {
       _log.severe('Exception in getJob', e, st);
-      return Result.error(Exception('Failed to get job'));
+      return Result.error(StorageException('Failed to get job', cause: e));
     }
   }
 
@@ -62,7 +63,7 @@ class JobsRepositoryLocal implements JobsRepository {
       return Result.ok(jobs);
     } catch (e, st) {
       _log.severe('Exception in getJobs', e, st);
-      return Result.error(Exception('Failed to get jobs'));
+      return Result.error(StorageException('Failed to get jobs', cause: e));
     }
   }
 
@@ -75,7 +76,7 @@ class JobsRepositoryLocal implements JobsRepository {
       return Result.ok(id);
     } catch (e, st) {
       _log.severe('Exception in addJob', e, st);
-      return Result.error(Exception('Failed to add job'));
+      return Result.error(StorageException('Failed to add job', cause: e));
     }
   }
 
@@ -84,14 +85,14 @@ class JobsRepositoryLocal implements JobsRepository {
     try {
       final existing = await _database.getJobById(job.id);
       if (existing == null || existing.vehicleId != vehicleId) {
-        return Result.error(Exception('Job not found'));
+        return Result.error(const NotFoundException('Job'));
       }
 
       await _database.updateJob(job.copyWith(vehicleId: vehicleId).toDrift());
       return Result.ok(job);
     } catch (e, st) {
       _log.severe('Exception in updateJob', e, st);
-      return Result.error(Exception('Failed to update job'));
+      return Result.error(StorageException('Failed to update job', cause: e));
     }
   }
 
@@ -108,7 +109,7 @@ class JobsRepositoryLocal implements JobsRepository {
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deleteJob', e, st);
-      return Result.error(Exception('Failed to delete job'));
+      return Result.error(StorageException('Failed to delete job', cause: e));
     }
   }
 
@@ -133,7 +134,7 @@ class JobsRepositoryLocal implements JobsRepository {
     try {
       final job = await _database.getJobById(jobId);
       if (job == null || job.vehicleId != vehicleId) {
-        return Result.error(Exception('Job not found'));
+        return Result.error(const NotFoundException('Job'));
       }
 
       final dir = await getApplicationDocumentsDirectory();
@@ -162,7 +163,7 @@ class JobsRepositoryLocal implements JobsRepository {
       return Result.ok(relativePath);
     } catch (e, st) {
       _log.severe('Exception in uploadJobPhoto', e, st);
-      return Result.error(Exception('Failed to upload job photo'));
+      return Result.error(StorageException('Failed to upload job photo', cause: e));
     }
   }
 
@@ -176,7 +177,7 @@ class JobsRepositoryLocal implements JobsRepository {
       final photos = await _database.getPhotosForJob(jobId);
       final photo = photos.where((p) => p.photoPath == photoPath).firstOrNull;
       if (photo == null) {
-        return Result.error(Exception('Photo not found'));
+        return Result.error(const NotFoundException('Photo'));
       }
 
       final dir = await getApplicationDocumentsDirectory();
@@ -190,7 +191,7 @@ class JobsRepositoryLocal implements JobsRepository {
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deleteJobPhoto', e, st);
-      return Result.error(Exception('Failed to delete job photo'));
+      return Result.error(StorageException('Failed to delete job photo', cause: e));
     }
   }
 }

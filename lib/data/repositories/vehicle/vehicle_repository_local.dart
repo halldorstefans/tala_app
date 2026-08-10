@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../domain/models/vehicle.dart' as domain;
 import '../../../utils/result.dart';
+import '../../../utils/app_exception.dart';
 import '../../database/app_database.dart' as db;
 import 'vehicle_repository.dart';
 
@@ -23,12 +24,12 @@ class VehicleRepositoryLocal implements VehicleRepository {
     try {
       final result = await _database.getVehicleById(vehicleId);
       if (result == null) {
-        return Result.error(Exception('Vehicle not found'));
+        return Result.error(const NotFoundException('Vehicle'));
       }
       return Result.ok(domain.Vehicle.fromDrift(result));
     } catch (e, st) {
       _log.severe('Exception in getVehicle', e, st);
-      return Result.error(Exception('Failed to get vehicle'));
+      return Result.error(StorageException('Failed to get vehicle', cause: e));
     }
   }
 
@@ -40,7 +41,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
       return Result.ok(vehicles);
     } catch (e, st) {
       _log.severe('Exception in getVehicles', e, st);
-      return Result.error(Exception('Failed to get vehicles'));
+      return Result.error(StorageException('Failed to get vehicles', cause: e));
     }
   }
 
@@ -53,7 +54,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
       return Result.ok(id);
     } catch (e, st) {
       _log.severe('Exception in addVehicle', e, st);
-      return Result.error(Exception('Failed to add vehicle'));
+      return Result.error(StorageException('Failed to add vehicle', cause: e));
     }
   }
 
@@ -62,14 +63,14 @@ class VehicleRepositoryLocal implements VehicleRepository {
     try {
       final existing = await _database.getVehicleById(vehicle.id);
       if (existing == null) {
-        return Result.error(Exception('Vehicle not found'));
+        return Result.error(const NotFoundException('Vehicle'));
       }
 
       await _database.updateVehicle(vehicle.toDrift());
       return Result.ok(vehicle);
     } catch (e, st) {
       _log.severe('Exception in updateVehicle', e, st);
-      return Result.error(Exception('Failed to update vehicle'));
+      return Result.error(StorageException('Failed to update vehicle', cause: e));
     }
   }
 
@@ -104,7 +105,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deleteVehicle', e, st);
-      return Result.error(Exception('Failed to delete vehicle'));
+      return Result.error(StorageException('Failed to delete vehicle', cause: e));
     }
   }
 
@@ -128,7 +129,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
       final existing = await _database.getVehicleById(vehicleId);
       if (existing == null) {
         await File(newPath).delete();
-        return Result.error(Exception('Vehicle not found'));
+        return Result.error(const NotFoundException('Vehicle'));
       }
 
       final previousPath = existing.photoPath;
@@ -146,7 +147,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
       return Result.ok(relativePath);
     } catch (e, st) {
       _log.severe('Exception in uploadVehiclePhoto', e, st);
-      return Result.error(Exception('Failed to upload vehicle photo'));
+      return Result.error(StorageException('Failed to upload vehicle photo', cause: e));
     }
   }
 }

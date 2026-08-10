@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:tala_app/data/repositories/jobs/jobs_repository.dart';
 import 'package:tala_app/domain/models/job.dart';
+import 'package:tala_app/utils/app_exception.dart';
 import 'package:tala_app/utils/result.dart';
 
 class FakeJobsRepository implements JobsRepository {
@@ -24,7 +25,7 @@ class FakeJobsRepository implements JobsRepository {
     if (error != null) return Result.error(error!);
     final job = _jobs[jobId];
     if (job == null) {
-      return Result.error(Exception('not found'));
+      return Result.error(const NotFoundException('Job'));
     }
     return Result.ok(job);
   }
