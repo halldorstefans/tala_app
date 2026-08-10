@@ -41,12 +41,24 @@ class JobsRepositoryLocal implements JobsRepository {
   Future<Result<List<domain.Job>>> getJobs(String vehicleId) async {
     try {
       final results = await _database.getJobsForVehicle(vehicleId);
-      final jobs = <domain.Job>[];
-      for (final job in results) {
-        final photos = await _database.getPhotosForJob(job.id);
-        final photoPaths = photos.map((p) => p.photoPath).toList();
-        jobs.add(domain.Job.fromDrift(job, photoPaths: photoPaths));
+
+      // One query for every job's photos, grouped in memory — rather than a
+      // getPhotosForJob round-trip per job (N+1).
+      final photos = await _database.getPhotosForJobs(
+        results.map((j) => j.id),
+      );
+      final pathsByJob = <String, List<String>>{};
+      for (final photo in photos) {
+        (pathsByJob[photo.jobId] ??= <String>[]).add(photo.photoPath);
       }
+
+      final jobs = [
+        for (final job in results)
+          domain.Job.fromDrift(
+            job,
+            photoPaths: pathsByJob[job.id] ?? const <String>[],
+          ),
+      ];
       return Result.ok(jobs);
     } catch (e, st) {
       _log.severe('Exception in getJobs', e, st);

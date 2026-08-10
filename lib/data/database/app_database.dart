@@ -205,12 +205,6 @@ class AppDatabase extends _$AppDatabase {
       (delete(partPhotos)..where((t) => t.partId.equals(partId))).go();
 
   // Job-part (link) operations
-  Future<List<JobPart>> getJobPartsForJob(String jobId) =>
-      (select(jobParts)
-            ..where((t) => t.jobId.equals(jobId))
-            ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
-          .get();
-
   Future<int> insertJobPart(JobPartsCompanion jobPart) =>
       into(jobParts).insert(jobPart);
 
@@ -225,6 +219,101 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteJobPartsForPart(String partId) =>
       (delete(jobParts)..where((t) => t.partId.equals(partId))).go();
+
+  // --- Joins & aggregates -------------------------------------------------
+  // Single-query replacements for what would otherwise be per-row (N+1) loops
+  // in the repositories. FKs aren't enforced, but these inner-join through
+  // job_parts/jobs, so a link to a deleted part or job simply drops out.
+
+  /// `unit_cost * quantity` for a job_parts row. A null unit cost makes the
+  /// product null; SQL `SUM`/`TOTAL` then skip it, matching the domain's
+  /// `(unitCost ?? 0) * quantity`.
+  Expression<double> get _lineCost =>
+      jobParts.unitCost * jobParts.quantity.cast<double>();
+
+  /// Photos for many jobs in one query; the caller groups by [JobPhoto.jobId].
+  /// Empty [jobIds] returns an empty list without touching the database.
+  Future<List<JobPhoto>> getPhotosForJobs(Iterable<String> jobIds) {
+    final ids = jobIds.toList();
+    if (ids.isEmpty) return Future.value(const []);
+    return (select(jobPhotos)..where((t) => t.jobId.isIn(ids))).get();
+  }
+
+  /// A job's parts joined to their catalogue rows, oldest link first.
+  Future<List<({JobPart link, Part part})>> getJobPartsWithParts(String jobId) {
+    final query = select(jobParts).join([
+      innerJoin(parts, parts.id.equalsExp(jobParts.partId)),
+    ])
+      ..where(jobParts.jobId.equals(jobId))
+      ..orderBy([OrderingTerm(expression: jobParts.createdAt)]);
+    return query
+        .map(
+          (row) => (link: row.readTable(jobParts), part: row.readTable(parts)),
+        )
+        .get();
+  }
+
+  /// Distinct parts used on any of [vehicleId]'s jobs, ordered by name.
+  Future<List<Part>> getPartsUsedByVehicle(String vehicleId) {
+    final query = select(parts).join([
+      innerJoin(jobParts, jobParts.partId.equalsExp(parts.id)),
+      innerJoin(jobs, jobs.id.equalsExp(jobParts.jobId)),
+    ])
+      ..where(jobs.vehicleId.equals(vehicleId))
+      ..groupBy([parts.id])
+      ..orderBy([OrderingTerm(expression: parts.name)]);
+    return query.map((row) => row.readTable(parts)).get();
+  }
+
+  /// Per-part usage totals (quantity + spend) for [vehicleId], highest spend
+  /// first (ties broken by name for a stable order).
+  Future<List<({Part part, int totalQuantity, double totalSpent})>>
+  getPartsUsageForVehicle(String vehicleId) async {
+    final quantity = jobParts.quantity.sum();
+    final spent = _lineCost.total();
+    final query = select(parts).join([
+      innerJoin(jobParts, jobParts.partId.equalsExp(parts.id)),
+      innerJoin(jobs, jobs.id.equalsExp(jobParts.jobId)),
+    ])
+      ..addColumns([quantity, spent])
+      ..where(jobs.vehicleId.equals(vehicleId))
+      ..groupBy([parts.id])
+      ..orderBy([
+        OrderingTerm.desc(spent),
+        OrderingTerm(expression: parts.name),
+      ]);
+    final rows = await query.get();
+    return [
+      for (final row in rows)
+        (
+          part: row.readTable(parts),
+          totalQuantity: row.read(quantity) ?? 0,
+          totalSpent: row.read(spent) ?? 0,
+        ),
+    ];
+  }
+
+  /// Total parts spend on a single job.
+  Future<double> partsTotalForJob(String jobId) async {
+    final total = _lineCost.total();
+    final query = selectOnly(jobParts)
+      ..addColumns([total])
+      ..where(jobParts.jobId.equals(jobId));
+    final row = await query.getSingle();
+    return row.read(total) ?? 0;
+  }
+
+  /// Total parts spend across all of a vehicle's jobs.
+  Future<double> partsTotalForVehicle(String vehicleId) async {
+    final total = _lineCost.total();
+    final query = select(jobParts).join([
+      innerJoin(jobs, jobs.id.equalsExp(jobParts.jobId)),
+    ])
+      ..addColumns([total])
+      ..where(jobs.vehicleId.equals(vehicleId));
+    final row = await query.getSingle();
+    return row.read(total) ?? 0;
+  }
 }
 
 LazyDatabase _openConnection() {
