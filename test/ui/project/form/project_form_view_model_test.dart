@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/ui/project/form/view_models/project_form_view_model.dart';
 
@@ -36,7 +36,7 @@ void main() {
         id: 'p1',
         vehicleId: 'v1',
         title: 'New',
-        status: JobStatus.inProgress,
+        status: ProgressStatus.inProgress,
       );
       await vm.updateProject.execute(edited);
 

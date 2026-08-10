@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 import '../../../../data/repositories/parts/parts_repository.dart';
 import '../../../../data/repositories/projects/projects_repository.dart';
 import '../../../../domain/models/job.dart';
-import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/progress_status.dart';
 import '../../../../domain/models/project.dart';
 import '../../../../utils/command.dart';
 import '../../../../utils/result.dart';
@@ -50,7 +50,7 @@ class ProjectListViewModel extends ChangeNotifier {
   /// Projects currently underway. Backs the "Active Projects" summary on the
   /// vehicle detail screen, mirroring the job list's `inProgressJobs`.
   List<Project> get activeProjects =>
-      _projects.where((p) => p.status == JobStatus.inProgress).toList();
+      _projects.where((p) => p.status == ProgressStatus.inProgress).toList();
 
   late Command1<void, String> fetchProjects;
 

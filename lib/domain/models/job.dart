@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:tala_app/data/database/app_database.dart' as db;
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 
 class Job {
   final String id;
@@ -11,7 +11,7 @@ class Job {
   final DateTime? completionDate;
   final int? odometer;
   final String? category;
-  final String? status;
+  final ProgressStatus? status;
   final String? description;
   final double? cost;
   final List<String>? photoPaths;
@@ -39,7 +39,7 @@ class Job {
     DateTime? completionDate,
     int? odometer,
     String? category,
-    String? status,
+    ProgressStatus? status,
     String? description,
     double? cost,
     List<String>? photoPaths,
@@ -90,7 +90,7 @@ class Job {
   /// Call this before persisting a job that was assembled from user input
   /// or from mutations elsewhere in the app.
   Job normalized() {
-    if (status != JobStatus.completed) return this;
+    if (status != ProgressStatus.completed) return this;
     final s = startDate;
     final c = completionDate;
     if (s == null || c == null) return this;
@@ -112,7 +112,7 @@ class Job {
           : null,
       odometer: json['odometer'] as int?,
       category: json['category'] as String?,
-      status: json['status'] as String?,
+      status: ProgressStatus.fromWire(json['status'] as String?),
       description: json['description'] as String?,
       cost: json['cost'] != null ? (json['cost'] as num).toDouble() : null,
     );
@@ -130,7 +130,7 @@ class Job {
       completionDate: Value(completionDate),
       odometer: Value(odometer),
       category: Value(category),
-      status: Value(status),
+      status: Value(status?.wire),
       description: Value(description),
       cost: Value(cost),
       updatedAt: Value(DateTime.now()),
@@ -147,7 +147,7 @@ class Job {
       completionDate: data.completionDate,
       odometer: data.odometer,
       category: data.category,
-      status: data.status,
+      status: ProgressStatus.fromWire(data.status),
       description: data.description,
       cost: data.cost,
       photoPaths: photoPaths,

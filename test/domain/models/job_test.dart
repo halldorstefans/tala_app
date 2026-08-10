@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/domain/models/job.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 
 Job _job({
-  String? status,
+  ProgressStatus? status,
   DateTime? startDate,
   DateTime? completionDate,
 }) => Job(
@@ -21,7 +21,7 @@ void main() {
       final future = DateTime(2027, 1, 1);
       final past = DateTime(2026, 1, 1);
       final job = _job(
-        status: JobStatus.planned,
+        status: ProgressStatus.planned,
         startDate: future,
         completionDate: past,
       );
@@ -35,7 +35,7 @@ void main() {
     test('no-op when startDate is null', () {
       final completion = DateTime(2026, 5, 1);
       final job = _job(
-        status: JobStatus.completed,
+        status: ProgressStatus.completed,
         completionDate: completion,
       );
 
@@ -47,7 +47,7 @@ void main() {
 
     test('no-op when completionDate is null', () {
       final start = DateTime(2026, 5, 1);
-      final job = _job(status: JobStatus.completed, startDate: start);
+      final job = _job(status: ProgressStatus.completed, startDate: start);
 
       final result = job.normalized();
 
@@ -58,7 +58,7 @@ void main() {
     test('no-op when startDate equals completionDate', () {
       final same = DateTime(2026, 5, 1);
       final job = _job(
-        status: JobStatus.completed,
+        status: ProgressStatus.completed,
         startDate: same,
         completionDate: same,
       );
@@ -72,7 +72,7 @@ void main() {
       final start = DateTime(2026, 5, 1);
       final completion = DateTime(2026, 5, 10);
       final job = _job(
-        status: JobStatus.completed,
+        status: ProgressStatus.completed,
         startDate: start,
         completionDate: completion,
       );
@@ -87,7 +87,7 @@ void main() {
       final futureStart = DateTime(2027, 1, 1);
       final completion = DateTime(2026, 7, 19);
       final job = _job(
-        status: JobStatus.completed,
+        status: ProgressStatus.completed,
         startDate: futureStart,
         completionDate: completion,
       );

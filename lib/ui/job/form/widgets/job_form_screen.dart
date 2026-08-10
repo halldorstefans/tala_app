@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:tala_app/routing/routes.dart';
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
-import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/progress_status.dart';
 import '../../../../domain/models/project.dart';
 import '../../../../utils/result.dart';
 import '../view_models/job_form_view_model.dart';
@@ -91,7 +91,7 @@ class _JobFormBodyState extends State<_JobFormBody> {
 
   DateTime? _startDate;
   DateTime? _completionDate;
-  String? _status;
+  ProgressStatus? _status;
   String? _category;
   String? _categoryDropdownValue;
   String? _projectId;
@@ -117,7 +117,7 @@ class _JobFormBodyState extends State<_JobFormBody> {
     _customCategoryController = TextEditingController();
     _syncCategoryControls();
 
-    _status = j?.status ?? JobStatus.planned;
+    _status = j?.status ?? ProgressStatus.planned;
     _projectId = j?.projectId;
 
     // Start date is intentionally NOT defaulted — a blank field signals
@@ -341,13 +341,11 @@ class _JobFormBodyState extends State<_JobFormBody> {
                 ],
                 const SizedBox(height: 16),
 
-                DropdownButtonFormField<String>(
-                  initialValue: JobStatus.isKnown(_status)
-                      ? _status
-                      : JobStatus.planned,
+                DropdownButtonFormField<ProgressStatus>(
+                  initialValue: _status ?? ProgressStatus.planned,
                   decoration: const InputDecoration(labelText: 'Status'),
                   items: [
-                    for (final s in JobStatus.all)
+                    for (final s in ProgressStatus.values)
                       DropdownMenuItem(
                         value: s,
                         child: Text(statusLabel(s)),

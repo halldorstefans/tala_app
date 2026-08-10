@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tala_app/domain/models/job.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/ui/project/detail/view_models/project_detail_viewmodel.dart';
 import 'package:tala_app/ui/project/detail/widgets/project_detail_screen.dart';
@@ -43,7 +43,7 @@ void main() {
             vehicleId: 'v1',
             projectId: 'p1',
             title: 'Remove interior',
-            status: JobStatus.planned,
+            status: ProgressStatus.planned,
           ),
         );
 

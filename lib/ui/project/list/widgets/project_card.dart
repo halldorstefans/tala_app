@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/progress_status.dart';
 import '../../../../domain/models/project.dart';
 import '../view_models/project_list_viewmodel.dart' show ProjectSummary;
 
@@ -42,7 +42,7 @@ class ProjectCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (project.status != null && project.status!.isNotEmpty) ...[
+                  if (project.status != null) ...[
                     const SizedBox(width: 8),
                     Chip(
                       label: Text(statusLabel(project.status)),

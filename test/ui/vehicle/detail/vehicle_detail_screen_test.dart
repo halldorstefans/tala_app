@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tala_app/domain/models/job.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/domain/models/vehicle.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
@@ -16,7 +16,7 @@ import '../../../helpers/fake_vehicle_repository.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: child);
 
-Job _job(String id, String title, String status) => Job(
+Job _job(String id, String title, ProgressStatus status) => Job(
   id: id,
   vehicleId: 'v1',
   title: title,
@@ -74,10 +74,10 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           _screen([
-            _job('a', 'Engine top-end rebuild', JobStatus.inProgress),
-            _job('b', 'Oil change planned', JobStatus.planned),
-            _job('c', 'Brakes bled', JobStatus.completed),
-            _job('d', 'Interior leather conditioning', JobStatus.inProgress),
+            _job('a', 'Engine top-end rebuild', ProgressStatus.inProgress),
+            _job('b', 'Oil change planned', ProgressStatus.planned),
+            _job('c', 'Brakes bled', ProgressStatus.completed),
+            _job('d', 'Interior leather conditioning', ProgressStatus.inProgress),
           ]),
         ),
       );
@@ -99,8 +99,8 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           _screen([
-            _job('a', 'Oil change planned', JobStatus.planned),
-            _job('b', 'Brakes bled', JobStatus.completed),
+            _job('a', 'Oil change planned', ProgressStatus.planned),
+            _job('b', 'Brakes bled', ProgressStatus.completed),
           ]),
         ),
       );
@@ -122,13 +122,13 @@ void main() {
                 id: 'p1',
                 vehicleId: 'v1',
                 title: 'Electrical rewire',
-                status: JobStatus.inProgress,
+                status: ProgressStatus.inProgress,
               ),
               Project(
                 id: 'p2',
                 vehicleId: 'v1',
                 title: 'Future paint',
-                status: JobStatus.planned,
+                status: ProgressStatus.planned,
               ),
             ],
           ),
@@ -153,7 +153,7 @@ void main() {
                 id: 'p1',
                 vehicleId: 'v1',
                 title: 'Future paint',
-                status: JobStatus.planned,
+                status: ProgressStatus.planned,
               ),
             ],
           ),

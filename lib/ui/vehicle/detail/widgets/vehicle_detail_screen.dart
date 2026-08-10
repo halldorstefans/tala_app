@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tala_app/data/services/tala_api/api_config.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/routing/routes.dart';
 import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
@@ -33,7 +33,10 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   // Refetching the job list after returning from a job-related route keeps
   // the summary + stats in sync with mutations (add/edit/delete/toggle)
   // that happen deeper in the stack.
-  Future<void> _openJobsWithStatus(String vehicleId, String status) async {
+  Future<void> _openJobsWithStatus(
+    String vehicleId,
+    ProgressStatus status,
+  ) async {
     await context.push(Routes.jobsWithStatus(vehicleId, status));
     if (!mounted) return;
     widget.jobListViewModel.fetchJobs.execute(vehicleId);
@@ -287,7 +290,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                       onTap: () =>
                                           _openJobsWithStatus(
                                             vehicle.id,
-                                            JobStatus.planned,
+                                            ProgressStatus.planned,
                                           ),
                                     ),
                                   ),
@@ -299,7 +302,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                       onTap: () =>
                                           _openJobsWithStatus(
                                             vehicle.id,
-                                            JobStatus.inProgress,
+                                            ProgressStatus.inProgress,
                                           ),
                                     ),
                                   ),
@@ -311,7 +314,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                                       onTap: () =>
                                           _openJobsWithStatus(
                                             vehicle.id,
-                                            JobStatus.completed,
+                                            ProgressStatus.completed,
                                           ),
                                     ),
                                   ),

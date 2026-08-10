@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
-import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/progress_status.dart';
 
 /// A job list item. Vertical layout mirroring ProjectCard: title + status chip
 /// on the top row, then category and date. An optional done-checkbox sits at
@@ -22,7 +22,7 @@ class JobCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isCompleted = job.status == JobStatus.completed;
+    final isCompleted = job.status == ProgressStatus.completed;
     final dateToShow = isCompleted && job.completionDate != null
         ? job.completionDate
         : job.startDate;
@@ -76,7 +76,7 @@ class JobCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    if (job.status != null && job.status!.isNotEmpty)
+                    if (job.status != null)
                       Chip(
                         label: Text(statusLabel(job.status)),
                         visualDensity: VisualDensity.compact,

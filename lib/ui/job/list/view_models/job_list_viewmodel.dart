@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 import '../../../../data/repositories/jobs/jobs_repository.dart';
 import '../../../../data/repositories/parts/parts_repository.dart';
 import '../../../../domain/models/job.dart';
-import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/progress_status.dart';
 import '../../../../utils/command.dart';
 import '../../../../utils/result.dart';
 
@@ -26,12 +26,14 @@ JobStats computeJobStats(Iterable<Job> jobs) {
   var totalCost = 0.0;
   for (final j in jobs) {
     switch (j.status) {
-      case JobStatus.planned:
+      case ProgressStatus.planned:
         planned++;
-      case JobStatus.inProgress:
+      case ProgressStatus.inProgress:
         inProgress++;
-      case JobStatus.completed:
+      case ProgressStatus.completed:
         completed++;
+      case null:
+        break; // unknown/unset status: counted in no bucket, cost still adds
     }
     if (j.cost != null) totalCost += j.cost!;
   }
@@ -78,13 +80,13 @@ class JobListViewModel extends ChangeNotifier {
   /// first, so no extra sort is needed. Backs the "Active Work" section on
   /// the vehicle detail screen.
   List<Job> get inProgressJobs =>
-      _jobs.where((j) => j.status == JobStatus.inProgress).toList();
+      _jobs.where((j) => j.status == ProgressStatus.inProgress).toList();
 
-  Set<String> _statusFilter = {};
+  Set<ProgressStatus> _statusFilter = {};
   Set<String> _categoryFilter = {};
   DateTimeRange? _dateRange;
 
-  Set<String> get statusFilter => _statusFilter;
+  Set<ProgressStatus> get statusFilter => _statusFilter;
   Set<String> get categoryFilter => _categoryFilter;
   DateTimeRange? get dateRange => _dateRange;
 
@@ -93,7 +95,7 @@ class JobListViewModel extends ChangeNotifier {
       _categoryFilter.isNotEmpty ||
       _dateRange != null;
 
-  void setStatusFilter(Set<String> value) {
+  void setStatusFilter(Set<ProgressStatus> value) {
     _statusFilter = value;
     notifyListeners();
   }
@@ -163,9 +165,9 @@ class JobListViewModel extends ChangeNotifier {
   /// [Job.normalized] handles the "startDate can't be after completionDate
   /// when completed" invariant.
   Future<Result<void>> _toggleDone(Job job) async {
-    final markingDone = job.status != JobStatus.completed;
+    final markingDone = job.status != ProgressStatus.completed;
     final proposed = job.copyWith(
-      status: markingDone ? JobStatus.completed : JobStatus.inProgress,
+      status: markingDone ? ProgressStatus.completed : ProgressStatus.inProgress,
       completionDate: markingDone
           ? (job.completionDate ?? DateTime.now())
           : job.completionDate,

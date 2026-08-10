@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/domain/models/job.dart';
 import 'package:tala_app/domain/models/job_category.dart';
 import 'package:tala_app/domain/models/job_part.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/domain/models/part.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
 
@@ -13,7 +13,7 @@ import '../../../helpers/fake_parts_repository.dart';
 Job _job(
   String id, {
   String vehicleId = 'v1',
-  String? status,
+  ProgressStatus? status,
   String? category,
   DateTime? startDate,
 }) => Job(
@@ -45,8 +45,8 @@ void main() {
   group('JobListViewModel filters', () {
     test('filteredJobs returns all when no filters active', () async {
       final vm = await _vmWithJobs([
-        _job('a', status: JobStatus.planned),
-        _job('b', status: JobStatus.completed),
+        _job('a', status: ProgressStatus.planned),
+        _job('b', status: ProgressStatus.completed),
       ]);
 
       expect(vm.hasActiveFilters, isFalse);
@@ -55,12 +55,12 @@ void main() {
 
     test('status filter narrows the list', () async {
       final vm = await _vmWithJobs([
-        _job('a', status: JobStatus.planned),
-        _job('b', status: JobStatus.completed),
-        _job('c', status: JobStatus.inProgress),
+        _job('a', status: ProgressStatus.planned),
+        _job('b', status: ProgressStatus.completed),
+        _job('c', status: ProgressStatus.inProgress),
       ]);
 
-      vm.setStatusFilter({JobStatus.planned, JobStatus.completed});
+      vm.setStatusFilter({ProgressStatus.planned, ProgressStatus.completed});
 
       expect(vm.filteredJobs.map((j) => j.id), unorderedEquals(['a', 'b']));
     });
@@ -115,25 +115,25 @@ void main() {
       final vm = await _vmWithJobs([
         _job(
           'match',
-          status: JobStatus.completed,
+          status: ProgressStatus.completed,
           category: JobCategory.maintenance,
           startDate: DateTime(2026, 5, 10),
         ),
         _job(
           'wrongStatus',
-          status: JobStatus.planned,
+          status: ProgressStatus.planned,
           category: JobCategory.maintenance,
           startDate: DateTime(2026, 5, 10),
         ),
         _job(
           'wrongCategory',
-          status: JobStatus.completed,
+          status: ProgressStatus.completed,
           category: JobCategory.electrical,
           startDate: DateTime(2026, 5, 10),
         ),
       ]);
 
-      vm.setStatusFilter({JobStatus.completed});
+      vm.setStatusFilter({ProgressStatus.completed});
       vm.setCategoryFilter({JobCategory.maintenance});
       vm.setDateRange(
         DateTimeRange(
@@ -147,10 +147,10 @@ void main() {
 
     test('clearFilters resets everything', () async {
       final vm = await _vmWithJobs([
-        _job('a', status: JobStatus.planned),
+        _job('a', status: ProgressStatus.planned),
       ]);
 
-      vm.setStatusFilter({JobStatus.completed});
+      vm.setStatusFilter({ProgressStatus.completed});
       vm.setCategoryFilter({JobCategory.maintenance});
       vm.setDateRange(
         DateTimeRange(
@@ -171,7 +171,7 @@ void main() {
       var notified = 0;
       vm.addListener(() => notified++);
 
-      vm.setStatusFilter({JobStatus.planned});
+      vm.setStatusFilter({ProgressStatus.planned});
       vm.setCategoryFilter({JobCategory.maintenance});
       vm.setDateRange(
         DateTimeRange(
@@ -199,28 +199,28 @@ void main() {
           id: 'a',
           vehicleId: 'v1',
           title: 'a',
-          status: JobStatus.planned,
+          status: ProgressStatus.planned,
           cost: 100.0,
         ),
         Job(
           id: 'b',
           vehicleId: 'v1',
           title: 'b',
-          status: JobStatus.planned,
+          status: ProgressStatus.planned,
           cost: 50.0,
         ),
         Job(
           id: 'c',
           vehicleId: 'v1',
           title: 'c',
-          status: JobStatus.inProgress,
+          status: ProgressStatus.inProgress,
           cost: 25.5,
         ),
         Job(
           id: 'd',
           vehicleId: 'v1',
           title: 'd',
-          status: JobStatus.completed,
+          status: ProgressStatus.completed,
         ),
       ]);
 
@@ -231,15 +231,15 @@ void main() {
       expect(stats.totalCost, closeTo(175.5, 1e-9));
     });
 
-    test('stats ignore unknown statuses in counts but still sum their cost',
+    test('stats ignore null/unset status in counts but still sum their cost',
         () async {
       final vm = await _vmWithJobs([
-        Job(id: 'a', vehicleId: 'v1', title: 'a', status: 'shelved', cost: 9.0),
+        Job(id: 'a', vehicleId: 'v1', title: 'a', status: null, cost: 9.0),
         Job(
           id: 'b',
           vehicleId: 'v1',
           title: 'b',
-          status: JobStatus.completed,
+          status: ProgressStatus.completed,
           cost: 1.0,
         ),
       ]);
@@ -253,12 +253,12 @@ void main() {
 
     test('stats skip null costs without error', () async {
       final vm = await _vmWithJobs([
-        Job(id: 'a', vehicleId: 'v1', title: 'a', status: JobStatus.planned),
+        Job(id: 'a', vehicleId: 'v1', title: 'a', status: ProgressStatus.planned),
         Job(
           id: 'b',
           vehicleId: 'v1',
           title: 'b',
-          status: JobStatus.planned,
+          status: ProgressStatus.planned,
           cost: 12.5,
         ),
       ]);
@@ -270,12 +270,12 @@ void main() {
 
     test('filteredJobs preserves order from underlying list', () async {
       final vm = await _vmWithJobs([
-        _job('first', status: JobStatus.planned),
-        _job('second', status: JobStatus.completed),
-        _job('third', status: JobStatus.planned),
+        _job('first', status: ProgressStatus.planned),
+        _job('second', status: ProgressStatus.completed),
+        _job('third', status: ProgressStatus.planned),
       ]);
 
-      vm.setStatusFilter({JobStatus.planned});
+      vm.setStatusFilter({ProgressStatus.planned});
 
       expect(vm.filteredJobs.map((j) => j.id), ['first', 'third']);
     });
@@ -321,10 +321,10 @@ void main() {
   group('JobListViewModel.inProgressJobs', () {
     test('returns only in-progress jobs', () async {
       final vm = await _vmWithJobs([
-        _job('a', status: JobStatus.planned),
-        _job('b', status: JobStatus.inProgress),
-        _job('c', status: JobStatus.completed),
-        _job('d', status: JobStatus.inProgress),
+        _job('a', status: ProgressStatus.planned),
+        _job('b', status: ProgressStatus.inProgress),
+        _job('c', status: ProgressStatus.completed),
+        _job('d', status: ProgressStatus.inProgress),
       ]);
 
       expect(
@@ -335,9 +335,9 @@ void main() {
 
     test('preserves order from the underlying list', () async {
       final vm = await _vmWithJobs([
-        _job('first', status: JobStatus.inProgress),
-        _job('second', status: JobStatus.completed),
-        _job('third', status: JobStatus.inProgress),
+        _job('first', status: ProgressStatus.inProgress),
+        _job('second', status: ProgressStatus.completed),
+        _job('third', status: ProgressStatus.inProgress),
       ]);
 
       expect(vm.inProgressJobs.map((j) => j.id), ['first', 'third']);
@@ -345,8 +345,8 @@ void main() {
 
     test('is empty when nothing is in progress', () async {
       final vm = await _vmWithJobs([
-        _job('a', status: JobStatus.planned),
-        _job('b', status: JobStatus.completed),
+        _job('a', status: ProgressStatus.planned),
+        _job('b', status: ProgressStatus.completed),
       ]);
 
       expect(vm.inProgressJobs, isEmpty);
@@ -357,13 +357,13 @@ void main() {
     test('marking planned job done flips status and stamps completionDate',
         () async {
       final vm = await _vmWithJobs([
-        _job('j1', status: JobStatus.planned),
+        _job('j1', status: ProgressStatus.planned),
       ]);
 
       await vm.toggleDone.execute(vm.jobs.first);
 
       final updated = vm.jobs.firstWhere((j) => j.id == 'j1');
-      expect(updated.status, JobStatus.completed);
+      expect(updated.status, ProgressStatus.completed);
       expect(updated.completionDate, isNotNull);
     });
 
@@ -374,7 +374,7 @@ void main() {
           id: 'j1',
           vehicleId: 'v1',
           title: 'Done',
-          status: JobStatus.completed,
+          status: ProgressStatus.completed,
           completionDate: existingCompletion,
         ),
       ]);
@@ -382,7 +382,7 @@ void main() {
       await vm.toggleDone.execute(vm.jobs.first);
 
       final updated = vm.jobs.firstWhere((j) => j.id == 'j1');
-      expect(updated.status, JobStatus.inProgress);
+      expect(updated.status, ProgressStatus.inProgress);
       // completionDate is intentionally preserved as historical record.
       expect(updated.completionDate, existingCompletion);
     });
@@ -394,7 +394,7 @@ void main() {
           id: 'j1',
           vehicleId: 'v1',
           title: 'Reopened',
-          status: JobStatus.inProgress,
+          status: ProgressStatus.inProgress,
           completionDate: priorCompletion,
         ),
       ]);
@@ -413,7 +413,7 @@ void main() {
           id: 'j1',
           vehicleId: 'v1',
           title: 'Planned for next week',
-          status: JobStatus.planned,
+          status: ProgressStatus.planned,
           startDate: futureStart,
         ),
       ]);
@@ -434,7 +434,7 @@ void main() {
           id: 'j1',
           vehicleId: 'v1',
           title: 'Started ages ago',
-          status: JobStatus.inProgress,
+          status: ProgressStatus.inProgress,
           startDate: pastStart,
         ),
       ]);

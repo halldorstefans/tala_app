@@ -8,7 +8,7 @@ import 'package:photo_view/photo_view.dart';
 
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
-import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/progress_status.dart';
 import '../../../../routing/routes.dart';
 import '../../../core/themes/dimens.dart';
 import 'job_cost_breakdown.dart';
@@ -251,7 +251,7 @@ class _Header extends StatelessWidget {
           spacing: 8,
           runSpacing: 4,
           children: [
-            if (job.status != null && job.status!.isNotEmpty)
+            if (job.status != null)
               Chip(
                 label: Text(statusLabel(job.status)),
                 visualDensity: VisualDensity.compact,

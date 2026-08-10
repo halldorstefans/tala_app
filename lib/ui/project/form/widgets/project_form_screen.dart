@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/progress_status.dart';
 import '../../../../domain/models/project.dart';
 import '../view_models/project_form_view_model.dart';
 
@@ -57,7 +57,7 @@ class _ProjectFormBodyState extends State<_ProjectFormBody> {
 
   DateTime? _startDate;
   DateTime? _endDate;
-  String? _status;
+  ProgressStatus? _status;
 
   @override
   void initState() {
@@ -65,7 +65,7 @@ class _ProjectFormBodyState extends State<_ProjectFormBody> {
     final p = widget.initial;
     _titleController = TextEditingController(text: p?.title ?? '');
     _descriptionController = TextEditingController(text: p?.description ?? '');
-    _status = p?.status ?? JobStatus.planned;
+    _status = p?.status ?? ProgressStatus.planned;
     _startDate = p?.startDate;
     _endDate = p?.endDate;
     _startDateController = TextEditingController(
@@ -193,13 +193,11 @@ class _ProjectFormBodyState extends State<_ProjectFormBody> {
                       v == null || v.isEmpty ? 'Enter project title' : null,
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: JobStatus.isKnown(_status)
-                      ? _status
-                      : JobStatus.planned,
+                DropdownButtonFormField<ProgressStatus>(
+                  initialValue: _status ?? ProgressStatus.planned,
                   decoration: const InputDecoration(labelText: 'Status'),
                   items: [
-                    for (final s in JobStatus.all)
+                    for (final s in ProgressStatus.values)
                       DropdownMenuItem(value: s, child: Text(statusLabel(s))),
                   ],
                   onChanged: (v) => setState(() => _status = v),
