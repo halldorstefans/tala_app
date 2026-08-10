@@ -1,6 +1,7 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 
 import '../../../utils/result.dart';
@@ -25,11 +26,19 @@ class BackupScreen extends StatelessWidget {
 
     // Hand the archive to the OS share sheet so it can be saved to Files,
     // Seafile, Drive, email, etc.
+    //
+    // The temp file is already named tala-backup-<timestamp>.zip, but that name
+    // has to be carried across the share intent deliberately. Two targets, two
+    // behaviours: some name the saved file after the shared file (cross_file
+    // ignores XFile.name on mobile, so it must come from fileNameOverrides),
+    // others after the subject (appending the extension). Give both the
+    // timestamped name so every export stays unique either way.
+    final fileName = p.basename(result.value);
     await SharePlus.instance.share(
       ShareParams(
-        files: [XFile(result.value)],
-        subject: 'Tala backup',
-        text: 'Tala backup — database and photos.',
+        files: [XFile(result.value, mimeType: 'application/zip')],
+        fileNameOverrides: [fileName],
+        subject: p.basenameWithoutExtension(result.value),
       ),
     );
   }
