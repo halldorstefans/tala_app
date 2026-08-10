@@ -152,17 +152,14 @@ class PartsRepositoryLocal implements PartsRepository {
   @override
   Future<Result<List<domain.JobPartLine>>> getJobParts(String jobId) async {
     try {
-      final links = await _database.getJobPartsForJob(jobId);
-      final lines = <domain.JobPartLine>[];
-      for (final link in links) {
-        final partRow = await _database.getPartById(link.partId);
-        if (partRow == null) continue; // link to a deleted part; skip
-        lines.add((
-          link: domain.JobPart.fromDrift(link),
-          part: domain.Part.fromDrift(partRow),
-        ));
-      }
-      return Result.ok(lines);
+      final rows = await _database.getJobPartsWithParts(jobId);
+      return Result.ok([
+        for (final row in rows)
+          (
+            link: domain.JobPart.fromDrift(row.link),
+            part: domain.Part.fromDrift(row.part),
+          ),
+      ]);
     } catch (e, st) {
       _log.severe('Exception in getJobParts', e, st);
       return Result.error(Exception('Failed to get job parts'));
@@ -206,18 +203,8 @@ class PartsRepositoryLocal implements PartsRepository {
   @override
   Future<Result<List<domain.Part>>> getPartsForVehicle(String vehicleId) async {
     try {
-      final jobs = await _database.getJobsForVehicle(vehicleId);
-      final seen = <String>{};
-      final result = <domain.Part>[];
-      for (final job in jobs) {
-        final links = await _database.getJobPartsForJob(job.id);
-        for (final link in links) {
-          if (!seen.add(link.partId)) continue;
-          final partRow = await _database.getPartById(link.partId);
-          if (partRow != null) result.add(domain.Part.fromDrift(partRow));
-        }
-      }
-      return Result.ok(result);
+      final rows = await _database.getPartsUsedByVehicle(vehicleId);
+      return Result.ok([for (final row in rows) domain.Part.fromDrift(row)]);
     } catch (e, st) {
       _log.severe('Exception in getPartsForVehicle', e, st);
       return Result.error(Exception('Failed to get parts for vehicle'));
@@ -229,30 +216,15 @@ class PartsRepositoryLocal implements PartsRepository {
     String vehicleId,
   ) async {
     try {
-      final jobs = await _database.getJobsForVehicle(vehicleId);
-      final quantities = <String, int>{};
-      final spent = <String, double>{};
-      for (final job in jobs) {
-        for (final link in await _database.getJobPartsForJob(job.id)) {
-          quantities[link.partId] =
-              (quantities[link.partId] ?? 0) + link.quantity;
-          spent[link.partId] =
-              (spent[link.partId] ?? 0) + (link.unitCost ?? 0) * link.quantity;
-        }
-      }
-
-      final usages = <domain.PartUsage>[];
-      for (final partId in quantities.keys) {
-        final partRow = await _database.getPartById(partId);
-        if (partRow == null) continue;
-        usages.add((
-          part: domain.Part.fromDrift(partRow),
-          totalQuantity: quantities[partId]!,
-          totalSpent: spent[partId] ?? 0,
-        ));
-      }
-      usages.sort((a, b) => b.totalSpent.compareTo(a.totalSpent));
-      return Result.ok(usages);
+      final rows = await _database.getPartsUsageForVehicle(vehicleId);
+      return Result.ok([
+        for (final row in rows)
+          (
+            part: domain.Part.fromDrift(row.part),
+            totalQuantity: row.totalQuantity,
+            totalSpent: row.totalSpent,
+          ),
+      ]);
     } catch (e, st) {
       _log.severe('Exception in getPartsUsageForVehicle', e, st);
       return Result.error(Exception('Failed to get parts usage for vehicle'));
@@ -262,12 +234,7 @@ class PartsRepositoryLocal implements PartsRepository {
   @override
   Future<Result<double>> partsTotalForJob(String jobId) async {
     try {
-      final links = await _database.getJobPartsForJob(jobId);
-      final total = links.fold<double>(
-        0,
-        (sum, l) => sum + (l.unitCost ?? 0) * l.quantity,
-      );
-      return Result.ok(total);
+      return Result.ok(await _database.partsTotalForJob(jobId));
     } catch (e, st) {
       _log.severe('Exception in partsTotalForJob', e, st);
       return Result.error(Exception('Failed to total job parts'));
@@ -277,16 +244,7 @@ class PartsRepositoryLocal implements PartsRepository {
   @override
   Future<Result<double>> partsTotalForVehicle(String vehicleId) async {
     try {
-      final jobs = await _database.getJobsForVehicle(vehicleId);
-      var total = 0.0;
-      for (final job in jobs) {
-        final links = await _database.getJobPartsForJob(job.id);
-        total += links.fold<double>(
-          0,
-          (sum, l) => sum + (l.unitCost ?? 0) * l.quantity,
-        );
-      }
-      return Result.ok(total);
+      return Result.ok(await _database.partsTotalForVehicle(vehicleId));
     } catch (e, st) {
       _log.severe('Exception in partsTotalForVehicle', e, st);
       return Result.error(Exception('Failed to total vehicle parts'));
