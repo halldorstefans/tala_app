@@ -80,6 +80,11 @@ dev_dependencies:
   drift_dev: ^2.26.0
   build_runner: ^2.4.15
 
+  # Used by the repository integration tests to stand a temp dir in for the app
+  # documents directory (path_provider) without a real platform channel.
+  path_provider_platform_interface: ^2.1.2
+  plugin_platform_interface: ^2.1.8
+
   # Launcher icon generation
   flutter_launcher_icons: ^0.14.4
 

@@ -86,6 +86,10 @@ class JobsRepositoryLocal implements JobsRepository {
   @override
   Future<Result<void>> deleteJob(String vehicleId, String jobId) async {
     try {
+      // Delete the photo files from disk first, then their rows — a row with no
+      // file is recoverable noise, but a file with no row is an unreachable leak
+      // that also bloats every backup.
+      await _deletePhotoFiles(await _database.getPhotosForJob(jobId));
       await _database.deletePhotosForJob(jobId);
       await _database.deleteJobPartsForJob(jobId);
       await _database.deleteJob(jobId);
@@ -93,6 +97,18 @@ class JobsRepositoryLocal implements JobsRepository {
     } catch (e, st) {
       _log.severe('Exception in deleteJob', e, st);
       return Result.error(Exception('Failed to delete job'));
+    }
+  }
+
+  /// Deletes the on-disk file backing each photo row. Missing files are
+  /// tolerated (already gone). Resolves relative paths against the app
+  /// documents dir, mirroring how they were stored in [uploadJobPhoto].
+  Future<void> _deletePhotoFiles(Iterable<db.JobPhoto> photos) async {
+    if (photos.isEmpty) return;
+    final dir = await getApplicationDocumentsDirectory();
+    for (final photo in photos) {
+      final file = File(p.join(dir.path, photo.photoPath));
+      if (await file.exists()) await file.delete();
     }
   }
 

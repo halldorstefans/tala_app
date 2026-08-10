@@ -21,6 +21,11 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  /// Opens the database against a caller-supplied executor. Used by tests to
+  /// run the real schema/migrations on an in-memory SQLite instance
+  /// (`NativeDatabase.memory()`) instead of the on-disk `tala.db`.
+  AppDatabase.forTesting(super.executor);
+
   @override
   int get schemaVersion => 3;
 

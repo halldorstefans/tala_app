@@ -76,11 +76,29 @@ class VehicleRepositoryLocal implements VehicleRepository {
   @override
   Future<Result<void>> deleteVehicle(String vehicleId) async {
     try {
+      final dir = await getApplicationDocumentsDirectory();
+
+      // Cascade the jobs: delete each job's photo files (rows go with the job),
+      // then its part links. Files first so we never leave an orphaned image on
+      // disk — no FK enforcement means nothing does this for us.
       final jobs = await _database.getJobsForVehicle(vehicleId);
       for (final job in jobs) {
+        for (final photo in await _database.getPhotosForJob(job.id)) {
+          final file = File(p.join(dir.path, photo.photoPath));
+          if (await file.exists()) await file.delete();
+        }
         await _database.deletePhotosForJob(job.id);
         await _database.deleteJobPartsForJob(job.id);
       }
+
+      // The vehicle's own cover photo.
+      final vehicle = await _database.getVehicleById(vehicleId);
+      final coverPath = vehicle?.photoPath;
+      if (coverPath != null) {
+        final file = File(p.join(dir.path, coverPath));
+        if (await file.exists()) await file.delete();
+      }
+
       await _database.deleteJobsForVehicle(vehicleId);
       await _database.deleteVehicle(vehicleId);
       return Result.ok(null);
@@ -113,9 +131,17 @@ class VehicleRepositoryLocal implements VehicleRepository {
         return Result.error(Exception('Vehicle not found'));
       }
 
+      final previousPath = existing.photoPath;
       final vehicle = domain.Vehicle.fromDrift(existing)
           .copyWith(photoPath: relativePath);
       await _database.updateVehicle(vehicle.toDrift());
+
+      // The old cover photo is now unreferenced — drop its file so replacing a
+      // photo doesn't leak the previous one.
+      if (previousPath != null && previousPath != relativePath) {
+        final oldFile = File(p.join(dir.path, previousPath));
+        if (await oldFile.exists()) await oldFile.delete();
+      }
 
       return Result.ok(relativePath);
     } catch (e, st) {
