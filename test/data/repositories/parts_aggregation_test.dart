@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/data/database/app_database.dart'
-    show AppDatabase, JobPhotosCompanion;
+    show AppDatabase, AttachmentsCompanion;
 import 'package:tala_app/data/repositories/jobs/jobs_repository_local.dart';
 import 'package:tala_app/data/repositories/parts/parts_repository_local.dart';
 import 'package:tala_app/domain/models/job.dart';
@@ -108,18 +108,20 @@ void main() {
 
   test('getJobs attaches each job\'s photos in one grouped read', () async {
     // Insert photo rows directly (no files needed — getJobs only reads rows).
-    await db.insertJobPhoto(
-      const JobPhotosCompanion(
+    await db.insertAttachment(
+      const AttachmentsCompanion(
         id: Value('ph1'),
+        type: Value('photo'),
         jobId: Value('j1'),
-        photoPath: Value('photos/a.jpg'),
+        storagePath: Value('photos/a.jpg'),
       ),
     );
-    await db.insertJobPhoto(
-      const JobPhotosCompanion(
+    await db.insertAttachment(
+      const AttachmentsCompanion(
         id: Value('ph2'),
+        type: Value('photo'),
         jobId: Value('j1'),
-        photoPath: Value('photos/b.jpg'),
+        storagePath: Value('photos/b.jpg'),
       ),
     );
 

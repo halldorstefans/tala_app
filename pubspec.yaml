@@ -81,6 +81,8 @@ dev_dependencies:
   # documents directory (path_provider) without a real platform channel.
   path_provider_platform_interface: ^2.1.2
   plugin_platform_interface: ^2.1.8
+  # Lets the migration test build a v3 database by hand before opening it at v4.
+  sqlite3: ^3.3.1
 
   # Launcher icon generation
   flutter_launcher_icons: ^0.14.4

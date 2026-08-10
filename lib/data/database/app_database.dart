@@ -7,16 +7,15 @@ import 'package:path/path.dart' as p;
 
 import 'tables/vehicles.dart';
 import 'tables/jobs.dart';
-import 'tables/job_photos.dart';
 import 'tables/projects.dart';
 import 'tables/parts.dart';
 import 'tables/job_parts.dart';
-import 'tables/part_photos.dart';
+import 'tables/attachments.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Vehicles, Jobs, JobPhotos, Projects, Parts, JobParts, PartPhotos],
+  tables: [Vehicles, Jobs, Projects, Parts, JobParts, Attachments],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -27,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -41,10 +40,42 @@ class AppDatabase extends _$AppDatabase {
       }
       // v2 -> v3: parts (Phase 2). A reusable catalogue, linked to jobs via
       // job_parts, with optional photos on the part.
+      //
+      // `part_photos` is created with raw SQL rather than `m.createTable`: the
+      // table was folded into `attachments` in v4 and its Dart definition
+      // removed, so the symbol no longer exists — but this historical step must
+      // still run for anyone upgrading from v2, before v4 migrates it across.
       if (from < 3) {
         await m.createTable(parts);
         await m.createTable(jobParts);
-        await m.createTable(partPhotos);
+        await m.database.customStatement('''
+          CREATE TABLE part_photos (
+            id TEXT NOT NULL PRIMARY KEY,
+            part_id TEXT NOT NULL REFERENCES parts (id),
+            photo_path TEXT NOT NULL,
+            created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+          )
+        ''');
+      }
+      // v3 -> v4: generalize photos into `attachments` (Phase 3). Copy the
+      // `job_photos` and `part_photos` rows in (as `photo` attachments owned by
+      // their job/part), then drop the old tables — one source of truth.
+      if (from < 4) {
+        await m.createTable(attachments);
+        await m.database.customStatement('''
+          INSERT INTO attachments
+            (id, type, storage_path, job_id, created_at, updated_at)
+          SELECT id, 'photo', photo_path, job_id, created_at, created_at
+          FROM job_photos
+        ''');
+        await m.database.customStatement('''
+          INSERT INTO attachments
+            (id, type, storage_path, part_id, created_at, updated_at)
+          SELECT id, 'photo', photo_path, part_id, created_at, created_at
+          FROM part_photos
+        ''');
+        await m.database.customStatement('DROP TABLE job_photos');
+        await m.database.customStatement('DROP TABLE part_photos');
       }
     },
   );
@@ -110,18 +141,32 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteJobsForVehicle(String vehicleId) =>
       (delete(jobs)..where((t) => t.vehicleId.equals(vehicleId))).go();
 
-  // Job photo operations
-  Future<List<JobPhoto>> getPhotosForJob(String jobId) =>
-      (select(jobPhotos)..where((t) => t.jobId.equals(jobId))).get();
+  // Attachment operations (photos today; receipts/documents later — Phase 3).
+  Future<List<Attachment>> getAttachmentsForJob(String jobId) =>
+      (select(attachments)..where((t) => t.jobId.equals(jobId))).get();
 
-  Future<int> insertJobPhoto(JobPhotosCompanion photo) =>
-      into(jobPhotos).insert(photo);
+  /// Attachments for many jobs in one query; the caller groups by `jobId`.
+  /// Empty [jobIds] returns an empty list without touching the database.
+  Future<List<Attachment>> getAttachmentsForJobs(Iterable<String> jobIds) {
+    final ids = jobIds.toList();
+    if (ids.isEmpty) return Future.value(const []);
+    return (select(attachments)..where((t) => t.jobId.isIn(ids))).get();
+  }
 
-  Future<int> deleteJobPhoto(String id) =>
-      (delete(jobPhotos)..where((t) => t.id.equals(id))).go();
+  Future<List<Attachment>> getAttachmentsForPart(String partId) =>
+      (select(attachments)..where((t) => t.partId.equals(partId))).get();
 
-  Future<int> deletePhotosForJob(String jobId) =>
-      (delete(jobPhotos)..where((t) => t.jobId.equals(jobId))).go();
+  Future<int> insertAttachment(AttachmentsCompanion attachment) =>
+      into(attachments).insert(attachment);
+
+  Future<int> deleteAttachment(String id) =>
+      (delete(attachments)..where((t) => t.id.equals(id))).go();
+
+  Future<int> deleteAttachmentsForJob(String jobId) =>
+      (delete(attachments)..where((t) => t.jobId.equals(jobId))).go();
+
+  Future<int> deleteAttachmentsForPart(String partId) =>
+      (delete(attachments)..where((t) => t.partId.equals(partId))).go();
 
   // Project operations
   Future<List<Project>> getProjectsForVehicle(String vehicleId) =>
@@ -191,19 +236,6 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deletePart(String id) =>
       (delete(parts)..where((t) => t.id.equals(id))).go();
 
-  // Part photo operations
-  Future<List<PartPhoto>> getPhotosForPart(String partId) =>
-      (select(partPhotos)..where((t) => t.partId.equals(partId))).get();
-
-  Future<int> insertPartPhoto(PartPhotosCompanion photo) =>
-      into(partPhotos).insert(photo);
-
-  Future<int> deletePartPhoto(String id) =>
-      (delete(partPhotos)..where((t) => t.id.equals(id))).go();
-
-  Future<int> deletePhotosForPart(String partId) =>
-      (delete(partPhotos)..where((t) => t.partId.equals(partId))).go();
-
   // Job-part (link) operations
   Future<int> insertJobPart(JobPartsCompanion jobPart) =>
       into(jobParts).insert(jobPart);
@@ -231,13 +263,6 @@ class AppDatabase extends _$AppDatabase {
   Expression<double> get _lineCost =>
       jobParts.unitCost * jobParts.quantity.cast<double>();
 
-  /// Photos for many jobs in one query; the caller groups by [JobPhoto.jobId].
-  /// Empty [jobIds] returns an empty list without touching the database.
-  Future<List<JobPhoto>> getPhotosForJobs(Iterable<String> jobIds) {
-    final ids = jobIds.toList();
-    if (ids.isEmpty) return Future.value(const []);
-    return (select(jobPhotos)..where((t) => t.jobId.isIn(ids))).get();
-  }
 
   /// A job's parts joined to their catalogue rows, oldest link first.
   Future<List<({JobPart link, Part part})>> getJobPartsWithParts(String jobId) {

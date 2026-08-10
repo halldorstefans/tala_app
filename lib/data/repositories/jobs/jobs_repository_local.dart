@@ -1,15 +1,15 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' hide Column;
 import 'package:logging/logging.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../../../domain/models/attachment.dart' as domain;
+import '../../../domain/models/attachment_type.dart' as domain;
 import '../../../domain/models/job.dart' as domain;
 import '../../../utils/result.dart';
 import '../../../utils/app_exception.dart';
 import '../../database/app_database.dart' as db;
+import '../../services/attachment_storage.dart';
 import 'jobs_repository.dart';
 
 class JobsRepositoryLocal implements JobsRepository {
@@ -19,6 +19,14 @@ class JobsRepositoryLocal implements JobsRepository {
   final db.AppDatabase _database;
   final _log = Logger('JobsRepositoryLocal');
   final _uuid = const Uuid();
+  final _storage = const AttachmentStorage();
+
+  /// The storage paths of a job's *photo* attachments (ignoring receipts,
+  /// documents, etc.), which is what the job UI still consumes as `photoPaths`.
+  List<String> _photoPaths(Iterable<db.Attachment> attachments) => [
+        for (final a in attachments)
+          if (a.type == domain.AttachmentType.photo.wire) a.storagePath,
+      ];
 
   @override
   Future<Result<domain.Job>> getJob(String vehicleId, String jobId) async {
@@ -28,10 +36,10 @@ class JobsRepositoryLocal implements JobsRepository {
         return Result.error(const NotFoundException('Job'));
       }
 
-      final photos = await _database.getPhotosForJob(jobId);
-      final photoPaths = photos.map((p) => p.photoPath).toList();
-
-      return Result.ok(domain.Job.fromDrift(result, photoPaths: photoPaths));
+      final attachments = await _database.getAttachmentsForJob(jobId);
+      return Result.ok(
+        domain.Job.fromDrift(result, photoPaths: _photoPaths(attachments)),
+      );
     } catch (e, st) {
       _log.severe('Exception in getJob', e, st);
       return Result.error(StorageException('Failed to get job', cause: e));
@@ -43,14 +51,18 @@ class JobsRepositoryLocal implements JobsRepository {
     try {
       final results = await _database.getJobsForVehicle(vehicleId);
 
-      // One query for every job's photos, grouped in memory — rather than a
-      // getPhotosForJob round-trip per job (N+1).
-      final photos = await _database.getPhotosForJobs(
+      // One query for every job's attachments, grouped in memory — rather than
+      // a getAttachmentsForJob round-trip per job (N+1).
+      final attachments = await _database.getAttachmentsForJobs(
         results.map((j) => j.id),
       );
       final pathsByJob = <String, List<String>>{};
-      for (final photo in photos) {
-        (pathsByJob[photo.jobId] ??= <String>[]).add(photo.photoPath);
+      for (final a in attachments) {
+        final jobId = a.jobId;
+        if (jobId == null || a.type != domain.AttachmentType.photo.wire) {
+          continue;
+        }
+        (pathsByJob[jobId] ??= <String>[]).add(a.storagePath);
       }
 
       final jobs = [
@@ -99,29 +111,18 @@ class JobsRepositoryLocal implements JobsRepository {
   @override
   Future<Result<void>> deleteJob(String vehicleId, String jobId) async {
     try {
-      // Delete the photo files from disk first, then their rows — a row with no
-      // file is recoverable noise, but a file with no row is an unreachable leak
-      // that also bloats every backup.
-      await _deletePhotoFiles(await _database.getPhotosForJob(jobId));
-      await _database.deletePhotosForJob(jobId);
+      // Delete the attachment files from disk first, then their rows — a row
+      // with no file is recoverable noise, but a file with no row is an
+      // unreachable leak that also bloats every backup.
+      final attachments = await _database.getAttachmentsForJob(jobId);
+      await _storage.deleteAll(attachments.map((a) => a.storagePath));
+      await _database.deleteAttachmentsForJob(jobId);
       await _database.deleteJobPartsForJob(jobId);
       await _database.deleteJob(jobId);
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deleteJob', e, st);
       return Result.error(StorageException('Failed to delete job', cause: e));
-    }
-  }
-
-  /// Deletes the on-disk file backing each photo row. Missing files are
-  /// tolerated (already gone). Resolves relative paths against the app
-  /// documents dir, mirroring how they were stored in [uploadJobPhoto].
-  Future<void> _deletePhotoFiles(Iterable<db.JobPhoto> photos) async {
-    if (photos.isEmpty) return;
-    final dir = await getApplicationDocumentsDirectory();
-    for (final photo in photos) {
-      final file = File(p.join(dir.path, photo.photoPath));
-      if (await file.exists()) await file.delete();
     }
   }
 
@@ -137,33 +138,21 @@ class JobsRepositoryLocal implements JobsRepository {
         return Result.error(const NotFoundException('Job'));
       }
 
-      final dir = await getApplicationDocumentsDirectory();
-      final photosDir = Directory(p.join(dir.path, 'photos'));
-      if (!await photosDir.exists()) {
-        await photosDir.create(recursive: true);
-      }
-
-      final ext = p.extension(photo.path);
-      final photoId = _uuid.v4();
-      final newPath = p.join(photosDir.path, '$photoId$ext');
-
-      await photo.copy(newPath);
-
-      final relativePath = p.join('photos', '$photoId$ext');
-
-      await _database.insertJobPhoto(
-        db.JobPhotosCompanion(
-          id: Value(_uuid.v4()),
-          jobId: Value(jobId),
-          photoPath: Value(relativePath),
-          createdAt: Value(DateTime.now()),
-        ),
+      final relativePath = await _storage.save(photo);
+      final attachment = domain.Attachment(
+        id: _uuid.v4(),
+        type: domain.AttachmentType.photo,
+        storagePath: relativePath,
+        jobId: jobId,
       );
+      await _database.insertAttachment(attachment.toDrift());
 
       return Result.ok(relativePath);
     } catch (e, st) {
       _log.severe('Exception in uploadJobPhoto', e, st);
-      return Result.error(StorageException('Failed to upload job photo', cause: e));
+      return Result.error(
+        StorageException('Failed to upload job photo', cause: e),
+      );
     }
   }
 
@@ -174,24 +163,21 @@ class JobsRepositoryLocal implements JobsRepository {
     String photoPath,
   ) async {
     try {
-      final photos = await _database.getPhotosForJob(jobId);
-      final photo = photos.where((p) => p.photoPath == photoPath).firstOrNull;
-      if (photo == null) {
+      final attachments = await _database.getAttachmentsForJob(jobId);
+      final attachment =
+          attachments.where((a) => a.storagePath == photoPath).firstOrNull;
+      if (attachment == null) {
         return Result.error(const NotFoundException('Photo'));
       }
 
-      final dir = await getApplicationDocumentsDirectory();
-      final fullPath = p.join(dir.path, photo.photoPath);
-      final file = File(fullPath);
-      if (await file.exists()) {
-        await file.delete();
-      }
-
-      await _database.deleteJobPhoto(photo.id);
+      await _storage.delete(attachment.storagePath);
+      await _database.deleteAttachment(attachment.id);
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deleteJobPhoto', e, st);
-      return Result.error(StorageException('Failed to delete job photo', cause: e));
+      return Result.error(
+        StorageException('Failed to delete job photo', cause: e),
+      );
     }
   }
 }

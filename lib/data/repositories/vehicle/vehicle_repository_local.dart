@@ -1,14 +1,13 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../../../domain/models/vehicle.dart' as domain;
 import '../../../utils/result.dart';
 import '../../../utils/app_exception.dart';
 import '../../database/app_database.dart' as db;
+import '../../services/attachment_storage.dart';
 import 'vehicle_repository.dart';
 
 class VehicleRepositoryLocal implements VehicleRepository {
@@ -18,6 +17,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
   final db.AppDatabase _database;
   final _log = Logger('VehicleRepositoryLocal');
   final _uuid = const Uuid();
+  final _storage = const AttachmentStorage();
 
   @override
   Future<Result<domain.Vehicle>> getVehicle(String vehicleId) async {
@@ -77,28 +77,22 @@ class VehicleRepositoryLocal implements VehicleRepository {
   @override
   Future<Result<void>> deleteVehicle(String vehicleId) async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
-
-      // Cascade the jobs: delete each job's photo files (rows go with the job),
-      // then its part links. Files first so we never leave an orphaned image on
-      // disk — no FK enforcement means nothing does this for us.
+      // Cascade the jobs: delete each job's attachment files + rows, then its
+      // part links. Files first so we never leave an orphaned image on disk —
+      // no FK enforcement means nothing does this for us.
       final jobs = await _database.getJobsForVehicle(vehicleId);
       for (final job in jobs) {
-        for (final photo in await _database.getPhotosForJob(job.id)) {
-          final file = File(p.join(dir.path, photo.photoPath));
-          if (await file.exists()) await file.delete();
-        }
-        await _database.deletePhotosForJob(job.id);
+        final attachments = await _database.getAttachmentsForJob(job.id);
+        await _storage.deleteAll(attachments.map((a) => a.storagePath));
+        await _database.deleteAttachmentsForJob(job.id);
         await _database.deleteJobPartsForJob(job.id);
       }
 
-      // The vehicle's own cover photo.
+      // The vehicle's own cover photo (stored on the vehicle row, not an
+      // attachment).
       final vehicle = await _database.getVehicleById(vehicleId);
       final coverPath = vehicle?.photoPath;
-      if (coverPath != null) {
-        final file = File(p.join(dir.path, coverPath));
-        if (await file.exists()) await file.delete();
-      }
+      if (coverPath != null) await _storage.delete(coverPath);
 
       await _database.deleteJobsForVehicle(vehicleId);
       await _database.deleteVehicle(vehicleId);
@@ -112,23 +106,11 @@ class VehicleRepositoryLocal implements VehicleRepository {
   @override
   Future<Result<String>> uploadVehiclePhoto(String vehicleId, File photo) async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
-      final photosDir = Directory(p.join(dir.path, 'photos'));
-      if (!await photosDir.exists()) {
-        await photosDir.create(recursive: true);
-      }
-
-      final ext = p.extension(photo.path);
-      final photoId = _uuid.v4();
-      final newPath = p.join(photosDir.path, '$photoId$ext');
-
-      await photo.copy(newPath);
-
-      final relativePath = p.join('photos', '$photoId$ext');
+      final relativePath = await _storage.save(photo);
 
       final existing = await _database.getVehicleById(vehicleId);
       if (existing == null) {
-        await File(newPath).delete();
+        await _storage.delete(relativePath);
         return Result.error(const NotFoundException('Vehicle'));
       }
 
@@ -140,8 +122,7 @@ class VehicleRepositoryLocal implements VehicleRepository {
       // The old cover photo is now unreferenced — drop its file so replacing a
       // photo doesn't leak the previous one.
       if (previousPath != null && previousPath != relativePath) {
-        final oldFile = File(p.join(dir.path, previousPath));
-        if (await oldFile.exists()) await oldFile.delete();
+        await _storage.delete(previousPath);
       }
 
       return Result.ok(relativePath);
