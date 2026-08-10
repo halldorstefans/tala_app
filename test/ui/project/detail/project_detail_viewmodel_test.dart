@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/domain/models/job.dart';
 import 'package:tala_app/domain/models/job_part.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/domain/models/part.dart';
 import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/ui/project/detail/view_models/project_detail_viewmodel.dart';
@@ -14,7 +14,7 @@ import '../../../helpers/fake_projects_repository.dart';
 Job _job(
   String id,
   String? projectId, {
-  String? status,
+  ProgressStatus? status,
   double? cost,
   String vehicleId = 'v1',
 }) => Job(
@@ -49,9 +49,9 @@ void main() {
     test('load fills the project, its jobs, and derived stats', () async {
       final repo = FakeProjectsRepository()
         ..seed(const Project(id: 'p1', vehicleId: 'v1', title: 'Disassembly'))
-        ..seedJob(_job('j1', 'p1', status: JobStatus.planned, cost: 100))
-        ..seedJob(_job('j2', 'p1', status: JobStatus.completed, cost: 50))
-        ..seedJob(_job('j3', 'other', status: JobStatus.inProgress));
+        ..seedJob(_job('j1', 'p1', status: ProgressStatus.planned, cost: 100))
+        ..seedJob(_job('j2', 'p1', status: ProgressStatus.completed, cost: 50))
+        ..seedJob(_job('j3', 'other', status: ProgressStatus.inProgress));
       final vm = _vm(repo);
       await _settle(vm);
 

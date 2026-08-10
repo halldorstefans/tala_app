@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/progress_status.dart';
 import '../../../../domain/models/project.dart';
 import '../../../../routing/routes.dart';
 import '../../../../utils/result.dart';
@@ -208,7 +208,7 @@ class _Header extends StatelessWidget {
             Expanded(
               child: Text(project.title, style: theme.textTheme.headlineMedium),
             ),
-            if (project.status != null && project.status!.isNotEmpty) ...[
+            if (project.status != null) ...[
               const SizedBox(width: 8),
               Chip(
                 label: Text(statusLabel(project.status)),

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/domain/models/job.dart';
 import 'package:tala_app/domain/models/job_part.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/domain/models/part.dart';
 import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/ui/project/list/view_models/project_list_viewmodel.dart';
@@ -55,7 +55,7 @@ void main() {
             vehicleId: 'v1',
             projectId: 'a',
             title: 'j1',
-            status: JobStatus.completed,
+            status: ProgressStatus.completed,
             cost: 100,
           ),
         )
@@ -65,7 +65,7 @@ void main() {
             vehicleId: 'v1',
             projectId: 'a',
             title: 'j2',
-            status: JobStatus.inProgress,
+            status: ProgressStatus.inProgress,
           ),
         );
       final parts = FakePartsRepository()

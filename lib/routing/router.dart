@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../domain/models/job_status.dart';
+import '../domain/models/progress_status.dart';
 import '../ui/job/form/view_models/job_form_view_model.dart';
 import '../ui/job/detail/view_models/job_detail_viewmodel.dart';
 import '../ui/job/detail/widgets/job_detail_screen.dart';
@@ -171,14 +171,16 @@ GoRouter router() => GoRouter(
           path: 'jobs',
           builder: (context, state) {
             final vehicleId = state.pathParameters['vehicleId']!;
-            final preselect = state.uri.queryParameters['status'];
+            final preselect = ProgressStatus.fromWire(
+              state.uri.queryParameters['status'],
+            );
             return ChangeNotifierProvider(
               create: (context) {
                 final vm = JobListViewModel(
                   jobsRepository: context.read(),
                   vehicleId: vehicleId,
                 );
-                if (preselect != null && JobStatus.isKnown(preselect)) {
+                if (preselect != null) {
                   vm.setStatusFilter({preselect});
                 }
                 return vm;

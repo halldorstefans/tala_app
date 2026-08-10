@@ -4,7 +4,7 @@ import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
 import 'package:tala_app/ui/core/themes/dimens.dart';
 
 import '../../../../domain/models/job_category.dart';
-import '../../../../domain/models/job_status.dart';
+import '../../../../domain/models/progress_status.dart';
 import '../../../../routing/routes.dart';
 import 'job_card.dart';
 
@@ -151,12 +151,12 @@ class _JobListViewState extends State<JobListView> {
         runSpacing: 4,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          for (final s in JobStatus.all)
+          for (final s in ProgressStatus.values)
             FilterChip(
               label: Text(statusLabel(s)),
               selected: vm.statusFilter.contains(s),
               onSelected: (selected) {
-                final next = Set<String>.from(vm.statusFilter);
+                final next = Set<ProgressStatus>.from(vm.statusFilter);
                 if (selected) {
                   next.add(s);
                 } else {

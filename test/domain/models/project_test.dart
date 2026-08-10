@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/domain/models/project.dart';
 
 void main() {
@@ -9,13 +9,13 @@ void main() {
     test('overrides only the provided fields', () {
       final updated = base.copyWith(
         title: 'Electrical rewire',
-        status: JobStatus.inProgress,
+        status: ProgressStatus.inProgress,
       );
 
       expect(updated.id, 'p1');
       expect(updated.vehicleId, 'v1');
       expect(updated.title, 'Electrical rewire');
-      expect(updated.status, JobStatus.inProgress);
+      expect(updated.status, ProgressStatus.inProgress);
     });
 
     test('returns an equal-valued copy when nothing is passed', () {
@@ -34,7 +34,7 @@ void main() {
         'id': 'p1',
         'vehicleId': 'v1',
         'title': 'Body prep',
-        'status': JobStatus.planned,
+        'status': ProgressStatus.planned.wire,
         'description': 'Strip and prime',
         'startDate': '2026-07-01T00:00:00.000',
         'endDate': null,
@@ -42,7 +42,7 @@ void main() {
 
       expect(project.id, 'p1');
       expect(project.title, 'Body prep');
-      expect(project.status, JobStatus.planned);
+      expect(project.status, ProgressStatus.planned);
       expect(project.description, 'Strip and prime');
       expect(project.startDate, DateTime(2026, 7, 1));
       expect(project.endDate, isNull);

@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:tala_app/data/database/app_database.dart' as db;
 
+import 'progress_status.dart';
+
 class Project {
   final String id;
   final String vehicleId;
   final String title;
-  final String? status;
+  final ProgressStatus? status;
   final String? description;
   final DateTime? startDate;
   final DateTime? endDate;
@@ -24,7 +26,7 @@ class Project {
     String? id,
     String? vehicleId,
     String? title,
-    String? status,
+    ProgressStatus? status,
     String? description,
     DateTime? startDate,
     DateTime? endDate,
@@ -45,7 +47,7 @@ class Project {
       id: json['id'] as String,
       vehicleId: json['vehicleId'] as String,
       title: json['title'] as String,
-      status: json['status'] as String?,
+      status: ProgressStatus.fromWire(json['status'] as String?),
       description: json['description'] as String?,
       startDate: json['startDate'] != null
           ? DateTime.parse(json['startDate'] as String)
@@ -63,7 +65,7 @@ class Project {
       id: Value(id),
       vehicleId: Value(vehicleId),
       title: Value(title),
-      status: Value(status),
+      status: Value(status?.wire),
       description: Value(description),
       startDate: Value(startDate),
       endDate: Value(endDate),
@@ -76,7 +78,7 @@ class Project {
       id: data.id,
       vehicleId: data.vehicleId,
       title: data.title,
-      status: data.status,
+      status: ProgressStatus.fromWire(data.status),
       description: data.description,
       startDate: data.startDate,
       endDate: data.endDate,

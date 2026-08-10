@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tala_app/domain/models/job.dart';
-import 'package:tala_app/domain/models/job_status.dart';
+import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/ui/job/list/widgets/job_card.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
@@ -14,7 +14,7 @@ void main() {
         vehicleId: 'v1',
         title: 'Replace brake pads',
         category: 'maintenance',
-        status: 'planned',
+        status: ProgressStatus.planned,
       );
 
       await tester.pumpWidget(_wrap(JobCard(job: job)));
@@ -51,7 +51,7 @@ void main() {
         id: 'j1',
         vehicleId: 'v1',
         title: 'Open',
-        status: JobStatus.planned,
+        status: ProgressStatus.planned,
       );
       var lastValue = false;
 
@@ -68,7 +68,7 @@ void main() {
         id: 'j2',
         vehicleId: 'v1',
         title: 'Done',
-        status: JobStatus.completed,
+        status: ProgressStatus.completed,
       );
       await tester.pumpWidget(
         _wrap(JobCard(job: done, onToggleDone: (_) {})),
@@ -83,7 +83,7 @@ void main() {
         id: 'j1',
         vehicleId: 'v1',
         title: 'Done',
-        status: 'completed',
+        status: ProgressStatus.completed,
         startDate: DateTime(2026, 1, 1),
         completionDate: DateTime(2026, 5, 20),
       );
@@ -99,7 +99,7 @@ void main() {
         id: 'j1',
         vehicleId: 'v1',
         title: 'Open',
-        status: 'planned',
+        status: ProgressStatus.planned,
         startDate: DateTime(2026, 1, 1),
         completionDate: DateTime(2026, 5, 20),
       );
