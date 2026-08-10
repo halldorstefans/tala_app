@@ -20,15 +20,11 @@ On Arch Linux: `sudo pacman -S jdk21-openjdk`
 # Install dependencies
 flutter pub get
 
-# Run the app. API_URL is a compile-time define (String.fromEnvironment)
-# that defaults to "" when omitted; nothing reads it in local-first mode,
-# so the --dart-define is only needed if/when the remote API is wired up.
+# Run the app (local-first; no network config needed)
 flutter run
-# flutter run --dart-define=API_URL=http://localhost:8080   # when using the remote API
 
 # Build
 flutter build apk
-# flutter build apk --dart-define=API_URL=https://api.example.com
 
 # Regenerate Drift database code after schema changes
 dart run build_runner build --delete-conflicting-outputs
@@ -52,22 +48,22 @@ Relevant skills are under the `.agents/skills/` directory (Flutter/Dart architec
 
 ## Architecture
 
-This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQLite via Drift. There is a remote API layer (stub) that is not yet active.
+This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQLite via Drift. There is no network layer — a future sync path to a Go/Postgres backend is a Phase 4 concern (see `BACKLOG.md`), designed for (UUID PKs + `updated_at` on every table) but not built.
 
 ### Layers
 
-**Domain** (`lib/domain/models/`) — Plain Dart classes (`User`, `Vehicle`, `Job`). No Flutter or API dependencies. Domain models include `toDrift()` / `fromDrift()` helpers for Drift interop.
+**Domain** (`lib/domain/models/`) — Plain Dart classes (`Vehicle`, `Job`, `Project`, `Part`, `JobPart`). No Flutter or database dependencies. Domain models include `toDrift()` / `fromDrift()` helpers for Drift interop.
 
 **Data** (`lib/data/`) — Three sub-layers:
 - `database/` — Drift ORM: `AppDatabase` with three tables (`Vehicles`, `Jobs`, `JobPhotos`). Database file is `tala.db` in the app documents directory. After any schema change, regenerate with `build_runner`.
-- `repositories/` — Abstract interfaces plus `*_local.dart` implementations backed by SQLite. `*_remote.dart` stubs exist but throw `UnimplementedError`. `dependencies.dart` wires up the active implementations (`providersLocal`).
-- `services/tala_api/` — Unused in local-first mode. `ApiClient` uses `dart:io`'s `HttpClient` for REST; `AuthApiClient` handles login/register. `ApiConfig.baseUrl` reads the compile-time `API_URL` define. `ApiConfig.getLocalPhotoPath(relativePath)` resolves relative photo paths to absolute disk paths.
+- `repositories/` — Abstract interfaces plus `*_local.dart` implementations backed by SQLite (jobs, vehicle, projects, parts). `dependencies.dart` wires them up (`providersLocal`).
+- `services/tala_api/api_config.dart` — Despite the folder name, all that remains here are photo-path helpers: `ApiConfig.getLocalPhotoPath(relativePath)` resolves a relative photo path to an absolute disk path, and `ApiConfig.isValidPhotoPath` validates it. (The former REST/auth API clients were removed with the rest of the unused remote layer.)
 
-**UI** (`lib/ui/`) — Feature folders: `auth/`, `home/`, `vehicle/`, `job/`, `core/`. Each feature has:
+**UI** (`lib/ui/`) — Feature folders: `home/`, `vehicle/`, `job/`, `project/`, `part/`, `backup/`, `core/`. Each feature has:
 - `view_models/` — `ChangeNotifier` classes that hold `Command` objects and expose state.
 - `widgets/` — Screens and components that read from ViewModels via `Provider`/`context.watch`.
 
-`lib/ui/core/widgets/app_image.dart` — Unified image widget. Checks if the path starts with `http(s)://` → `Image.network`; otherwise resolves via `ApiConfig.getLocalPhotoPath()` → `Image.file`. Pass `null` to show a placeholder icon.
+`lib/ui/core/widgets/app_image.dart` — Unified image widget. Resolves a relative path via `ApiConfig.getLocalPhotoPath()` → `Image.file` (it still tolerates an `http(s)://` path → `Image.network`, but nothing produces one in local-first mode). Pass `null` to show a placeholder icon.
 
 `lib/ui/core/themes/` — Centralized theme (Heritage Workshop / Garage Theme). Detail-page spec fields use `google_fonts` JetBrains Mono. When touching colors, typography, or the launcher icon, look here first rather than inlining theme values at the call site.
 
@@ -77,13 +73,13 @@ This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQL
 
 **`Command<T>`** (`lib/utils/command.dart`) — Wraps an async action returning `Result<T>`. Exposes `.running`, `.error`, `.completed`, `.result`. Use `Command0` for zero-arg actions, `Command1<T, A>` for one-arg. Call `.execute(...)` to trigger; call `.clearResult()` after consuming the result. ViewModels own Commands; widgets listen.
 
-**Dependency injection** — `lib/config/dependencies.dart` exports `providersLocal` (active) and `providersRemote` (stub). `main.dart` passes `providersLocal` to `MultiProvider`. `AppDatabase` is a singleton Provider. `AuthRepository` is registered as a `ChangeNotifier` provider so it can be observed (e.g. by a future router redirect), but nothing currently listens to it.
+**Dependency injection** — `lib/config/dependencies.dart` exports `providersLocal`. `main.dart` passes it to `MultiProvider`. `AppDatabase`, `SharedPreferencesService`, and each repository/service are registered as Providers. ViewModels are not registered here — they're constructed in route builders (see Routing).
 
-**Routing** — GoRouter in `lib/routing/router.dart`. `initialLocation` is `/home`; the app boots straight to the home screen. There is **no** auth gating today — no `refreshListenable`, no `redirect`, no `/login` or `/register` routes. The auth UI under `lib/ui/auth/` (login, register, logout) is scaffolded but orphaned. ViewModels are instantiated in route builders via `context.read()`.
+**Routing** — GoRouter in `lib/routing/router.dart`. `initialLocation` is `/home`; the app boots straight to the home screen. There is no auth/sign-in — Tala is single-user and local by design. ViewModels are instantiated in route builders via `context.read()`.
 
 ### Photo Storage
 
-Photos are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative path (`photos/<uuid>.<ext>`) is persisted in the database. On display, `ApiConfig.getLocalPhotoPath()` resolves it to the full path, which `AppImage` uses with `Image.file`.
+Photos are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative path (`photos/<uuid>.<ext>`) is persisted in the database. On display, `ApiConfig.getLocalPhotoPath()` resolves it to the full path, which `AppImage` uses with `Image.file`. On delete, repositories remove the photo **files** from disk before the rows (see `deleteJob`, `deleteVehicle`, `deletePart`) so nothing is orphaned.
 
 - **Vehicle photos**: single `photoPath` field in the `Vehicles` table.
 - **Job photos**: one row per photo in the `JobPhotos` table; loaded as `List<String>` on the `Job` domain model.

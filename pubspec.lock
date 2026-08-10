@@ -41,14 +41,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.1"
-  bcrypt:
-    dependency: "direct main"
-    description:
-      name: bcrypt
-      sha256: "6073a700cbbc59f1d4ab27cd532755e3de5e676c4941f535f351374df849270b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -441,7 +433,7 @@ packages:
     source: hosted
     version: "1.0.3"
   http:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: http
       sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"
@@ -568,14 +560,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.12.0"
-  jwt_decoder:
-    dependency: "direct main"
-    description:
-      name: jwt_decoder
-      sha256: "54774aebf83f2923b99e6416b4ea915d47af3bde56884eb622de85feabbc559f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
   leak_tracker:
     dependency: transitive
     description:
