@@ -381,7 +381,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       ),
                       const SizedBox(height: 32),
                       Text(
-                        'Active Work',
+                        'Active Jobs',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 8),
@@ -524,7 +524,7 @@ class _StatTile extends StatelessWidget {
 }
 
 /// In-progress projects for the vehicle, rendered inline on the detail screen
-/// (the projects counterpart to the "Active Work" job summary).
+/// (the projects counterpart to the "Active Jobs" job summary).
 class _ActiveProjects extends StatelessWidget {
   const _ActiveProjects({required this.viewModel, required this.onOpen});
 

@@ -69,7 +69,7 @@ void main() {
   // frames; off, it falls back silently. Keeps pumps deterministic.
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
-  group('VehicleDetailScreen Active Work section', () {
+  group('VehicleDetailScreen Active Jobs section', () {
     testWidgets('shows only in-progress jobs', (tester) async {
       await tester.pumpWidget(
         _wrap(
@@ -85,7 +85,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('Active Work'), findsOneWidget);
+      expect(find.text('Active Jobs'), findsOneWidget);
       // In-progress jobs are shown...
       expect(find.text('Engine top-end rebuild'), findsOneWidget);
       expect(find.text('Interior leather conditioning'), findsOneWidget);

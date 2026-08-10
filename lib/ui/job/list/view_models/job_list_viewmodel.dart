@@ -77,7 +77,7 @@ class JobListViewModel extends ChangeNotifier {
   double get totalCostWithParts => stats.totalCost + _partsTotal;
 
   /// Jobs currently on the bench. `_jobs` is already ordered most-recent
-  /// first, so no extra sort is needed. Backs the "Active Work" section on
+  /// first, so no extra sort is needed. Backs the "Active Jobs" section on
   /// the vehicle detail screen.
   List<Job> get inProgressJobs =>
       _jobs.where((j) => j.status == ProgressStatus.inProgress).toList();
