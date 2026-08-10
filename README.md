@@ -2,7 +2,7 @@
 
 Tala is a car-maintenance logbook for people who want a calm, durable record of the work they put into their vehicles. Add a car, log each job (oil change, brake pads, timing belt, MOT…), attach photos, and keep the history in one place. The design language — *Heritage Workshop* — draws from mid-century automotive manuals and restoration garages: warm paper surfaces, ink-weight typography, and JetBrains Mono for the spec fields you'd expect to see on a workshop ledger.
 
-The app is **local-first**: everything lives on your device in a SQLite database. A remote API layer is scaffolded but not active.
+The app is **local-first**: everything lives on your device in a SQLite database. There is no network layer — a future sync path to a self-hosted backend is designed for but not built (see [`BACKLOG.md`](BACKLOG.md)).
 
 ---
 
@@ -42,12 +42,7 @@ flutter run
 flutter build apk
 ```
 
-The remote API base URL is read from the compile-time define `API_URL` (`String.fromEnvironment`). In local-first mode nothing reads it, so the define can be omitted. If/when you wire up the remote API, pass it explicitly:
-
-```bash
-flutter run --dart-define=API_URL=http://localhost:8080
-flutter build apk --dart-define=API_URL=https://api.example.com
-```
+There are no compile-time defines or network configuration to set — the app runs fully offline against the local database.
 
 ### Database codegen
 
@@ -68,10 +63,10 @@ dart format lib/       # format
 
 ### Architecture at a glance
 
-- **Domain** (`lib/domain/models/`) — plain Dart models (`User`, `Vehicle`, `Job`) with `toDrift()` / `fromDrift()` helpers.
-- **Data** (`lib/data/`) — Drift database, repositories (local SQLite implementations active; remote API stubs present), and the (currently unused) `tala_api` service layer.
-- **UI** (`lib/ui/`) — feature folders (`auth/`, `home/`, `vehicle/`, `job/`, `core/`) each with `view_models/` (ChangeNotifier + Command) and `widgets/`.
-- **Routing** — `go_router` in `lib/routing/`. Initial location is the home screen; no auth gating is wired up today (the auth UI exists under `lib/ui/auth/` but is not routed).
+- **Domain** (`lib/domain/models/`) — plain Dart models (`Vehicle`, `Job`, `Project`, `Part`, `JobPart`) with `toDrift()` / `fromDrift()` helpers.
+- **Data** (`lib/data/`) — Drift database and local SQLite-backed repositories.
+- **UI** (`lib/ui/`) — feature folders (`home/`, `vehicle/`, `job/`, `project/`, `part/`, `backup/`, `core/`) each with `view_models/` (ChangeNotifier + Command) and `widgets/`.
+- **Routing** — `go_router` in `lib/routing/`. Initial location is the home screen; Tala is single-user and local, with no sign-in.
 - **Key patterns** — `Result<T>` sealed class for repository returns, `Command<T>` for async UI actions, `Provider` for DI.
 - **Testing** — ViewModel and widget tests use in-memory fakes that implement the abstract repository interfaces (`test/helpers/`); they do not touch SQLite.
 
@@ -87,8 +82,8 @@ For deeper context see:
 - State & routing: [`provider`](https://pub.dev/packages/provider), [`go_router`](https://pub.dev/packages/go_router)
 - Database: [`drift`](https://pub.dev/packages/drift), [`sqlite3_flutter_libs`](https://pub.dev/packages/sqlite3_flutter_libs), [`path_provider`](https://pub.dev/packages/path_provider), [`path`](https://pub.dev/packages/path)
 - Photos: [`image_picker`](https://pub.dev/packages/image_picker), [`flutter_image_compress`](https://pub.dev/packages/flutter_image_compress), [`photo_view`](https://pub.dev/packages/photo_view)
-- Auth: [`bcrypt`](https://pub.dev/packages/bcrypt), [`jwt_decoder`](https://pub.dev/packages/jwt_decoder), [`shared_preferences`](https://pub.dev/packages/shared_preferences)
-- Misc: [`uuid`](https://pub.dev/packages/uuid), [`google_fonts`](https://pub.dev/packages/google_fonts), [`logging`](https://pub.dev/packages/logging), [`http`](https://pub.dev/packages/http)
+- Backup: [`archive`](https://pub.dev/packages/archive), [`share_plus`](https://pub.dev/packages/share_plus), [`file_selector`](https://pub.dev/packages/file_selector)
+- Prefs & misc: [`shared_preferences`](https://pub.dev/packages/shared_preferences), [`uuid`](https://pub.dev/packages/uuid), [`google_fonts`](https://pub.dev/packages/google_fonts), [`logging`](https://pub.dev/packages/logging)
 
 ## License
 

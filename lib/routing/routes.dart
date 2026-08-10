@@ -1,7 +1,5 @@
 abstract final class Routes {
   static const home = '/';
-  static const login = '/login';
-  static const register = '/register';
 
   static const vehicleForm = '/vehicle-form';
   static String vehicleFormWithId(String? vehicleId) =>
@@ -29,8 +27,6 @@ abstract final class Routes {
       projectId != null
       ? '${projectForm(vehicleId)}/$projectId'
       : projectForm(vehicleId);
-
-  static const profile = '/profile';
 
   static const backup = '/backup';
 
