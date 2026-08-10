@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../../domain/models/job_part.dart' as domain;
 import '../../../domain/models/part.dart' as domain;
 import '../../../utils/result.dart';
+import '../../../utils/app_exception.dart';
 import '../../database/app_database.dart' as db;
 import 'parts_repository.dart';
 
@@ -27,7 +28,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(rows.map((r) => domain.Part.fromDrift(r)).toList());
     } catch (e, st) {
       _log.severe('Exception in getParts', e, st);
-      return Result.error(Exception('Failed to get parts'));
+      return Result.error(StorageException('Failed to get parts', cause: e));
     }
   }
 
@@ -35,7 +36,7 @@ class PartsRepositoryLocal implements PartsRepository {
   Future<Result<domain.Part>> getPart(String partId) async {
     try {
       final row = await _database.getPartById(partId);
-      if (row == null) return Result.error(Exception('Part not found'));
+      if (row == null) return Result.error(const NotFoundException('Part'));
       final photos = await _database.getPhotosForPart(partId);
       return Result.ok(
         domain.Part.fromDrift(
@@ -45,7 +46,7 @@ class PartsRepositoryLocal implements PartsRepository {
       );
     } catch (e, st) {
       _log.severe('Exception in getPart', e, st);
-      return Result.error(Exception('Failed to get part'));
+      return Result.error(StorageException('Failed to get part', cause: e));
     }
   }
 
@@ -57,7 +58,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(id);
     } catch (e, st) {
       _log.severe('Exception in addPart', e, st);
-      return Result.error(Exception('Failed to add part'));
+      return Result.error(StorageException('Failed to add part', cause: e));
     }
   }
 
@@ -65,12 +66,12 @@ class PartsRepositoryLocal implements PartsRepository {
   Future<Result<domain.Part>> updatePart(domain.Part part) async {
     try {
       final existing = await _database.getPartById(part.id);
-      if (existing == null) return Result.error(Exception('Part not found'));
+      if (existing == null) return Result.error(const NotFoundException('Part'));
       await _database.updatePart(part.toDrift());
       return Result.ok(part);
     } catch (e, st) {
       _log.severe('Exception in updatePart', e, st);
-      return Result.error(Exception('Failed to update part'));
+      return Result.error(StorageException('Failed to update part', cause: e));
     }
   }
 
@@ -93,7 +94,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deletePart', e, st);
-      return Result.error(Exception('Failed to delete part'));
+      return Result.error(StorageException('Failed to delete part', cause: e));
     }
   }
 
@@ -101,7 +102,7 @@ class PartsRepositoryLocal implements PartsRepository {
   Future<Result<String>> uploadPartPhoto(String partId, File photo) async {
     try {
       final part = await _database.getPartById(partId);
-      if (part == null) return Result.error(Exception('Part not found'));
+      if (part == null) return Result.error(const NotFoundException('Part'));
 
       final dir = await getApplicationDocumentsDirectory();
       final photosDir = Directory(p.join(dir.path, 'photos'));
@@ -126,7 +127,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(relativePath);
     } catch (e, st) {
       _log.severe('Exception in uploadPartPhoto', e, st);
-      return Result.error(Exception('Failed to upload part photo'));
+      return Result.error(StorageException('Failed to upload part photo', cause: e));
     }
   }
 
@@ -135,7 +136,7 @@ class PartsRepositoryLocal implements PartsRepository {
     try {
       final photos = await _database.getPhotosForPart(partId);
       final photo = photos.where((ph) => ph.photoPath == photoPath).firstOrNull;
-      if (photo == null) return Result.error(Exception('Photo not found'));
+      if (photo == null) return Result.error(const NotFoundException('Photo'));
 
       final dir = await getApplicationDocumentsDirectory();
       final file = File(p.join(dir.path, photo.photoPath));
@@ -145,7 +146,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deletePartPhoto', e, st);
-      return Result.error(Exception('Failed to delete part photo'));
+      return Result.error(StorageException('Failed to delete part photo', cause: e));
     }
   }
 
@@ -162,7 +163,7 @@ class PartsRepositoryLocal implements PartsRepository {
       ]);
     } catch (e, st) {
       _log.severe('Exception in getJobParts', e, st);
-      return Result.error(Exception('Failed to get job parts'));
+      return Result.error(StorageException('Failed to get job parts', cause: e));
     }
   }
 
@@ -174,7 +175,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(id);
     } catch (e, st) {
       _log.severe('Exception in addJobPart', e, st);
-      return Result.error(Exception('Failed to add job part'));
+      return Result.error(StorageException('Failed to add job part', cause: e));
     }
   }
 
@@ -185,7 +186,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(jobPart);
     } catch (e, st) {
       _log.severe('Exception in updateJobPart', e, st);
-      return Result.error(Exception('Failed to update job part'));
+      return Result.error(StorageException('Failed to update job part', cause: e));
     }
   }
 
@@ -196,7 +197,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deleteJobPart', e, st);
-      return Result.error(Exception('Failed to delete job part'));
+      return Result.error(StorageException('Failed to delete job part', cause: e));
     }
   }
 
@@ -207,7 +208,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok([for (final row in rows) domain.Part.fromDrift(row)]);
     } catch (e, st) {
       _log.severe('Exception in getPartsForVehicle', e, st);
-      return Result.error(Exception('Failed to get parts for vehicle'));
+      return Result.error(StorageException('Failed to get parts for vehicle', cause: e));
     }
   }
 
@@ -227,7 +228,7 @@ class PartsRepositoryLocal implements PartsRepository {
       ]);
     } catch (e, st) {
       _log.severe('Exception in getPartsUsageForVehicle', e, st);
-      return Result.error(Exception('Failed to get parts usage for vehicle'));
+      return Result.error(StorageException('Failed to get parts usage for vehicle', cause: e));
     }
   }
 
@@ -237,7 +238,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(await _database.partsTotalForJob(jobId));
     } catch (e, st) {
       _log.severe('Exception in partsTotalForJob', e, st);
-      return Result.error(Exception('Failed to total job parts'));
+      return Result.error(StorageException('Failed to total job parts', cause: e));
     }
   }
 
@@ -247,7 +248,7 @@ class PartsRepositoryLocal implements PartsRepository {
       return Result.ok(await _database.partsTotalForVehicle(vehicleId));
     } catch (e, st) {
       _log.severe('Exception in partsTotalForVehicle', e, st);
-      return Result.error(Exception('Failed to total vehicle parts'));
+      return Result.error(StorageException('Failed to total vehicle parts', cause: e));
     }
   }
 }

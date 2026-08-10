@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../domain/models/job.dart' as domain;
 import '../../../domain/models/project.dart' as domain;
 import '../../../utils/result.dart';
+import '../../../utils/app_exception.dart';
 import '../../database/app_database.dart' as db;
 import 'projects_repository.dart';
 
@@ -22,7 +23,7 @@ class ProjectsRepositoryLocal implements ProjectsRepository {
       return Result.ok(results.map(domain.Project.fromDrift).toList());
     } catch (e, st) {
       _log.severe('Exception in getProjects', e, st);
-      return Result.error(Exception('Failed to get projects'));
+      return Result.error(StorageException('Failed to get projects', cause: e));
     }
   }
 
@@ -31,12 +32,12 @@ class ProjectsRepositoryLocal implements ProjectsRepository {
     try {
       final result = await _database.getProjectById(projectId);
       if (result == null) {
-        return Result.error(Exception('Project not found'));
+        return Result.error(const NotFoundException('Project'));
       }
       return Result.ok(domain.Project.fromDrift(result));
     } catch (e, st) {
       _log.severe('Exception in getProject', e, st);
-      return Result.error(Exception('Failed to get project'));
+      return Result.error(StorageException('Failed to get project', cause: e));
     }
   }
 
@@ -48,7 +49,7 @@ class ProjectsRepositoryLocal implements ProjectsRepository {
       return Result.ok(id);
     } catch (e, st) {
       _log.severe('Exception in addProject', e, st);
-      return Result.error(Exception('Failed to add project'));
+      return Result.error(StorageException('Failed to add project', cause: e));
     }
   }
 
@@ -57,13 +58,13 @@ class ProjectsRepositoryLocal implements ProjectsRepository {
     try {
       final existing = await _database.getProjectById(project.id);
       if (existing == null) {
-        return Result.error(Exception('Project not found'));
+        return Result.error(const NotFoundException('Project'));
       }
       await _database.updateProject(project.toDrift());
       return Result.ok(project);
     } catch (e, st) {
       _log.severe('Exception in updateProject', e, st);
-      return Result.error(Exception('Failed to update project'));
+      return Result.error(StorageException('Failed to update project', cause: e));
     }
   }
 
@@ -77,7 +78,7 @@ class ProjectsRepositoryLocal implements ProjectsRepository {
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deleteProject', e, st);
-      return Result.error(Exception('Failed to delete project'));
+      return Result.error(StorageException('Failed to delete project', cause: e));
     }
   }
 
@@ -90,7 +91,7 @@ class ProjectsRepositoryLocal implements ProjectsRepository {
       );
     } catch (e, st) {
       _log.severe('Exception in getJobsForProject', e, st);
-      return Result.error(Exception('Failed to get jobs for project'));
+      return Result.error(StorageException('Failed to get jobs for project', cause: e));
     }
   }
 }

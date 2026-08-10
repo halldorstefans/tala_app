@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../utils/result.dart';
+import '../../../utils/app_exception.dart';
 import '../../database/app_database.dart' as db;
 import 'backup_service.dart';
 
@@ -64,7 +65,7 @@ class BackupServiceLocal implements BackupService {
       return Result.ok(zipPath);
     } catch (e, st) {
       _log.severe('Exception in createBackup', e, st);
-      return Result.error(Exception('Failed to create backup'));
+      return Result.error(StorageException('Failed to create backup', cause: e));
     } finally {
       // Drop the intermediate snapshot; the zip is the deliverable.
       if (snapshot != null && await snapshot.exists()) {
@@ -82,7 +83,9 @@ class BackupServiceLocal implements BackupService {
       final hasDb = archive.files.any((f) => f.isFile && f.name == _dbFileName);
       if (!hasDb) {
         return Result.error(
-          Exception('Not a valid Tala backup (no database found)'),
+          const ValidationException(
+            'Not a valid Tala backup (no database found)',
+          ),
         );
       }
 
@@ -111,7 +114,7 @@ class BackupServiceLocal implements BackupService {
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in stageRestore', e, st);
-      return Result.error(Exception('Failed to prepare restore'));
+      return Result.error(StorageException('Failed to prepare restore', cause: e));
     }
   }
 

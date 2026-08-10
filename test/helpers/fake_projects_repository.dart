@@ -1,6 +1,7 @@
 import 'package:tala_app/data/repositories/projects/projects_repository.dart';
 import 'package:tala_app/domain/models/job.dart';
 import 'package:tala_app/domain/models/project.dart';
+import 'package:tala_app/utils/app_exception.dart';
 import 'package:tala_app/utils/result.dart';
 
 class FakeProjectsRepository implements ProjectsRepository {
@@ -30,7 +31,7 @@ class FakeProjectsRepository implements ProjectsRepository {
   Future<Result<Project>> getProject(String projectId) async {
     if (error != null) return Result.error(error!);
     final project = _projects[projectId];
-    if (project == null) return Result.error(Exception('not found'));
+    if (project == null) return Result.error(const NotFoundException('Project'));
     return Result.ok(project);
   }
 
