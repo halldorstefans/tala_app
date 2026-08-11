@@ -8,6 +8,10 @@ import 'package:tala_app/domain/models/project.dart';
 import 'package:tala_app/ui/project/detail/view_models/project_detail_viewmodel.dart';
 import 'package:tala_app/ui/project/detail/widgets/project_detail_screen.dart';
 
+import 'package:tala_app/data/repositories/attachments/attachments_repository.dart';
+import 'package:tala_app/ui/core/attachments/view_models/attachments_view_model.dart';
+
+import '../../../helpers/fake_attachments_repository.dart';
 import '../../../helpers/fake_jobs_repository.dart';
 import '../../../helpers/fake_parts_repository.dart';
 import '../../../helpers/fake_projects_repository.dart';
@@ -21,6 +25,10 @@ Widget _app(Widget home) => MaterialApp.router(
 );
 
 ProjectDetailScreen _screen(FakeProjectsRepository repo) => ProjectDetailScreen(
+  attachmentsViewModel: AttachmentsViewModel(
+    repository: FakeAttachmentsRepository(),
+    owner: const AttachmentOwner.project('p1'),
+  ),
   viewModel: ProjectDetailViewModel(
     projectsRepository: repo,
     partsRepository: FakePartsRepository(),

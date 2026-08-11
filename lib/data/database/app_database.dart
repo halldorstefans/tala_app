@@ -156,8 +156,31 @@ class AppDatabase extends _$AppDatabase {
   Future<List<Attachment>> getAttachmentsForPart(String partId) =>
       (select(attachments)..where((t) => t.partId.equals(partId))).get();
 
+  Future<List<Attachment>> getAttachmentsForVehicle(String vehicleId) =>
+      (select(attachments)
+            ..where((t) => t.vehicleId.equals(vehicleId))
+            ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
+          .get();
+
+  Future<List<Attachment>> getAttachmentsForProject(String projectId) =>
+      (select(attachments)
+            ..where((t) => t.projectId.equals(projectId))
+            ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
+          .get();
+
+  Future<Attachment?> getAttachmentById(String id) =>
+      (select(attachments)..where((t) => t.id.equals(id))).getSingleOrNull();
+
   Future<int> insertAttachment(AttachmentsCompanion attachment) =>
       into(attachments).insert(attachment);
+
+  Future<int> updateAttachmentCaption(String id, String? caption) =>
+      (update(attachments)..where((t) => t.id.equals(id))).write(
+        AttachmentsCompanion(
+          caption: Value(caption),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 
   Future<int> deleteAttachment(String id) =>
       (delete(attachments)..where((t) => t.id.equals(id))).go();

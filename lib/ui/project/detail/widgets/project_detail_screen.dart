@@ -5,14 +5,21 @@ import '../../../../domain/models/progress_status.dart';
 import '../../../../domain/models/project.dart';
 import '../../../../routing/routes.dart';
 import '../../../../utils/result.dart';
+import '../../../core/attachments/view_models/attachments_view_model.dart';
+import '../../../core/attachments/widgets/attachments_section.dart';
 import '../../../core/themes/dimens.dart';
 import '../../../job/list/widgets/job_card.dart';
 import '../view_models/project_detail_viewmodel.dart';
 
 class ProjectDetailScreen extends StatelessWidget {
-  const ProjectDetailScreen({super.key, required this.viewModel});
+  const ProjectDetailScreen({
+    super.key,
+    required this.viewModel,
+    required this.attachmentsViewModel,
+  });
 
   final ProjectDetailViewModel viewModel;
+  final AttachmentsViewModel attachmentsViewModel;
 
   Future<void> _openEdit(BuildContext context) async {
     await context.push(
@@ -179,6 +186,8 @@ class ProjectDetailScreen extends StatelessWidget {
                           onTap: () => _openJob(context, job.id),
                         ),
                       ),
+                  const SizedBox(height: 24),
+                  AttachmentsSection(viewModel: attachmentsViewModel),
                 ],
               );
             },

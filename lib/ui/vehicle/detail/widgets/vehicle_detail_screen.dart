@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:tala_app/data/services/tala_api/api_config.dart';
 import 'package:tala_app/domain/models/progress_status.dart';
 import 'package:tala_app/routing/routes.dart';
+import 'package:tala_app/ui/core/attachments/view_models/attachments_view_model.dart';
+import 'package:tala_app/ui/core/attachments/widgets/attachments_section.dart';
 import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/list/view_models/job_list_viewmodel.dart';
 import 'package:tala_app/ui/job/list/widgets/job_card.dart';
@@ -19,11 +21,13 @@ class VehicleDetailScreen extends StatefulWidget {
     required this.viewModel,
     required this.jobListViewModel,
     required this.projectListViewModel,
+    required this.attachmentsViewModel,
   });
 
   final VehicleDetailViewModel viewModel;
   final JobListViewModel jobListViewModel;
   final ProjectListViewModel projectListViewModel;
+  final AttachmentsViewModel attachmentsViewModel;
 
   @override
   State<VehicleDetailScreen> createState() => _VehicleDetailScreenState();
@@ -424,6 +428,10 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                           onPressed: () => _openFullJobHistory(vehicle.id),
                           child: const Text('View Full Job History'),
                         ),
+                      ),
+                      const SizedBox(height: 32),
+                      AttachmentsSection(
+                        viewModel: widget.attachmentsViewModel,
                       ),
                     ],
                   ),

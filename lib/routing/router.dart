@@ -2,7 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/repositories/attachments/attachments_repository.dart';
 import '../domain/models/progress_status.dart';
+import '../ui/core/attachments/view_models/attachments_view_model.dart';
 import '../ui/job/form/view_models/job_form_view_model.dart';
 import '../ui/job/detail/view_models/job_detail_viewmodel.dart';
 import '../ui/job/detail/widgets/job_detail_screen.dart';
@@ -156,12 +158,19 @@ GoRouter router() => GoRouter(
                 partsRepository: context.read(),
               ),
             ),
+            ChangeNotifierProvider(
+              create: (context) => AttachmentsViewModel(
+                repository: context.read(),
+                owner: AttachmentOwner.vehicle(vehicleId),
+              ),
+            ),
           ],
           child: Builder(
             builder: (context) => VehicleDetailScreen(
               viewModel: context.read<VehicleDetailViewModel>(),
               jobListViewModel: context.read<JobListViewModel>(),
               projectListViewModel: context.read<ProjectListViewModel>(),
+              attachmentsViewModel: context.read<AttachmentsViewModel>(),
             ),
           ),
         );
@@ -328,17 +337,28 @@ GoRouter router() => GoRouter(
           builder: (context, state) {
             final vehicleId = state.pathParameters['vehicleId']!;
             final projectId = state.pathParameters['projectId']!;
-            return ChangeNotifierProvider(
-              create: (context) => ProjectDetailViewModel(
-                projectsRepository: context.read(),
-                partsRepository: context.read(),
-                jobsRepository: context.read(),
-                vehicleId: vehicleId,
-                projectId: projectId,
-              ),
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (context) => ProjectDetailViewModel(
+                    projectsRepository: context.read(),
+                    partsRepository: context.read(),
+                    jobsRepository: context.read(),
+                    vehicleId: vehicleId,
+                    projectId: projectId,
+                  ),
+                ),
+                ChangeNotifierProvider(
+                  create: (context) => AttachmentsViewModel(
+                    repository: context.read(),
+                    owner: AttachmentOwner.project(projectId),
+                  ),
+                ),
+              ],
               child: Builder(
                 builder: (context) => ProjectDetailScreen(
                   viewModel: context.read<ProjectDetailViewModel>(),
+                  attachmentsViewModel: context.read<AttachmentsViewModel>(),
                 ),
               ),
             );
