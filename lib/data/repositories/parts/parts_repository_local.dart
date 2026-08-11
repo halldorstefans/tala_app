@@ -1,16 +1,16 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' hide Column;
 import 'package:logging/logging.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../../../domain/models/attachment.dart' as domain;
+import '../../../domain/models/attachment_type.dart' as domain;
 import '../../../domain/models/job_part.dart' as domain;
 import '../../../domain/models/part.dart' as domain;
 import '../../../utils/result.dart';
 import '../../../utils/app_exception.dart';
 import '../../database/app_database.dart' as db;
+import '../../services/attachment_storage.dart';
 import 'parts_repository.dart';
 
 class PartsRepositoryLocal implements PartsRepository {
@@ -20,6 +20,14 @@ class PartsRepositoryLocal implements PartsRepository {
   final db.AppDatabase _database;
   final _log = Logger('PartsRepositoryLocal');
   final _uuid = const Uuid();
+  final _storage = const AttachmentStorage();
+
+  /// The storage paths of a part's *photo* attachments, which is what the part
+  /// UI still consumes as `photoPaths`.
+  List<String> _photoPaths(Iterable<db.Attachment> attachments) => [
+    for (final a in attachments)
+      if (a.type == domain.AttachmentType.photo.wire) a.storagePath,
+  ];
 
   @override
   Future<Result<List<domain.Part>>> getParts() async {
@@ -37,12 +45,9 @@ class PartsRepositoryLocal implements PartsRepository {
     try {
       final row = await _database.getPartById(partId);
       if (row == null) return Result.error(const NotFoundException('Part'));
-      final photos = await _database.getPhotosForPart(partId);
+      final attachments = await _database.getAttachmentsForPart(partId);
       return Result.ok(
-        domain.Part.fromDrift(
-          row,
-          photoPaths: photos.map((ph) => ph.photoPath).toList(),
-        ),
+        domain.Part.fromDrift(row, photoPaths: _photoPaths(attachments)),
       );
     } catch (e, st) {
       _log.severe('Exception in getPart', e, st);
@@ -79,16 +84,12 @@ class PartsRepositoryLocal implements PartsRepository {
   Future<Result<void>> deletePart(String partId) async {
     try {
       // Remove usages first (no FK enforcement — manual cascade), then the
-      // photo files + rows, then the part itself.
+      // attachment files + rows, then the part itself.
       await _database.deleteJobPartsForPart(partId);
 
-      final photos = await _database.getPhotosForPart(partId);
-      final dir = await getApplicationDocumentsDirectory();
-      for (final photo in photos) {
-        final file = File(p.join(dir.path, photo.photoPath));
-        if (await file.exists()) await file.delete();
-      }
-      await _database.deletePhotosForPart(partId);
+      final attachments = await _database.getAttachmentsForPart(partId);
+      await _storage.deleteAll(attachments.map((a) => a.storagePath));
+      await _database.deleteAttachmentsForPart(partId);
 
       await _database.deletePart(partId);
       return Result.ok(null);
@@ -104,26 +105,14 @@ class PartsRepositoryLocal implements PartsRepository {
       final part = await _database.getPartById(partId);
       if (part == null) return Result.error(const NotFoundException('Part'));
 
-      final dir = await getApplicationDocumentsDirectory();
-      final photosDir = Directory(p.join(dir.path, 'photos'));
-      if (!await photosDir.exists()) {
-        await photosDir.create(recursive: true);
-      }
-
-      final ext = p.extension(photo.path);
-      final photoId = _uuid.v4();
-      final newPath = p.join(photosDir.path, '$photoId$ext');
-      await photo.copy(newPath);
-      final relativePath = p.join('photos', '$photoId$ext');
-
-      await _database.insertPartPhoto(
-        db.PartPhotosCompanion(
-          id: Value(_uuid.v4()),
-          partId: Value(partId),
-          photoPath: Value(relativePath),
-          createdAt: Value(DateTime.now()),
-        ),
+      final relativePath = await _storage.save(photo);
+      final attachment = domain.Attachment(
+        id: _uuid.v4(),
+        type: domain.AttachmentType.photo,
+        storagePath: relativePath,
+        partId: partId,
       );
+      await _database.insertAttachment(attachment.toDrift());
       return Result.ok(relativePath);
     } catch (e, st) {
       _log.severe('Exception in uploadPartPhoto', e, st);
@@ -134,15 +123,13 @@ class PartsRepositoryLocal implements PartsRepository {
   @override
   Future<Result<void>> deletePartPhoto(String partId, String photoPath) async {
     try {
-      final photos = await _database.getPhotosForPart(partId);
-      final photo = photos.where((ph) => ph.photoPath == photoPath).firstOrNull;
-      if (photo == null) return Result.error(const NotFoundException('Photo'));
+      final attachments = await _database.getAttachmentsForPart(partId);
+      final attachment =
+          attachments.where((a) => a.storagePath == photoPath).firstOrNull;
+      if (attachment == null) return Result.error(const NotFoundException('Photo'));
 
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File(p.join(dir.path, photo.photoPath));
-      if (await file.exists()) await file.delete();
-
-      await _database.deletePartPhoto(photo.id);
+      await _storage.delete(attachment.storagePath);
+      await _database.deleteAttachment(attachment.id);
       return Result.ok(null);
     } catch (e, st) {
       _log.severe('Exception in deletePartPhoto', e, st);

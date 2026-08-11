@@ -55,7 +55,7 @@ This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQL
 **Domain** (`lib/domain/models/`) — Plain Dart classes (`Vehicle`, `Job`, `Project`, `Part`, `JobPart`). No Flutter or database dependencies. Domain models include `toDrift()` / `fromDrift()` helpers for Drift interop.
 
 **Data** (`lib/data/`) — Three sub-layers:
-- `database/` — Drift ORM: `AppDatabase` with three tables (`Vehicles`, `Jobs`, `JobPhotos`). Database file is `tala.db` in the app documents directory. After any schema change, regenerate with `build_runner`.
+- `database/` — Drift ORM: `AppDatabase` with tables `Vehicles`, `Jobs`, `Projects`, `Parts`, `JobParts`, and `Attachments`. Database file is `tala.db` in the app documents directory. After any schema change, regenerate with `build_runner`.
 - `repositories/` — Abstract interfaces plus `*_local.dart` implementations backed by SQLite (jobs, vehicle, projects, parts). `dependencies.dart` wires them up (`providersLocal`).
 - `services/tala_api/api_config.dart` — Despite the folder name, all that remains here are photo-path helpers: `ApiConfig.getLocalPhotoPath(relativePath)` resolves a relative photo path to an absolute disk path, and `ApiConfig.isValidPhotoPath` validates it. (The former REST/auth API clients were removed with the rest of the unused remote layer.)
 
@@ -79,11 +79,11 @@ This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQL
 
 ### Photo Storage
 
-Photos are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative path (`photos/<uuid>.<ext>`) is persisted in the database. On display, `ApiConfig.getLocalPhotoPath()` resolves it to the full path, which `AppImage` uses with `Image.file`. On delete, repositories remove the photo **files** from disk before the rows (see `deleteJob`, `deleteVehicle`, `deletePart`) so nothing is orphaned.
+Files are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative path is persisted in the DB. On display, `ApiConfig.getLocalPhotoPath()` resolves it to the full path, which `AppImage` uses with `Image.file`. The `photos/<uuid>.<ext>` copy/delete plumbing lives in one place — `AttachmentStorage` (`lib/data/services/attachment_storage.dart`). On delete, repositories remove the **files** from disk before the rows (see `deleteJob`, `deleteVehicle`, `deletePart`) so nothing is orphaned.
 
-- **Vehicle photos**: single `photoPath` field in the `Vehicles` table.
-- **Job photos**: one row per photo in the `JobPhotos` table; loaded as `List<String>` on the `Job` domain model.
-- **Cascade delete**: deleting a vehicle deletes its jobs and all job photo files from disk, then database records.
+- **Attachments** (`attachments` table): a file owned by a vehicle, project, job, or part (four nullable owner columns; normally one set), with a `type` (photo/receipt/document/other) and optional caption. Job and part photos are rows here (`type=photo`); repositories still expose them to the UI as `photoPaths: List<String>` filtered to photos. Generalizes the old `job_photos` / `part_photos` tables, folded in by the v3→v4 migration (Phase 3, Slice A).
+- **Vehicle cover photo**: a single `photoPath` field on the `Vehicles` table — kept separate from attachments as the hero image.
+- **Cascade delete**: deleting a vehicle/job/part removes its attachment files from disk, then the rows.
 
 ### Drift / Database Notes
 

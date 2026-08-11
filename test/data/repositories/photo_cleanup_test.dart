@@ -107,7 +107,7 @@ void main() {
       reason: 'job photo file should be deleted, not orphaned',
     );
     expect(await fileFor(photoB).exists(), isFalse);
-    expect(await db.getPhotosForJob(jobId), isEmpty);
+    expect(await db.getAttachmentsForJob(jobId), isEmpty);
   });
 
   test(
@@ -145,7 +145,7 @@ void main() {
         reason: 'job photo should be deleted when the vehicle cascades',
       );
       expect(await db.getVehicleById(vehicleId), isNull);
-      expect(await db.getPhotosForJob(jobId), isEmpty);
+      expect(await db.getAttachmentsForJob(jobId), isEmpty);
     },
   );
 
