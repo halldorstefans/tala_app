@@ -68,21 +68,34 @@ class AttachmentsSection extends StatelessWidget {
       case _AddSource.file:
         final file = await openFile();
         if (file == null || !context.mounted) return;
-        await _addSingle(context, File(file.path), AttachmentType.document);
+        // Pre-fill the caption with the file's name so documents are
+        // distinguishable at a glance (their thumbnail is just a glyph). The
+        // extension already shows on the tile, so drop it here.
+        await _addSingle(
+          context,
+          File(file.path),
+          AttachmentType.document,
+          defaultCaption: p.basenameWithoutExtension(file.name),
+        );
     }
   }
 
-  /// Adds one file after collecting its type + optional caption ([defaultType]
-  /// preselects the type — photo for images, document for picked files).
+  /// Adds one file after collecting its type + optional caption. [defaultType]
+  /// preselects the type; [defaultCaption] pre-fills the caption (used for
+  /// picked files — images get temp names, so it's left blank for them).
   Future<void> _addSingle(
     BuildContext context,
     File file,
-    AttachmentType defaultType,
-  ) async {
+    AttachmentType defaultType, {
+    String defaultCaption = '',
+  }) async {
     final details = await showModalBottomSheet<_AttachmentDetails>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => _AttachmentDetailsSheet(initialType: defaultType),
+      builder: (_) => _AttachmentDetailsSheet(
+        initialType: defaultType,
+        initialCaption: defaultCaption,
+      ),
     );
     if (details == null) return;
     await viewModel.addPhoto.execute((
@@ -432,9 +445,13 @@ class _AttachmentDetails {
 
 /// Collects the type + optional caption after a file is picked.
 class _AttachmentDetailsSheet extends StatefulWidget {
-  const _AttachmentDetailsSheet({required this.initialType});
+  const _AttachmentDetailsSheet({
+    required this.initialType,
+    this.initialCaption = '',
+  });
 
   final AttachmentType initialType;
+  final String initialCaption;
 
   @override
   State<_AttachmentDetailsSheet> createState() =>
@@ -443,7 +460,9 @@ class _AttachmentDetailsSheet extends StatefulWidget {
 
 class _AttachmentDetailsSheetState extends State<_AttachmentDetailsSheet> {
   late AttachmentType _type = widget.initialType;
-  final _captionController = TextEditingController();
+  late final _captionController = TextEditingController(
+    text: widget.initialCaption,
+  );
 
   @override
   void dispose() {
