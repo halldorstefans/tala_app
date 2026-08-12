@@ -60,6 +60,25 @@ class Vehicle {
     );
   }
 
+  /// Returns a copy with [photoPath] set explicitly, including to null.
+  ///
+  /// Separate from [copyWith] because its `x ?? this.x` idiom can't express
+  /// "clear the cover photo" — exactly what removing it requires.
+  Vehicle withPhotoPath(String? photoPath) => Vehicle(
+    id: id,
+    make: make,
+    model: model,
+    year: year,
+    nickname: nickname,
+    registration: registration,
+    vin: vin,
+    colour: colour,
+    odometer: odometer,
+    purchaseDate: purchaseDate,
+    notes: notes,
+    photoPath: photoPath,
+  );
+
   factory Vehicle.fromJson(Map<String, dynamic> json) {
     return Vehicle(
       id: json['id'] as String,

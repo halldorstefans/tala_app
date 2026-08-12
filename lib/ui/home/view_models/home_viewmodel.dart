@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:tala_app/data/repositories/vehicle/vehicle_repository.dart';
@@ -10,6 +12,19 @@ class HomeViewModel extends ChangeNotifier {
   HomeViewModel({required VehicleRepository vehicleRepository})
     : _vehicleRepository = vehicleRepository {
     fetchVehicles = Command0(_fetchVehicles)..execute();
+    // Keep the list live: adding, editing, or deleting a vehicle from anywhere
+    // re-emits, so the home screen no longer needs a manual refetch (or a
+    // restart) to reflect the change.
+    _subscription = _vehicleRepository.watchVehicles().listen(
+      (vehicles) {
+        _vehicles
+          ..clear()
+          ..addAll(vehicles);
+        notifyListeners();
+      },
+      onError: (Object e, StackTrace st) =>
+          _log.warning('Vehicle watch stream error', e, st),
+    );
   }
 
   final _log = Logger('HomeViewModel');
@@ -22,6 +37,13 @@ class HomeViewModel extends ChangeNotifier {
   String get errorMessage => _errorMessage;
 
   late Command0 fetchVehicles;
+  StreamSubscription<List<Vehicle>>? _subscription;
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
 
   Future<Result<void>> _fetchVehicles() async {
     final result = await _vehicleRepository.getVehicles();

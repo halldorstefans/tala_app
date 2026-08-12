@@ -46,6 +46,11 @@ class VehicleRepositoryLocal implements VehicleRepository {
   }
 
   @override
+  Stream<List<domain.Vehicle>> watchVehicles() => _database
+      .watchAllVehicles()
+      .map((rows) => rows.map((v) => domain.Vehicle.fromDrift(v)).toList());
+
+  @override
   Future<Result<String>> addVehicle(domain.Vehicle vehicle) async {
     try {
       final id = vehicle.id.isEmpty ? _uuid.v4() : vehicle.id;
@@ -129,6 +134,28 @@ class VehicleRepositoryLocal implements VehicleRepository {
     } catch (e, st) {
       _log.severe('Exception in uploadVehiclePhoto', e, st);
       return Result.error(StorageException('Failed to upload vehicle photo', cause: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> removeVehiclePhoto(String vehicleId) async {
+    try {
+      final existing = await _database.getVehicleById(vehicleId);
+      if (existing == null) {
+        return Result.error(const NotFoundException('Vehicle'));
+      }
+
+      final coverPath = existing.photoPath;
+      await _database.updateVehicle(
+        domain.Vehicle.fromDrift(existing).withPhotoPath(null).toDrift(),
+      );
+      if (coverPath != null) await _storage.delete(coverPath);
+      return Result.ok(null);
+    } catch (e, st) {
+      _log.severe('Exception in removeVehiclePhoto', e, st);
+      return Result.error(
+        StorageException('Failed to remove vehicle photo', cause: e),
+      );
     }
   }
 }
