@@ -29,22 +29,45 @@ class AttachmentsSection extends StatelessWidget {
     final source = await _pickSource(context);
     if (source == null || !context.mounted) return;
 
-    final image = await ImagePicker().pickImage(
-      source: source,
+    if (source == ImageSource.camera) {
+      final image = await ImagePicker().pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        imageQuality: 85,
+      );
+      if (image == null || !context.mounted) return;
+      await _addSingle(context, File(image.path));
+      return;
+    }
+
+    // Gallery: allow picking several at once. A single pick still gets the
+    // type + caption sheet; multiple are bulk-added as photos (caption later).
+    final images = await ImagePicker().pickMultiImage(
       maxWidth: 1920,
       imageQuality: 85,
     );
-    if (image == null || !context.mounted) return;
+    if (images.isEmpty || !context.mounted) return;
 
+    if (images.length == 1) {
+      await _addSingle(context, File(images.first.path));
+    } else {
+      await viewModel.addPhotos.execute((
+        files: [for (final image in images) File(image.path)],
+        type: AttachmentType.photo,
+      ));
+    }
+  }
+
+  /// Adds one image after collecting its type + optional caption.
+  Future<void> _addSingle(BuildContext context, File file) async {
     final details = await showModalBottomSheet<_AttachmentDetails>(
       context: context,
       isScrollControlled: true,
       builder: (_) => const _AttachmentDetailsSheet(),
     );
     if (details == null) return;
-
     await viewModel.addPhoto.execute((
-      file: File(image.path),
+      file: file,
       type: details.type,
       caption: details.caption,
     ));
