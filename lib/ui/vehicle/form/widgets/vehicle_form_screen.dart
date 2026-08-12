@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../domain/models/vehicle.dart';
 import '../../../../utils/result.dart';
+import '../../../core/widgets/app_image.dart';
 import '../view_models/vehicle_form_view_model.dart';
 
 class VehicleFormScreen extends StatelessWidget {
@@ -79,6 +80,12 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
 
   DateTime? _purchaseDate;
   File? _selectedPhoto;
+  // Edit-mode intent to clear the existing cover photo on save.
+  bool _removePhoto = false;
+
+  /// The saved cover photo, shown when the user hasn't picked a new one or
+  /// asked to remove it.
+  String? get _currentCover => widget.initial?.photoPath;
 
   @override
   void initState() {
@@ -129,7 +136,10 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
       imageQuality: 85,
     );
     if (image != null) {
-      setState(() => _selectedPhoto = File(image.path));
+      setState(() {
+        _selectedPhoto = File(image.path);
+        _removePhoto = false; // picking a new photo overrides a pending remove
+      });
     }
   }
 
@@ -173,9 +183,9 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
       await widget.viewModel.updateVehicle.execute(vehicle);
     }
 
-    if (_selectedPhoto != null) {
-      final id = widget.viewModel.vehicle?.id;
-      if (id != null && id.isNotEmpty) {
+    final id = widget.viewModel.vehicle?.id;
+    if (id != null && id.isNotEmpty) {
+      if (_selectedPhoto != null) {
         final uploadResult = await widget.viewModel.uploadVehiclePhoto(
           id,
           _selectedPhoto!,
@@ -188,6 +198,9 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
             ),
           );
         }
+      } else if (_removePhoto) {
+        await widget.viewModel.removeVehiclePhoto(id);
+        if (!mounted) return;
       }
     }
 
@@ -361,28 +374,40 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
                 ),
                 const SizedBox(height: 12),
                 if (_selectedPhoto != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            _selectedPhoto!,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const SizedBox(
-                              width: 80,
-                              height: 80,
-                              child: Icon(Icons.broken_image, size: 40),
-                            ),
-                          ),
+                  _CoverPreview(
+                    thumbnail: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        _selectedPhoto!,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: Icon(Icons.broken_image, size: 40),
                         ),
-                        const SizedBox(width: 12),
-                        const Text('Photo selected'),
-                      ],
+                      ),
                     ),
+                    label: 'New photo selected',
+                    onRemove: () => setState(() {
+                      _selectedPhoto = null;
+                      // Keep any existing cover; only a saved cover uses the
+                      // remove-on-save flow below.
+                    }),
+                  )
+                else if (_currentCover != null && !_removePhoto)
+                  _CoverPreview(
+                    thumbnail: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: AppImage(
+                        path: _currentCover,
+                        width: 80,
+                        height: 80,
+                      ),
+                    ),
+                    label: 'Current photo',
+                    onRemove: () => setState(() => _removePhoto = true),
                   ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -398,6 +423,39 @@ class _VehicleFormBodyState extends State<_VehicleFormBody> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A cover-photo thumbnail with a label and a Remove action, shared by the
+/// "new photo selected" and "current photo" states.
+class _CoverPreview extends StatelessWidget {
+  const _CoverPreview({
+    required this.thumbnail,
+    required this.label,
+    required this.onRemove,
+  });
+
+  final Widget thumbnail;
+  final String label;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          thumbnail,
+          const SizedBox(width: 12),
+          Expanded(child: Text(label)),
+          TextButton.icon(
+            onPressed: onRemove,
+            icon: const Icon(Icons.close, size: 18),
+            label: const Text('Remove'),
+          ),
+        ],
       ),
     );
   }

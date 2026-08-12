@@ -20,6 +20,18 @@ class FakeVehicleRepository implements VehicleRepository {
   }
 
   @override
+  Stream<List<Vehicle>> watchVehicles() => Stream.value(vehicles ?? []);
+
+  String? removedPhotoFor;
+
+  @override
+  Future<Result<void>> removeVehiclePhoto(String id) async {
+    if (error != null) return Result.error(error!);
+    removedPhotoFor = id;
+    return Result.ok(null);
+  }
+
+  @override
   Future<Result<Vehicle>> getVehicle(String id) async {
     if (error != null) return Result.error(error!);
     if (seededVehicle != null) return Result.ok(seededVehicle!);

@@ -103,4 +103,12 @@ class VehicleFormViewModel extends ChangeNotifier {
 
     return result;
   }
+
+  Future<Result<void>> removeVehiclePhoto(String vehicleId) async {
+    final result = await _vehicleRepository.removeVehiclePhoto(vehicleId);
+    if (result case Error<void>()) {
+      _log.severe('Error removing vehicle photo: ${result.error}');
+    }
+    return result;
+  }
 }

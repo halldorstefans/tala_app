@@ -167,4 +167,19 @@ void main() {
     );
     expect(await fileFor(secondPath).exists(), isTrue);
   });
+
+  test('removeVehiclePhoto clears the cover and deletes its file', () async {
+    final vehicleId = await seedVehicle();
+    final cover = unwrap(
+      await vehicleRepo.uploadVehiclePhoto(vehicleId, await makeSourceImage()),
+    );
+    expect(await fileFor(cover).exists(), isTrue);
+
+    final result = await vehicleRepo.removeVehiclePhoto(vehicleId);
+    expect(result, isA<Ok<void>>());
+
+    expect(await fileFor(cover).exists(), isFalse);
+    final row = await db.getVehicleById(vehicleId);
+    expect(row!.photoPath, isNull);
+  });
 }
