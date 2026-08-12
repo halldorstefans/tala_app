@@ -1,20 +1,44 @@
 import 'dart:io';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:share_plus/share_plus.dart';
 
+import '../../../../data/services/tala_api/api_config.dart';
 import '../../../../domain/models/attachment.dart';
 import '../../../../domain/models/attachment_type.dart';
 import '../../widgets/app_image.dart';
 import '../view_models/attachments_view_model.dart';
 
+/// Whether an attachment's file is a viewable image (thumbnail + gallery) vs a
+/// document to hand off to the OS. Inferred from the extension — [type] is a
+/// separate user label (a receipt might be a JPG or a PDF).
+const _imageExtensions = {
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.webp',
+  '.heic',
+  '.bmp',
+};
+
+bool _isImagePath(String path) =>
+    _imageExtensions.contains(p.extension(path).toLowerCase());
+
+/// Where the user is adding an attachment from.
+enum _AddSource { camera, gallery, file }
+
 /// A reusable "Attachments" section for any owner (vehicle, project, job,
-/// part). Lists attachments as thumbnails with a type/caption, lets the user
-/// add an image (tagged with a type + optional caption), view them full-screen,
-/// re-caption, and delete. Drop it into a detail screen with an
-/// [AttachmentsViewModel] scoped to that owner.
+/// part). Lists attachments (image thumbnails, or a file glyph for documents),
+/// each tagged with a type + optional caption. The user can add from the
+/// camera, the gallery (multi-select), or a file (PDF, etc.); view images
+/// full-screen; open documents via the OS; re-caption; and delete. Drop it into
+/// a detail screen with an [AttachmentsViewModel] scoped to that owner.
 class AttachmentsSection extends StatelessWidget {
   const AttachmentsSection({
     super.key,
@@ -29,41 +53,51 @@ class AttachmentsSection extends StatelessWidget {
     final source = await _pickSource(context);
     if (source == null || !context.mounted) return;
 
-    if (source == ImageSource.camera) {
-      final image = await ImagePicker().pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1920,
-        imageQuality: 85,
-      );
-      if (image == null || !context.mounted) return;
-      await _addSingle(context, File(image.path));
-      return;
-    }
+    switch (source) {
+      case _AddSource.camera:
+        final image = await ImagePicker().pickImage(
+          source: ImageSource.camera,
+          maxWidth: 1920,
+          imageQuality: 85,
+        );
+        if (image == null || !context.mounted) return;
+        await _addSingle(context, File(image.path), AttachmentType.photo);
 
-    // Gallery: allow picking several at once. A single pick still gets the
-    // type + caption sheet; multiple are bulk-added as photos (caption later).
-    final images = await ImagePicker().pickMultiImage(
-      maxWidth: 1920,
-      imageQuality: 85,
-    );
-    if (images.isEmpty || !context.mounted) return;
+      case _AddSource.gallery:
+        // Allow picking several at once. A single pick still gets the type +
+        // caption sheet; multiple are bulk-added as photos (caption later).
+        final images = await ImagePicker().pickMultiImage(
+          maxWidth: 1920,
+          imageQuality: 85,
+        );
+        if (images.isEmpty || !context.mounted) return;
+        if (images.length == 1) {
+          await _addSingle(context, File(images.first.path), AttachmentType.photo);
+        } else {
+          await viewModel.addPhotos.execute((
+            files: [for (final image in images) File(image.path)],
+            type: AttachmentType.photo,
+          ));
+        }
 
-    if (images.length == 1) {
-      await _addSingle(context, File(images.first.path));
-    } else {
-      await viewModel.addPhotos.execute((
-        files: [for (final image in images) File(image.path)],
-        type: AttachmentType.photo,
-      ));
+      case _AddSource.file:
+        final file = await openFile();
+        if (file == null || !context.mounted) return;
+        await _addSingle(context, File(file.path), AttachmentType.document);
     }
   }
 
-  /// Adds one image after collecting its type + optional caption.
-  Future<void> _addSingle(BuildContext context, File file) async {
+  /// Adds one file after collecting its type + optional caption ([defaultType]
+  /// preselects the type — photo for images, document for picked files).
+  Future<void> _addSingle(
+    BuildContext context,
+    File file,
+    AttachmentType defaultType,
+  ) async {
     final details = await showModalBottomSheet<_AttachmentDetails>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => const _AttachmentDetailsSheet(),
+      builder: (_) => _AttachmentDetailsSheet(initialType: defaultType),
     );
     if (details == null) return;
     await viewModel.addPhoto.execute((
@@ -73,9 +107,9 @@ class AttachmentsSection extends StatelessWidget {
     ));
   }
 
-  /// Lets the user take a new photo or choose an existing image.
-  Future<ImageSource?> _pickSource(BuildContext context) {
-    return showModalBottomSheet<ImageSource>(
+  /// Lets the user take a photo, choose image(s), or pick a file (PDF, etc.).
+  Future<_AddSource?> _pickSource(BuildContext context) {
+    return showModalBottomSheet<_AddSource>(
       context: context,
       builder: (sheetContext) => SafeArea(
         child: Column(
@@ -84,12 +118,17 @@ class AttachmentsSection extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.camera_alt),
               title: const Text('Take photo'),
-              onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
+              onTap: () => Navigator.of(sheetContext).pop(_AddSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
               title: const Text('Choose from gallery'),
-              onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
+              onTap: () => Navigator.of(sheetContext).pop(_AddSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.attach_file),
+              title: const Text('Choose file'),
+              onTap: () => Navigator.of(sheetContext).pop(_AddSource.file),
             ),
           ],
         ),
@@ -156,10 +195,29 @@ class AttachmentsSection extends StatelessWidget {
     await viewModel.remove.execute(attachment.id);
   }
 
-  Future<void> _openViewer(BuildContext context, int initialIndex) async {
-    final attachments = viewModel.attachments;
+  /// Images open in the full-screen viewer; anything else (a PDF, say) is
+  /// handed to the OS share sheet so the user can open it in a capable app.
+  Future<void> _open(BuildContext context, Attachment attachment) async {
+    if (_isImagePath(attachment.storagePath)) {
+      final images = viewModel.attachments
+          .where((a) => _isImagePath(a.storagePath))
+          .toList();
+      await _openViewer(context, images, images.indexOf(attachment));
+    } else {
+      final fullPath = await ApiConfig.getLocalPhotoPath(attachment.storagePath);
+      await SharePlus.instance.share(ShareParams(files: [XFile(fullPath)]));
+    }
+  }
+
+  /// Full-screen swipe + pinch-zoom over the image attachments only.
+  Future<void> _openViewer(
+    BuildContext context,
+    List<Attachment> images,
+    int initialIndex,
+  ) async {
+    if (images.isEmpty) return;
     final providers = await Future.wait(
-      attachments.map((a) => AppImage.resolveProvider(a.storagePath)),
+      images.map((a) => AppImage.resolveProvider(a.storagePath)),
     );
     if (!context.mounted) return;
     await Navigator.of(context).push(
@@ -169,7 +227,9 @@ class AttachmentsSection extends StatelessWidget {
           appBar: AppBar(backgroundColor: Colors.black),
           body: PhotoViewGallery.builder(
             itemCount: providers.length,
-            pageController: PageController(initialPage: initialIndex),
+            pageController: PageController(
+              initialPage: initialIndex < 0 ? 0 : initialIndex,
+            ),
             builder: (_, i) => PhotoViewGalleryPageOptions(
               imageProvider: providers[i],
               minScale: PhotoViewComputedScale.contained,
@@ -215,13 +275,12 @@ class AttachmentsSection extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  for (var i = 0; i < attachments.length; i++)
+                  for (final attachment in attachments)
                     _AttachmentTile(
-                      attachment: attachments[i],
-                      onOpen: () => _openViewer(context, i),
-                      onEditCaption: () =>
-                          _editCaption(context, attachments[i]),
-                      onDelete: () => _confirmDelete(context, attachments[i]),
+                      attachment: attachment,
+                      onOpen: () => _open(context, attachment),
+                      onEditCaption: () => _editCaption(context, attachment),
+                      onDelete: () => _confirmDelete(context, attachment),
                     ),
                 ],
               ),
@@ -259,11 +318,13 @@ class _AttachmentTile extends StatelessWidget {
                 onTap: onOpen,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: AppImage(
-                    path: attachment.storagePath,
-                    width: 96,
-                    height: 96,
-                  ),
+                  child: _isImagePath(attachment.storagePath)
+                      ? AppImage(
+                          path: attachment.storagePath,
+                          width: 96,
+                          height: 96,
+                        )
+                      : _FileThumbnail(path: attachment.storagePath),
                 ),
               ),
               Positioned(
@@ -315,6 +376,39 @@ class _AttachmentTile extends StatelessWidget {
   }
 }
 
+/// A 96×96 placeholder for a non-image attachment: a document icon plus the
+/// file's extension (e.g. "PDF").
+class _FileThumbnail extends StatelessWidget {
+  const _FileThumbnail({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ext = p.extension(path).replaceFirst('.', '').toUpperCase();
+    return Container(
+      width: 96,
+      height: 96,
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            ext == 'PDF' ? Icons.picture_as_pdf : Icons.insert_drive_file,
+            size: 36,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          if (ext.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(ext, style: theme.textTheme.labelSmall),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _TileMenu extends StatelessWidget {
   const _TileMenu({required this.onEditCaption, required this.onDelete});
 
@@ -351,9 +445,11 @@ class _AttachmentDetails {
   final String? caption;
 }
 
-/// Collects the type + optional caption after an image is picked.
+/// Collects the type + optional caption after a file is picked.
 class _AttachmentDetailsSheet extends StatefulWidget {
-  const _AttachmentDetailsSheet();
+  const _AttachmentDetailsSheet({required this.initialType});
+
+  final AttachmentType initialType;
 
   @override
   State<_AttachmentDetailsSheet> createState() =>
@@ -361,7 +457,7 @@ class _AttachmentDetailsSheet extends StatefulWidget {
 }
 
 class _AttachmentDetailsSheetState extends State<_AttachmentDetailsSheet> {
-  AttachmentType _type = AttachmentType.photo;
+  late AttachmentType _type = widget.initialType;
   final _captionController = TextEditingController();
 
   @override
