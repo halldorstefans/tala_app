@@ -1,75 +1,27 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../../routing/routes.dart';
-import '../../../core/widgets/app_image.dart';
+import '../../../core/attachments/view_models/attachments_view_model.dart';
+import '../../../core/attachments/widgets/attachments_section.dart';
 import '../view_models/part_detail_viewmodel.dart';
 
 class PartDetailScreen extends StatefulWidget {
-  const PartDetailScreen({super.key, required this.viewModel});
+  const PartDetailScreen({
+    super.key,
+    required this.viewModel,
+    required this.attachmentsViewModel,
+  });
 
   final PartDetailViewModel viewModel;
+  final AttachmentsViewModel attachmentsViewModel;
 
   @override
   State<PartDetailScreen> createState() => _PartDetailScreenState();
 }
 
 class _PartDetailScreenState extends State<PartDetailScreen> {
-  Future<void> _addPhoto() async {
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Take photo'),
-              onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from gallery'),
-              onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (source == null) return;
-    final image = await ImagePicker().pickImage(
-      source: source,
-      maxWidth: 1920,
-      imageQuality: 85,
-    );
-    if (image == null) return;
-    await widget.viewModel.addPhoto(File(image.path));
-  }
-
-  Future<void> _confirmDeletePhoto(String path) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete photo?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) await widget.viewModel.deletePhoto(path);
-  }
-
   Future<void> _confirmDeletePart() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -146,7 +98,6 @@ class _PartDetailScreenState extends State<PartDetailScreen> {
               if (part == null) {
                 return const Center(child: Text('Part not found'));
               }
-              final photos = part.photoPaths ?? const <String>[];
               return ListView(
                 padding: EdgeInsets.fromLTRB(
                   24,
@@ -179,68 +130,7 @@ class _PartDetailScreenState extends State<PartDetailScreen> {
                     Text('Notes: ${part.notes}', style: theme.textTheme.bodyLarge),
                   ],
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Photos', style: theme.textTheme.headlineMedium),
-                      TextButton.icon(
-                        onPressed: _addPhoto,
-                        icon: const Icon(Icons.add_a_photo),
-                        label: const Text('Add'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (photos.isEmpty)
-                    Text(
-                      'No photos yet.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.7,
-                        ),
-                      ),
-                    )
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final path in photos)
-                          Stack(
-                            alignment: Alignment.topRight,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: AppImage(
-                                  path: path,
-                                  width: 100,
-                                  height: 100,
-                                ),
-                              ),
-                              Positioned(
-                                top: 2,
-                                right: 2,
-                                child: Material(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(12),
-                                    onTap: () => _confirmDeletePhoto(path),
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(2),
-                                      child: Icon(
-                                        Icons.delete,
-                                        color: Colors.white,
-                                        size: 18,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
+                  AttachmentsSection(viewModel: widget.attachmentsViewModel),
                 ],
               );
             },

@@ -121,23 +121,6 @@ class PartsRepositoryLocal implements PartsRepository {
   }
 
   @override
-  Future<Result<void>> deletePartPhoto(String partId, String photoPath) async {
-    try {
-      final attachments = await _database.getAttachmentsForPart(partId);
-      final attachment =
-          attachments.where((a) => a.storagePath == photoPath).firstOrNull;
-      if (attachment == null) return Result.error(const NotFoundException('Photo'));
-
-      await _storage.delete(attachment.storagePath);
-      await _database.deleteAttachment(attachment.id);
-      return Result.ok(null);
-    } catch (e, st) {
-      _log.severe('Exception in deletePartPhoto', e, st);
-      return Result.error(StorageException('Failed to delete part photo', cause: e));
-    }
-  }
-
-  @override
   Future<Result<List<domain.JobPartLine>>> getJobParts(String jobId) async {
     try {
       final rows = await _database.getJobPartsWithParts(jobId);

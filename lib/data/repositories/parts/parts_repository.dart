@@ -17,9 +17,9 @@ abstract class PartsRepository {
   /// Deletes the part, its job links, and its photos (files + rows).
   Future<Result<void>> deletePart(String partId);
 
-  // Part photos
+  // Part photos. Adding is used by the create-time flows (part form, add-part
+  // sheet); managing photos afterward goes through AttachmentsRepository.
   Future<Result<String>> uploadPartPhoto(String partId, File photo);
-  Future<Result<void>> deletePartPhoto(String partId, String photoPath);
 
   // Job links
   Future<Result<List<JobPartLine>>> getJobParts(String jobId);

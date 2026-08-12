@@ -75,13 +75,24 @@ GoRouter router() => GoRouter(
       path: '/part/:partId',
       builder: (context, state) {
         final partId = state.pathParameters['partId']!;
-        return ChangeNotifierProvider(
-          create: (context) =>
-              PartDetailViewModel(partsRepository: context.read())
-                ..load.execute(partId),
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (context) =>
+                  PartDetailViewModel(partsRepository: context.read())
+                    ..load.execute(partId),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => AttachmentsViewModel(
+                repository: context.read(),
+                owner: AttachmentOwner.part(partId),
+              ),
+            ),
+          ],
           child: Builder(
             builder: (context) => PartDetailScreen(
               viewModel: context.read<PartDetailViewModel>(),
+              attachmentsViewModel: context.read<AttachmentsViewModel>(),
             ),
           ),
         );
@@ -247,15 +258,26 @@ GoRouter router() => GoRouter(
           builder: (context, state) {
             final vehicleId = state.pathParameters['vehicleId']!;
             final jobId = state.pathParameters['jobId']!;
-            return ChangeNotifierProvider(
-              create: (context) =>
-                  JobDetailViewModel(
-                    jobsRepository: context.read(),
-                    partsRepository: context.read(),
-                  )..fetchJob.execute((vehicleId, jobId)),
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (context) =>
+                      JobDetailViewModel(
+                        jobsRepository: context.read(),
+                        partsRepository: context.read(),
+                      )..fetchJob.execute((vehicleId, jobId)),
+                ),
+                ChangeNotifierProvider(
+                  create: (context) => AttachmentsViewModel(
+                    repository: context.read(),
+                    owner: AttachmentOwner.job(jobId),
+                  ),
+                ),
+              ],
               child: Builder(
                 builder: (context) => JobDetailScreen(
                   viewModel: context.read<JobDetailViewModel>(),
+                  attachmentsViewModel: context.read<AttachmentsViewModel>(),
                 ),
               ),
             );

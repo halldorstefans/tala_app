@@ -28,6 +28,17 @@ void main() {
     expect(find.widgetWithText(TextButton, 'Add'), findsOneWidget);
   });
 
+  testWidgets('Add offers both camera and gallery sources', (tester) async {
+    await tester.pumpWidget(wrap(vmFor(FakeAttachmentsRepository())));
+    await tester.pump(); // drain load
+
+    await tester.tap(find.widgetWithText(TextButton, 'Add'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Take photo'), findsOneWidget);
+    expect(find.text('Choose from gallery'), findsOneWidget);
+  });
+
   testWidgets('renders a captioned attachment and hides the empty state', (
     tester,
   ) async {

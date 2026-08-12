@@ -22,10 +22,6 @@ class JobDetailViewModel extends ChangeNotifier {
        _compressor = compressor ?? defaultPhotoCompressor {
     fetchJob = Command1<void, (String vehicleId, String jobId)>(_fetchJob);
     removeJob = Command1<void, (String vehicleId, String jobId)>(_removeJob);
-    deleteJobPhoto =
-        Command1<void, (String vehicleId, String jobId, String photoPath)>(
-          _deleteJobPhoto,
-        );
   }
 
   final _log = Logger('JobDetailViewModel');
@@ -54,7 +50,6 @@ class JobDetailViewModel extends ChangeNotifier {
 
   late final Command1 fetchJob;
   late final Command1 removeJob;
-  late final Command1 deleteJobPhoto;
 
   Future<Result<void>> _fetchJob((String, String) ids) async {
     final (vehicleId, jobId) = ids;
@@ -195,16 +190,5 @@ class JobDetailViewModel extends ChangeNotifier {
       case Error<void>():
         return result;
     }
-  }
-
-  Future<Result<void>> _deleteJobPhoto((String, String, String) ids) async {
-    final (vehicleId, jobId, photoPath) = ids;
-    final result = await _jobsRepository.deleteJobPhoto(
-      vehicleId,
-      jobId,
-      photoPath,
-    );
-
-    return result;
   }
 }

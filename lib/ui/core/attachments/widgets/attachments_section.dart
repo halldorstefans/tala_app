@@ -26,8 +26,11 @@ class AttachmentsSection extends StatelessWidget {
   final String title;
 
   Future<void> _add(BuildContext context) async {
+    final source = await _pickSource(context);
+    if (source == null || !context.mounted) return;
+
     final image = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
+      source: source,
       maxWidth: 1920,
       imageQuality: 85,
     );
@@ -45,6 +48,30 @@ class AttachmentsSection extends StatelessWidget {
       type: details.type,
       caption: details.caption,
     ));
+  }
+
+  /// Lets the user take a new photo or choose an existing image.
+  Future<ImageSource?> _pickSource(BuildContext context) {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take photo'),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _editCaption(
@@ -322,12 +349,16 @@ class _AttachmentDetailsSheetState extends State<_AttachmentDetailsSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
     return Padding(
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
         top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        // Clear the keyboard when open, and the system nav bar when it isn't
+        // (padding.bottom collapses to 0 while the keyboard covers it, so the
+        // two never double up) — otherwise Save hides behind the nav bar.
+        bottom: media.viewInsets.bottom + media.padding.bottom + 16,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
