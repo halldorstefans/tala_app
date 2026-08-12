@@ -349,12 +349,16 @@ class _AttachmentDetailsSheetState extends State<_AttachmentDetailsSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
     return Padding(
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
         top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        // Clear the keyboard when open, and the system nav bar when it isn't
+        // (padding.bottom collapses to 0 while the keyboard covers it, so the
+        // two never double up) — otherwise Save hides behind the nav bar.
+        bottom: media.viewInsets.bottom + media.padding.bottom + 16,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
