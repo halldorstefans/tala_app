@@ -55,32 +55,29 @@ Carry these into any new work so choices stay consistent:
 
 ## Phase 3 — Photos & Documentation ← current
 
-Mostly reassembly-era. **Attachments → Gallery → Annotations is a strict build
-order** — all operate on the photo model, so do them together to avoid
-reworking the gallery/annotations across the `job_photos` migration.
+- **Attachments (generalized)** ✅ Done (PRs #16–#19). Polymorphic `attachments`
+  table (`photo` / `receipt` / `document` / `other` + caption), owned by
+  vehicle / project / job / part. `job_photos` and `part_photos` were migrated
+  in and dropped (v3→v4); the on-disk plumbing is centralized in
+  `AttachmentStorage`; and one reusable `AttachmentsSection` serves all four
+  surfaces — view, full-screen swipe + pinch-zoom, caption, delete, and add
+  from camera or gallery (multi-select). A parts *receipt*, lacking a part
+  link, attaches to the job.
 
-- **Attachments (generalized)** — the foundation. Polymorphic `attachments`
-  table linking to vehicle / project / job with a `type` (photo, receipt,
-  document, other) + caption. Migrate existing `job_photos` **and**
-  `part_photos` in, and move the on-disk photo plumbing (storage path,
-  cascade-delete-files) into this layer. Riskiest item (data migration +
-  rewrite of photo wiring); do it as its own slice. Add a **`part_id`** so part
-  photos fold in — the current backend schema has vehicle/project/job only, so
-  reconcile that too (see Phase 4 debt). A parts *receipt*, lacking a part
-  link, still attaches to the job.
+Follow-ups (current focus):
 
-- **Better photo gallery** — full-screen viewer with swipe + pinch-to-zoom
-  (`photo_view: ^0.15.0` already in deps). A timeline view across all jobs as a
-  visual restoration history. Depends on Attachments.
+- **Drop the now-unused `photoPaths`** — `Job.photoPaths` / `Part.photoPaths`
+  are still populated by the repositories but no longer read by any UI (photos
+  render via attachments now). Stop populating them — a small perf + clarity
+  win.
 
-- **Photo annotations** — draw overlays / text labels, stored as a separate
-  layer with the original preserved. Especially useful for the wiring loom
-  (photo in place → mark which wire goes where → refer back at reassembly).
-  Biggest single build in this phase. Depends on Attachments.
+- **File attachments** — allow non-image files (PDF manuals, receipts) via
+  `file_selector`, with a non-image preview/open path. The `type` field already
+  distinguishes receipt/document/other; today every attachment is an image.
 
-- **Search** — full-text across job titles, descriptions, notes (SQLite FTS or
-  a simple in-memory `contains`). Lowest urgency here; the job list already has
-  status/category/date filters. Slot in whenever.
+The photo **gallery timeline**, **annotations**, and **search** moved to Phase 4
+(below) — the reusable viewer already covers full-screen swipe/zoom, so the rest
+is future polish rather than blocking work.
 
 ---
 
@@ -107,3 +104,15 @@ Keep the schema/architecture compatible; don't implement now.
   Multi-vehicle.
 - **Web interface** — review logs on a laptop; needs the Go backend + a simple
   frontend.
+
+Moved out of Phase 3 (photos work, now deprioritized):
+
+- **Photo gallery timeline** — a per-vehicle visual restoration history across
+  all jobs, ordered by date. (The full-screen swipe + pinch-zoom viewer already
+  ships in `AttachmentsSection`, so only the timeline view remains.)
+- **Photo annotations** — draw overlays / text labels over a photo, original
+  preserved (a separate annotation layer). Useful for the wiring loom; the
+  biggest single build of the three.
+- **Search** — full-text across job titles, descriptions, notes (SQLite FTS or a
+  simple in-memory `contains`). The job list already has status/category/date
+  filters.
