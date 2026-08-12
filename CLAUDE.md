@@ -48,7 +48,7 @@ Relevant skills are under the `.agents/skills/` directory (Flutter/Dart architec
 
 ## Architecture
 
-This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQLite via Drift. There is no network layer — a future sync path to a Go/Postgres backend is a Phase 4 concern (see `BACKLOG.md`), designed for (UUID PKs + `updated_at` on every table) but not built.
+This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQLite via Drift. There is no network layer — a future sync path to a Go/Postgres backend is a later concern (see `BACKLOG.md`), designed for (UUID PKs + `updated_at` on every table) but not built.
 
 ### Layers
 
@@ -81,7 +81,7 @@ This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQL
 
 Files are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative path is persisted in the DB. On display, `ApiConfig.getLocalPhotoPath()` resolves it to the full path, which `AppImage` uses with `Image.file`. The `photos/<uuid>.<ext>` copy/delete plumbing lives in one place — `AttachmentStorage` (`lib/data/services/attachment_storage.dart`). On delete, repositories remove the **files** from disk before the rows (see `deleteJob`, `deleteVehicle`, `deletePart`) so nothing is orphaned.
 
-- **Attachments** (`attachments` table): a file owned by a vehicle, project, job, or part (four nullable owner columns; normally one set), with a `type` (photo/receipt/document/other) and optional caption. Every detail screen renders them through the shared `AttachmentsSection` (`lib/ui/core/attachments/`), backed by `AttachmentsRepository`. Generalizes the old `job_photos` / `part_photos` tables, folded in by the v3→v4 migration (Phase 3).
+- **Attachments** (`attachments` table): a file owned by a vehicle, project, job, or part (four nullable owner columns; normally one set), with a `type` (photo/receipt/document/other) and optional caption. Every detail screen renders them through the shared `AttachmentsSection` (`lib/ui/core/attachments/`), backed by `AttachmentsRepository`. Generalizes the old `job_photos` / `part_photos` tables, folded in by the v3→v4 migration.
 - **Vehicle cover photo**: a single `photoPath` field on the `Vehicles` table — kept separate from attachments as the hero image.
 - **Cascade delete**: deleting a vehicle/job/part removes its attachment files from disk, then the rows.
 
