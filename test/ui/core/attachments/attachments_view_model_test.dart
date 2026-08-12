@@ -20,6 +20,36 @@ void main() {
 
   setUp(() => repo = FakeAttachmentsRepository());
 
+  test('runs the compressor on images but not on documents', () async {
+    final compressed = <String>[];
+    final vm = AttachmentsViewModel(
+      repository: repo,
+      owner: const AttachmentOwner.vehicle('v1'),
+      compressor: (file) async {
+        compressed.add(file.path);
+        return null;
+      },
+    );
+    await vm.load.execute();
+
+    // A PDF must skip the JPEG-only compressor (which would otherwise assert).
+    await vm.addPhoto.execute((
+      file: File('manual.pdf'),
+      type: AttachmentType.document,
+      caption: null,
+    ));
+    expect(compressed, isEmpty);
+    expect(repo.lastAdded?.type, AttachmentType.document);
+
+    // An image still goes through it.
+    await vm.addPhoto.execute((
+      file: File('photo.jpg'),
+      type: AttachmentType.photo,
+      caption: null,
+    ));
+    expect(compressed, ['photo.jpg']);
+  });
+
   test('load populates attachments for the owner', () async {
     repo.seed(
       const Attachment(

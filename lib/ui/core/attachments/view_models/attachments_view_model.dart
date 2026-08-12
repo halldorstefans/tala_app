@@ -7,6 +7,7 @@ import '../../../../data/repositories/attachments/attachments_repository.dart';
 import '../../../../domain/models/attachment.dart';
 import '../../../../domain/models/attachment_type.dart';
 import '../../../../utils/command.dart';
+import '../../../../utils/file_types.dart';
 import '../../../../utils/photo_compressor.dart';
 import '../../../../utils/result.dart';
 
@@ -66,10 +67,9 @@ class AttachmentsViewModel extends ChangeNotifier {
   Future<Result<void>> _addPhoto(
     ({File file, AttachmentType type, String? caption}) args,
   ) async {
-    final compressed = await _compressor(args.file) ?? args.file;
     final result = await _repository.add(
       _owner,
-      file: compressed,
+      file: await _maybeCompress(args.file),
       type: args.type,
       caption: args.caption,
     );
@@ -86,10 +86,9 @@ class AttachmentsViewModel extends ChangeNotifier {
     ({List<File> files, AttachmentType type}) args,
   ) async {
     for (final file in args.files) {
-      final compressed = await _compressor(file) ?? file;
       final result = await _repository.add(
         _owner,
-        file: compressed,
+        file: await _maybeCompress(file),
         type: args.type,
       );
       if (result case Error<Attachment>()) {
@@ -99,6 +98,13 @@ class AttachmentsViewModel extends ChangeNotifier {
       }
     }
     return _load();
+  }
+
+  /// Compresses images before storing; passes documents (PDFs, etc.) through
+  /// untouched — the compressor is JPEG-only and asserts on anything else.
+  Future<File> _maybeCompress(File file) async {
+    if (!isImagePath(file.path)) return file;
+    return await _compressor(file) ?? file;
   }
 
   Future<Result<void>> _updateCaption(

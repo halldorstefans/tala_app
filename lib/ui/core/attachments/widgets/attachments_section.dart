@@ -11,24 +11,9 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../data/services/tala_api/api_config.dart';
 import '../../../../domain/models/attachment.dart';
 import '../../../../domain/models/attachment_type.dart';
+import '../../../../utils/file_types.dart';
 import '../../widgets/app_image.dart';
 import '../view_models/attachments_view_model.dart';
-
-/// Whether an attachment's file is a viewable image (thumbnail + gallery) vs a
-/// document to hand off to the OS. Inferred from the extension — [type] is a
-/// separate user label (a receipt might be a JPG or a PDF).
-const _imageExtensions = {
-  '.jpg',
-  '.jpeg',
-  '.png',
-  '.gif',
-  '.webp',
-  '.heic',
-  '.bmp',
-};
-
-bool _isImagePath(String path) =>
-    _imageExtensions.contains(p.extension(path).toLowerCase());
 
 /// Where the user is adding an attachment from.
 enum _AddSource { camera, gallery, file }
@@ -198,9 +183,9 @@ class AttachmentsSection extends StatelessWidget {
   /// Images open in the full-screen viewer; anything else (a PDF, say) is
   /// handed to the OS share sheet so the user can open it in a capable app.
   Future<void> _open(BuildContext context, Attachment attachment) async {
-    if (_isImagePath(attachment.storagePath)) {
+    if (isImagePath(attachment.storagePath)) {
       final images = viewModel.attachments
-          .where((a) => _isImagePath(a.storagePath))
+          .where((a) => isImagePath(a.storagePath))
           .toList();
       await _openViewer(context, images, images.indexOf(attachment));
     } else {
@@ -318,7 +303,7 @@ class _AttachmentTile extends StatelessWidget {
                 onTap: onOpen,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: _isImagePath(attachment.storagePath)
+                  child: isImagePath(attachment.storagePath)
                       ? AppImage(
                           path: attachment.storagePath,
                           width: 96,
