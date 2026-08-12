@@ -24,6 +24,7 @@ class AttachmentsViewModel extends ChangeNotifier {
        _compressor = compressor ?? defaultPhotoCompressor {
     load = Command0(_load)..execute();
     addPhoto = Command1(_addPhoto);
+    addPhotos = Command1(_addPhotos);
     updateCaption = Command1(_updateCaption);
     remove = Command1(_remove);
   }
@@ -39,6 +40,11 @@ class AttachmentsViewModel extends ChangeNotifier {
   late final Command0<void> load;
   late final Command1<void, ({File file, AttachmentType type, String? caption})>
   addPhoto;
+
+  /// Bulk-add: several images at once, all of one [AttachmentType] and without
+  /// captions (which can be added later per item). Reloads once at the end.
+  late final Command1<void, ({List<File> files, AttachmentType type})>
+  addPhotos;
   late final Command1<void, ({String id, String? caption})> updateCaption;
   late final Command1<void, String> remove;
 
@@ -74,6 +80,25 @@ class AttachmentsViewModel extends ChangeNotifier {
       case Ok<Attachment>():
         return _load();
     }
+  }
+
+  Future<Result<void>> _addPhotos(
+    ({List<File> files, AttachmentType type}) args,
+  ) async {
+    for (final file in args.files) {
+      final compressed = await _compressor(file) ?? file;
+      final result = await _repository.add(
+        _owner,
+        file: compressed,
+        type: args.type,
+      );
+      if (result case Error<Attachment>()) {
+        _log.severe('Error adding attachment: ${result.error}');
+        await _load();
+        return result;
+      }
+    }
+    return _load();
   }
 
   Future<Result<void>> _updateCaption(

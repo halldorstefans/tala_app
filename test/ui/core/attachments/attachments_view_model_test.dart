@@ -60,6 +60,20 @@ void main() {
     expect(vm.attachments.single.caption, 'Oil receipt');
   });
 
+  test('addPhotos bulk-adds several images as photos, then reloads', () async {
+    final vm = buildVm();
+    await vm.load.execute();
+
+    await vm.addPhotos.execute((
+      files: [File('a.jpg'), File('b.jpg'), File('c.jpg')],
+      type: AttachmentType.photo,
+    ));
+
+    expect(repo.uploadedFiles, hasLength(3));
+    expect(vm.attachments, hasLength(3));
+    expect(vm.attachments.every((a) => a.type == AttachmentType.photo), isTrue);
+  });
+
   test('updateCaption and remove flow through to the repo', () async {
     repo.seed(
       const Attachment(
