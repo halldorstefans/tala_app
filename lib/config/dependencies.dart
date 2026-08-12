@@ -2,6 +2,8 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import '../data/database/app_database.dart';
+import '../data/repositories/attachments/attachments_repository.dart';
+import '../data/repositories/attachments/attachments_repository_local.dart';
 import '../data/repositories/jobs/jobs_repository_local.dart';
 import '../data/repositories/jobs/jobs_repository.dart';
 import '../data/repositories/parts/parts_repository_local.dart';
@@ -38,6 +40,11 @@ List<SingleChildWidget> get providersLocal {
     Provider(
       create: (context) =>
           PartsRepositoryLocal(database: context.read()) as PartsRepository,
+    ),
+    Provider(
+      create: (context) =>
+          AttachmentsRepositoryLocal(database: context.read())
+              as AttachmentsRepository,
     ),
     Provider(
       create: (context) =>

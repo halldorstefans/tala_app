@@ -10,6 +10,10 @@ import 'package:tala_app/ui/project/list/view_models/project_list_viewmodel.dart
 import 'package:tala_app/ui/vehicle/detail/view_models/vehicle_detail_viewmodel.dart';
 import 'package:tala_app/ui/vehicle/detail/widgets/vehicle_detail_screen.dart';
 
+import 'package:tala_app/data/repositories/attachments/attachments_repository.dart';
+import 'package:tala_app/ui/core/attachments/view_models/attachments_view_model.dart';
+
+import '../../../helpers/fake_attachments_repository.dart';
 import '../../../helpers/fake_jobs_repository.dart';
 import '../../../helpers/fake_projects_repository.dart';
 import '../../../helpers/fake_vehicle_repository.dart';
@@ -60,6 +64,10 @@ VehicleDetailScreen _screen(
     viewModel: detailVm,
     jobListViewModel: jobListVm,
     projectListViewModel: projectListVm,
+    attachmentsViewModel: AttachmentsViewModel(
+      repository: FakeAttachmentsRepository(),
+      owner: const AttachmentOwner.vehicle('v1'),
+    ),
   );
 }
 
