@@ -1,6 +1,6 @@
 # Tala
 
-Tala is a car-maintenance logbook for people who want a calm, durable record of the work they put into their vehicles. Add a car, log each job (oil change, brake pads, timing belt, MOT…), attach photos, and keep the history in one place. The design language — *Heritage Workshop* — draws from mid-century automotive manuals and restoration garages: warm paper surfaces, ink-weight typography, and JetBrains Mono for the spec fields you'd expect to see on a workshop ledger.
+Tala is a car-maintenance logbook for people who want a calm, durable record of the work they put into their vehicles. Add a car, log each job (oil change, brake pads, timing belt, MOT…), attach photos and documents, and keep the history in one place. The design language — *Heritage Workshop* — draws from mid-century automotive manuals and restoration garages: warm paper surfaces, ink-weight typography, and JetBrains Mono for the spec fields you'd expect to see on a workshop ledger.
 
 The app is **local-first**: everything lives on your device in a SQLite database. There is no network layer — a future sync path to a self-hosted backend is designed for but not built (see [`BACKLOG.md`](BACKLOG.md)).
 
@@ -10,10 +10,11 @@ The app is **local-first**: everything lives on your device in a SQLite database
 
 What Tala does today:
 
-- Add, edit, and delete vehicles (make, model, year, plate, photo).
-- Log jobs against a vehicle with title, notes, date, mileage, and photos.
-- View vehicle and job detail pages with all spec fields.
-- All vehicle, job, and photo data stays on the device. No account, sign-in, or network connection is needed — the app opens straight to your garage.
+- Add, edit, and delete vehicles (make, model, year, plate, cover photo).
+- Log jobs against a vehicle with title, notes, date, mileage, and cost; group them into projects; and track the parts used.
+- Attach photos **and files** (receipts, PDF manuals) to a vehicle, project, job, or part — each with a caption. Images open full-screen; documents open in whatever app you have.
+- Back up and restore everything (database + files) as a single ZIP via the OS share sheet.
+- All data stays on the device. No account, sign-in, or network connection is needed — the app opens straight to your garage.
 
 Platforms: Android is the primary target. iOS, web, and desktop builds exist via Flutter but aren't actively tested.
 
@@ -63,12 +64,12 @@ dart format lib/       # format
 
 ### Architecture at a glance
 
-- **Domain** (`lib/domain/models/`) — plain Dart models (`Vehicle`, `Job`, `Project`, `Part`, `JobPart`) with `toDrift()` / `fromDrift()` helpers.
-- **Data** (`lib/data/`) — Drift database and local SQLite-backed repositories.
+- **Domain** (`lib/domain/models/`) — plain Dart models (`Vehicle`, `Job`, `Project`, `Part`, `JobPart`, `Attachment`) with `toDrift()` / `fromDrift()` helpers, plus enums for the closed sets (`ProgressStatus`, `AttachmentType`).
+- **Data** (`lib/data/`) — Drift database and local SQLite-backed repositories; every method returns `Result<T>` with typed errors (`AppException`).
 - **UI** (`lib/ui/`) — feature folders (`home/`, `vehicle/`, `job/`, `project/`, `part/`, `backup/`, `core/`) each with `view_models/` (ChangeNotifier + Command) and `widgets/`.
 - **Routing** — `go_router` in `lib/routing/`. Initial location is the home screen; Tala is single-user and local, with no sign-in.
 - **Key patterns** — `Result<T>` sealed class for repository returns, `Command<T>` for async UI actions, `Provider` for DI.
-- **Testing** — ViewModel and widget tests use in-memory fakes that implement the abstract repository interfaces (`test/helpers/`); they do not touch SQLite.
+- **Testing** — ViewModel and widget tests use in-memory fakes (`test/helpers/`) and don't touch SQLite; repository and migration tests run against a real in-memory SQLite (`AppDatabase.forTesting` + `NativeDatabase.memory()`, in `test/data/`).
 
 For deeper context see:
 

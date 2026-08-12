@@ -33,7 +33,7 @@ dart run build_runner build --delete-conflicting-outputs
 flutter test
 
 # Run a single test file
-flutter test test/widget_test.dart
+flutter test test/domain/models/job_test.dart
 
 # Lint
 flutter analyze
@@ -52,11 +52,11 @@ This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQL
 
 ### Layers
 
-**Domain** (`lib/domain/models/`) — Plain Dart classes (`Vehicle`, `Job`, `Project`, `Part`, `JobPart`). No Flutter or database dependencies. Domain models include `toDrift()` / `fromDrift()` helpers for Drift interop.
+**Domain** (`lib/domain/models/`) — Plain Dart classes (`Vehicle`, `Job`, `Project`, `Part`, `JobPart`, `Attachment`) plus small enums for the closed sets (`ProgressStatus` for job/project status, `AttachmentType`). No Flutter or database dependencies. Models include `toDrift()` / `fromDrift()` helpers for Drift interop; enums carry a `wire` value + `fromWire` for the DB/JSON boundary (parse once, then the compiler enforces the rest).
 
 **Data** (`lib/data/`) — Three sub-layers:
 - `database/` — Drift ORM: `AppDatabase` with tables `Vehicles`, `Jobs`, `Projects`, `Parts`, `JobParts`, and `Attachments`. Database file is `tala.db` in the app documents directory. After any schema change, regenerate with `build_runner`.
-- `repositories/` — Abstract interfaces plus `*_local.dart` implementations backed by SQLite (jobs, vehicle, projects, parts). `dependencies.dart` wires them up (`providersLocal`).
+- `repositories/` — Abstract interfaces plus `*_local.dart` implementations backed by SQLite (jobs, vehicle, projects, parts, attachments). Every method returns `Result<T>`; errors are typed (`AppException` sealed hierarchy in `lib/utils/app_exception.dart`: `NotFoundException`, `StorageException`, `ValidationException`). `dependencies.dart` wires them up (`providersLocal`).
 - `services/tala_api/api_config.dart` — Despite the folder name, all that remains here are photo-path helpers: `ApiConfig.getLocalPhotoPath(relativePath)` resolves a relative photo path to an absolute disk path, and `ApiConfig.isValidPhotoPath` validates it. (The former REST/auth API clients were removed with the rest of the unused remote layer.)
 
 **UI** (`lib/ui/`) — Feature folders: `home/`, `vehicle/`, `job/`, `project/`, `part/`, `backup/`, `core/`. Each feature has:
@@ -77,11 +77,11 @@ This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQL
 
 **Routing** — GoRouter in `lib/routing/router.dart`. `initialLocation` is `/home`; the app boots straight to the home screen. There is no auth/sign-in — Tala is single-user and local by design. ViewModels are instantiated in route builders via `context.read()`.
 
-### Photo Storage
+### Attachments & file storage
 
-Files are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative path is persisted in the DB. On display, `ApiConfig.getLocalPhotoPath()` resolves it to the full path, which `AppImage` uses with `Image.file`. The `photos/<uuid>.<ext>` copy/delete plumbing lives in one place — `AttachmentStorage` (`lib/data/services/attachment_storage.dart`). On delete, repositories remove the **files** from disk before the rows (see `deleteJob`, `deleteVehicle`, `deletePart`) so nothing is orphaned.
+Attachment files (images *and* documents) are stored locally in `<documents_dir>/photos/<uuid>.<ext>` (the dir name is historical; it holds any file type, and backup zips it). The relative path is persisted in the DB. On display, `ApiConfig.getLocalPhotoPath()` resolves it to the full path, which `AppImage` uses with `Image.file`. The copy/delete plumbing lives in one place — `AttachmentStorage` (`lib/data/services/attachment_storage.dart`). On delete, repositories remove the **files** from disk before the rows (see `deleteJob`, `deleteVehicle`, `deletePart`) so nothing is orphaned.
 
-- **Attachments** (`attachments` table): a file owned by a vehicle, project, job, or part (four nullable owner columns; normally one set), with a `type` (photo/receipt/document/other) and optional caption. Every detail screen renders them through the shared `AttachmentsSection` (`lib/ui/core/attachments/`), backed by `AttachmentsRepository`. Generalizes the old `job_photos` / `part_photos` tables, folded in by the v3→v4 migration.
+- **Attachments** (`attachments` table): a file owned by a vehicle, project, job, or part (four nullable owner columns; normally one set), with a `type` (photo/receipt/document/other) + optional caption. The `type` is a user label; whether a file renders as an image is inferred from its extension (`lib/utils/file_types.dart`). Images show a thumbnail + full-screen viewer; non-images (PDFs, etc.) show a file glyph and open via the OS share sheet. Every detail screen renders them through the shared `AttachmentsSection` (`lib/ui/core/attachments/`), backed by `AttachmentsRepository`. Generalizes the old `job_photos` / `part_photos` tables, folded in by the v3→v4 migration.
 - **Vehicle cover photo**: a single `photoPath` field on the `Vehicles` table — kept separate from attachments as the hero image.
 - **Cascade delete**: deleting a vehicle/job/part removes its attachment files from disk, then the rows.
 
@@ -94,8 +94,8 @@ Files are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative 
 
 ### Testing
 
-- ViewModel/widget tests do not touch SQLite. Instead, they use in-memory fakes that implement the abstract repository interfaces — see `test/helpers/fake_jobs_repository.dart` and `test/helpers/fake_vehicle_repository.dart`. Each fake supports `seed(...)`, controllable `error`, and records the last mutation for assertions.
-- When adding a new repository, add a matching fake under `test/helpers/` rather than mocking with a library.
+- **ViewModel/widget tests** use in-memory fakes that implement the abstract repository interfaces (`test/helpers/`) — they don't touch SQLite. Each fake supports `seed(...)`, a controllable `error`, and records the last mutation for assertions. When adding a new repository, add a matching fake here rather than mocking with a library.
+- **Repository / migration tests** *do* run against real SQLite, via `AppDatabase.forTesting(NativeDatabase.memory())` (see `test/data/`). These cover the actual SQL, the v3→v4 migration, on-disk file cleanup, and error typing — the seams the fakes bypass. This is the right home for anything where the real database or filesystem behaviour matters.
 
 ## Project context docs
 
