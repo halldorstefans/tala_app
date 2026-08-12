@@ -1,8 +1,6 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tala_app/data/database/app_database.dart'
-    show AppDatabase, AttachmentsCompanion;
+import 'package:tala_app/data/database/app_database.dart' show AppDatabase;
 import 'package:tala_app/data/repositories/jobs/jobs_repository_local.dart';
 import 'package:tala_app/data/repositories/parts/parts_repository_local.dart';
 import 'package:tala_app/domain/models/job.dart';
@@ -104,31 +102,5 @@ void main() {
     expect(lines[0].link.quantity, 2);
     expect(lines[0].part.name, 'Alpha');
     expect(lines[1].link.totalCost, closeTo(5, 1e-9));
-  });
-
-  test('getJobs attaches each job\'s photos in one grouped read', () async {
-    // Insert photo rows directly (no files needed — getJobs only reads rows).
-    await db.insertAttachment(
-      const AttachmentsCompanion(
-        id: Value('ph1'),
-        type: Value('photo'),
-        jobId: Value('j1'),
-        storagePath: Value('photos/a.jpg'),
-      ),
-    );
-    await db.insertAttachment(
-      const AttachmentsCompanion(
-        id: Value('ph2'),
-        type: Value('photo'),
-        jobId: Value('j1'),
-        storagePath: Value('photos/b.jpg'),
-      ),
-    );
-
-    final result = ok(await jobs.getJobs('v1'));
-    final j1 = result.firstWhere((j) => j.id == 'j1');
-    final j2 = result.firstWhere((j) => j.id == 'j2');
-    expect(j1.photoPaths, containsAll(['photos/a.jpg', 'photos/b.jpg']));
-    expect(j2.photoPaths, isEmpty);
   });
 }

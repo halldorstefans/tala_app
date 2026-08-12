@@ -21,13 +21,6 @@ class JobsRepositoryLocal implements JobsRepository {
   final _uuid = const Uuid();
   final _storage = const AttachmentStorage();
 
-  /// The storage paths of a job's *photo* attachments (ignoring receipts,
-  /// documents, etc.), which is what the job UI still consumes as `photoPaths`.
-  List<String> _photoPaths(Iterable<db.Attachment> attachments) => [
-        for (final a in attachments)
-          if (a.type == domain.AttachmentType.photo.wire) a.storagePath,
-      ];
-
   @override
   Future<Result<domain.Job>> getJob(String vehicleId, String jobId) async {
     try {
@@ -35,11 +28,7 @@ class JobsRepositoryLocal implements JobsRepository {
       if (result == null || result.vehicleId != vehicleId) {
         return Result.error(const NotFoundException('Job'));
       }
-
-      final attachments = await _database.getAttachmentsForJob(jobId);
-      return Result.ok(
-        domain.Job.fromDrift(result, photoPaths: _photoPaths(attachments)),
-      );
+      return Result.ok(domain.Job.fromDrift(result));
     } catch (e, st) {
       _log.severe('Exception in getJob', e, st);
       return Result.error(StorageException('Failed to get job', cause: e));
@@ -50,29 +39,7 @@ class JobsRepositoryLocal implements JobsRepository {
   Future<Result<List<domain.Job>>> getJobs(String vehicleId) async {
     try {
       final results = await _database.getJobsForVehicle(vehicleId);
-
-      // One query for every job's attachments, grouped in memory — rather than
-      // a getAttachmentsForJob round-trip per job (N+1).
-      final attachments = await _database.getAttachmentsForJobs(
-        results.map((j) => j.id),
-      );
-      final pathsByJob = <String, List<String>>{};
-      for (final a in attachments) {
-        final jobId = a.jobId;
-        if (jobId == null || a.type != domain.AttachmentType.photo.wire) {
-          continue;
-        }
-        (pathsByJob[jobId] ??= <String>[]).add(a.storagePath);
-      }
-
-      final jobs = [
-        for (final job in results)
-          domain.Job.fromDrift(
-            job,
-            photoPaths: pathsByJob[job.id] ?? const <String>[],
-          ),
-      ];
-      return Result.ok(jobs);
+      return Result.ok([for (final job in results) domain.Job.fromDrift(job)]);
     } catch (e, st) {
       _log.severe('Exception in getJobs', e, st);
       return Result.error(StorageException('Failed to get jobs', cause: e));

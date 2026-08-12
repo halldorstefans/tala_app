@@ -81,7 +81,7 @@ This is a **local-first** Flutter car-maintenance logbook. Data is stored in SQL
 
 Files are stored locally in `<documents_dir>/photos/<uuid>.<ext>`. The relative path is persisted in the DB. On display, `ApiConfig.getLocalPhotoPath()` resolves it to the full path, which `AppImage` uses with `Image.file`. The `photos/<uuid>.<ext>` copy/delete plumbing lives in one place — `AttachmentStorage` (`lib/data/services/attachment_storage.dart`). On delete, repositories remove the **files** from disk before the rows (see `deleteJob`, `deleteVehicle`, `deletePart`) so nothing is orphaned.
 
-- **Attachments** (`attachments` table): a file owned by a vehicle, project, job, or part (four nullable owner columns; normally one set), with a `type` (photo/receipt/document/other) and optional caption. Job and part photos are rows here (`type=photo`); repositories still expose them to the UI as `photoPaths: List<String>` filtered to photos. Generalizes the old `job_photos` / `part_photos` tables, folded in by the v3→v4 migration (Phase 3, Slice A).
+- **Attachments** (`attachments` table): a file owned by a vehicle, project, job, or part (four nullable owner columns; normally one set), with a `type` (photo/receipt/document/other) and optional caption. Every detail screen renders them through the shared `AttachmentsSection` (`lib/ui/core/attachments/`), backed by `AttachmentsRepository`. Generalizes the old `job_photos` / `part_photos` tables, folded in by the v3→v4 migration (Phase 3).
 - **Vehicle cover photo**: a single `photoPath` field on the `Vehicles` table — kept separate from attachments as the hero image.
 - **Cascade delete**: deleting a vehicle/job/part removes its attachment files from disk, then the rows.
 

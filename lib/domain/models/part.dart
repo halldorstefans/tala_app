@@ -8,7 +8,6 @@ class Part {
   final String? brand;
   final String? supplier;
   final String? notes;
-  final List<String>? photoPaths;
 
   const Part({
     required this.id,
@@ -17,7 +16,6 @@ class Part {
     this.brand,
     this.supplier,
     this.notes,
-    this.photoPaths,
   });
 
   Part copyWith({
@@ -27,7 +25,6 @@ class Part {
     String? brand,
     String? supplier,
     String? notes,
-    List<String>? photoPaths,
   }) {
     return Part(
       id: id ?? this.id,
@@ -36,7 +33,6 @@ class Part {
       brand: brand ?? this.brand,
       supplier: supplier ?? this.supplier,
       notes: notes ?? this.notes,
-      photoPaths: photoPaths ?? this.photoPaths,
     );
   }
 
@@ -65,7 +61,7 @@ class Part {
     );
   }
 
-  static Part fromDrift(db.Part data, {List<String>? photoPaths}) {
+  static Part fromDrift(db.Part data) {
     return Part(
       id: data.id,
       name: data.name,
@@ -73,7 +69,6 @@ class Part {
       brand: data.brand,
       supplier: data.supplier,
       notes: data.notes,
-      photoPaths: photoPaths,
     );
   }
 }
