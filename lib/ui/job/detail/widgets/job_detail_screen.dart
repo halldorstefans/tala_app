@@ -1,99 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tala_app/ui/core/widgets/app_image.dart';
 import 'package:tala_app/ui/job/detail/view_models/job_detail_viewmodel.dart';
-import 'package:photo_view/photo_view_gallery.dart';
-import 'package:photo_view/photo_view.dart';
 
 import '../../../../domain/models/job.dart';
 import '../../../../domain/models/job_category.dart';
 import '../../../../domain/models/progress_status.dart';
 import '../../../../routing/routes.dart';
+import '../../../core/attachments/view_models/attachments_view_model.dart';
+import '../../../core/attachments/widgets/attachments_section.dart';
 import '../../../core/themes/dimens.dart';
 import 'job_cost_breakdown.dart';
 import 'job_parts_section.dart';
 
 class JobDetailScreen extends StatefulWidget {
-  const JobDetailScreen({super.key, required this.viewModel});
+  const JobDetailScreen({
+    super.key,
+    required this.viewModel,
+    required this.attachmentsViewModel,
+  });
 
   final JobDetailViewModel viewModel;
+  final AttachmentsViewModel attachmentsViewModel;
 
   @override
   State<JobDetailScreen> createState() => _JobDetailScreenState();
 }
 
 class _JobDetailScreenState extends State<JobDetailScreen> {
-  Future<void> _openGallery(List<String> urls, int initialIndex) async {
-    final providers = await Future.wait(urls.map(AppImage.resolveProvider));
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: Container(
-            color: Colors.black,
-            child: Stack(
-              children: [
-                PhotoViewGallery.builder(
-                  itemCount: urls.length,
-                  pageController: PageController(initialPage: initialIndex),
-                  builder: (context, index) {
-                    return PhotoViewGalleryPageOptions(
-                      imageProvider: providers[index],
-                      minScale: PhotoViewComputedScale.contained,
-                      maxScale: PhotoViewComputedScale.covered * 2,
-                    );
-                  },
-                  backgroundDecoration: const BoxDecoration(color: Colors.black),
-                ),
-                Positioned(
-                  top: 40,
-                  right: 20,
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 32),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _deletePhoto(Job job, String photoPath) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete photo?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true) return;
-    await widget.viewModel.deleteJobPhoto.execute((
-      job.vehicleId,
-      job.id,
-      photoPath,
-    ));
-    await widget.viewModel.fetchJob.execute((job.vehicleId, job.id));
-  }
-
   Future<void> _openEdit(Job job) async {
     await context.push(Routes.jobFormWithId(job.vehicleId, job.id));
     if (!mounted) return;
+    // The form may have added photos; refresh both the job and its attachments.
     widget.viewModel.fetchJob.execute((job.vehicleId, job.id));
+    widget.attachmentsViewModel.load.execute();
   }
 
   Future<void> _confirmRemove(Job job) async {
@@ -203,17 +143,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                 ),
                 children: [
                   _Header(job: job),
-                  if (job.photoPaths != null && job.photoPaths!.isNotEmpty) ...[
-                    const SizedBox(height: 24),
-                    _Section(
-                      title: 'Photos',
-                      child: _PhotoGrid(
-                        paths: job.photoPaths!,
-                        onOpen: (i) => _openGallery(job.photoPaths!, i),
-                        onDelete: (path) => _deletePhoto(job, path),
-                      ),
-                    ),
-                  ],
+                  const SizedBox(height: 24),
+                  AttachmentsSection(viewModel: widget.attachmentsViewModel),
                   const SizedBox(height: 24),
                   _Section(
                     title: 'Cost',
@@ -332,53 +263,3 @@ class _Section extends StatelessWidget {
   }
 }
 
-class _PhotoGrid extends StatelessWidget {
-  const _PhotoGrid({
-    required this.paths,
-    required this.onOpen,
-    required this.onDelete,
-  });
-
-  final List<String> paths;
-  final void Function(int index) onOpen;
-  final void Function(String path) onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (var i = 0; i < paths.length; i++)
-          Stack(
-            alignment: Alignment.topRight,
-            children: [
-              GestureDetector(
-                onTap: () => onOpen(i),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: AppImage(path: paths[i], width: 80, height: 80),
-                ),
-              ),
-              Positioned(
-                top: 2,
-                right: 2,
-                child: Material(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => onDelete(paths[i]),
-                    child: const Padding(
-                      padding: EdgeInsets.all(2),
-                      child: Icon(Icons.delete, color: Colors.white, size: 18),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-      ],
-    );
-  }
-}

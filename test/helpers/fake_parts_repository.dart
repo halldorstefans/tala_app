@@ -75,12 +75,6 @@ class FakePartsRepository implements PartsRepository {
   }
 
   @override
-  Future<Result<void>> deletePartPhoto(String partId, String photoPath) async {
-    if (error != null) return Result.error(error!);
-    return Result.ok(null);
-  }
-
-  @override
   Future<Result<List<JobPartLine>>> getJobParts(String jobId) async {
     if (error != null) return Result.error(error!);
     final lines = <JobPartLine>[];

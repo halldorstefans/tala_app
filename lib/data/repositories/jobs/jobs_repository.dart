@@ -9,14 +9,11 @@ abstract class JobsRepository {
   Future<Result<String>> addJob(String vehicleId, Job job);
   Future<Result<Job>> updateJob(String vehicleId, Job job);
   Future<Result<void>> deleteJob(String vehicleId, String jobId);
+  /// Adds a photo attachment to the job (used by the job form's create-time
+  /// multi-pick). Managing photos afterward goes through AttachmentsRepository.
   Future<Result<String>> uploadJobPhoto(
     String vehicleId,
     String jobId,
     File photo,
-  );
-  Future<Result<void>> deleteJobPhoto(
-    String vehicleId,
-    String jobId,
-    String photoPath,
   );
 }

@@ -155,29 +155,4 @@ class JobsRepositoryLocal implements JobsRepository {
       );
     }
   }
-
-  @override
-  Future<Result<void>> deleteJobPhoto(
-    String vehicleId,
-    String jobId,
-    String photoPath,
-  ) async {
-    try {
-      final attachments = await _database.getAttachmentsForJob(jobId);
-      final attachment =
-          attachments.where((a) => a.storagePath == photoPath).firstOrNull;
-      if (attachment == null) {
-        return Result.error(const NotFoundException('Photo'));
-      }
-
-      await _storage.delete(attachment.storagePath);
-      await _database.deleteAttachment(attachment.id);
-      return Result.ok(null);
-    } catch (e, st) {
-      _log.severe('Exception in deleteJobPhoto', e, st);
-      return Result.error(
-        StorageException('Failed to delete job photo', cause: e),
-      );
-    }
-  }
 }

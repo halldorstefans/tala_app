@@ -83,14 +83,4 @@ class FakeJobsRepository implements JobsRepository {
     uploadedPhotos.add(photo);
     return Result.ok('photos/test.jpg');
   }
-
-  @override
-  Future<Result<void>> deleteJobPhoto(
-    String vehicleId,
-    String jobId,
-    String photoPath,
-  ) async {
-    if (error != null) return Result.error(error!);
-    return Result.ok(null);
-  }
 }
