@@ -1,118 +1,82 @@
 # Backlog
 
-Pending work, grouped by phase. Phase 2 is done bar some deferred polish;
-Phase 3 (largely reassembly-era) is the current focus; Phase 4 is "design the
-schema/architecture to allow it, but don't build it yet."
-
-For the *why* behind a decision, `DESIGN.md` and `tala_design_core.md` still hold product/UX intent.
+Pending work, roughly highest-value / most-ready first. Completed work lives in
+git history and the merged PRs. For the *why* behind product/UX decisions, see
+`DESIGN.md` and `tala_design_core.md`.
 
 ## Standing decisions & constraints
 
 Carry these into any new work so choices stay consistent:
 
-- **Local-first.** SQLite via Drift; the Go/Postgres backend is a stub (dead
-  schema) and not wired up. Tests use in-memory fakes, not SQLite.
+- **Local-first.** All data is on-device in SQLite via Drift. There is no
+  network layer; a future self-hosted (Go/Postgres) sync backend is *designed
+  for* — UUID primary keys + `updated_at` on every table — but not built.
 - **One project per job.** `jobs.project_id` (nullable), not a join table —
-  clean cost/progress partitions. (The backend still has a `project_jobs`
-  table; reconcile before any sync — see Phase 4.)
-- **`Job.cost` = "Other cost"** — non-part spend (machine shop, paint,
-  consumables). Total job cost will be Other + Σ parts once Parts lands.
-- **No FK enforcement.** No `PRAGMA foreign_keys`; cascades are done manually
-  in the repositories (e.g. deleting a project unassigns its jobs).
-- **Migrations exist now.** `schemaVersion` is at 3 with a `MigrationStrategy`
-  (v2 projects, v3 parts). New tables/columns bump the version and add an
-  `onUpgrade` step.
+  clean cost/progress partitions. A job can also stand alone, unassigned.
+- **`Job.cost` = "Other cost."** Non-part spend (machine shop, paint,
+  consumables). Total job cost is Other + Σ parts.
+- **No FK enforcement.** No `PRAGMA foreign_keys`; cascades are done manually in
+  the repositories — deleting a vehicle/job/part removes its rows *and* its
+  files from disk.
+- **Migrations.** `schemaVersion` is at 4 (`MigrationStrategy`: v2 projects, v3
+  parts, v4 attachments). New tables/columns bump the version and add an
+  `onUpgrade` step; migrations are covered by a real-SQLite test.
+- **Testing.** ViewModel/widget tests use in-memory fakes; repository and
+  migration tests run against a real in-memory SQLite (`AppDatabase.forTesting`
+  + `NativeDatabase.memory()`).
 
 ---
 
-## Phase 2 — Organization & Tracking ✅ (deferred polish aside)
+## Ready to build
 
-- **Active Work section** ✅ Done — in-progress jobs on the vehicle page.
-- **Projects** ✅ Done — group a vehicle's jobs into phases; project detail,
-  job assignment via the job form, Active Projects summary.
+Local-only and incremental — no backend, hardware, or extra groundwork needed.
 
-- **Backup & restore** ✅ Done (PR #4) — export a ZIP (`VACUUM INTO` db +
-  photos) via the OS share sheet; stage-then-restart restore. Deferred: a
-  periodic backup reminder.
+- **Search.** Full-text across job titles, descriptions, and notes (SQLite FTS
+  or a simple in-memory `contains`). The job list already has status/category/
+  date filters, so this is the "find that one note about the heater valve three
+  months later" case. Self-contained and increasingly useful as the log fills
+  up — the strongest next build.
 
-- **Parts** ✅ Done (PR #5) — `parts` catalogue + `job_parts` (unit cost,
-  quantity, purchase date) + optional `part_photos` on the part. Parts on the
-  job with a Parts/Other/Total cost card; add inline or reuse from a searchable
-  catalogue; edit parts and per-line cost/qty/date. `Job.cost` reframed as
-  "Other cost". Deferred: a per-vehicle "parts used" list; hard dedup (search-
-  to-reuse only). `part_photos` folds into the future Attachments migration
-  (see Phase 3).
+- **Photo gallery / timeline.** A per-vehicle visual restoration history: the
+  image attachments across a vehicle's jobs, ordered by date. Read-only view
+  over data already stored; the full-screen swipe + pinch-zoom viewer already
+  ships in `AttachmentsSection`, so only the timeline layout is new.
 
-- **Cost rollups** ✅ Done (with Parts) — per-job Parts/Other/Total; parts
-  folded into the per-vehicle and per-project totals.
+- **Photo annotations.** Draw overlays / text labels over a photo, with the
+  original preserved (a separate annotation layer). Especially useful for the
+  wiring loom — mark which wire goes where, refer back at reassembly. The
+  largest of these: needs a drawing canvas plus a way to store and render the
+  overlay.
 
-- **Deferred polish** (small, do opportunistically):
-  - ✅ Project-side "manage jobs" UI (PR #6).
-  - ✅ Progress bar + status/cost on the project list cards (PR #6).
-  - ✅ Per-vehicle "parts used" list (PR #7). Phase 2 polish complete.
+- **Periodic backup reminder.** A gentle nudge to export a backup (e.g. after N
+  days or N changes since the last one). Small; pairs with the existing
+  backup/restore.
 
----
+## Later / needs groundwork
 
-## Phase 3 — Photos & Documentation ← current
+Bigger, or blocked on something that doesn't exist yet — a backend, multiple
+vehicles, or hardware.
 
-- **Attachments (generalized)** ✅ Done (PRs #16–#19). Polymorphic `attachments`
-  table (`photo` / `receipt` / `document` / `other` + caption), owned by
-  vehicle / project / job / part. `job_photos` and `part_photos` were migrated
-  in and dropped (v3→v4); the on-disk plumbing is centralized in
-  `AttachmentStorage`; and one reusable `AttachmentsSection` serves all four
-  surfaces — view, full-screen swipe + pinch-zoom, caption, delete, and add
-  from camera or gallery (multi-select). A parts *receipt*, lacking a part
-  link, attaches to the job.
+- **Sync to a self-hosted backend.** Local-first with push-to-server; conflict
+  strategy TBD. UUID PKs + `updated_at` keep it feasible. **Reconcile the
+  backend schema first** so it matches the app's model: one `jobs.project_id`
+  (no `project_jobs` join table) and an `attachments` table with a `part_id`.
+  Cheap while unbuilt; sync breaks on those tables until it's done.
 
-Follow-ups (current focus):
+- **Multi-vehicle.** The schema already supports many vehicles and the home
+  screen lists them; the UI just needs a proper vehicle selector. YAGNI on a
+  single car for now.
 
-- **Drop the now-unused `photoPaths`** — `Job.photoPaths` / `Part.photoPaths`
-  are still populated by the repositories but no longer read by any UI (photos
-  render via attachments now). Stop populating them — a small perf + clarity
-  win.
+- **Cross-vehicle "what's next" view.** A planned-work to-do list spanning
+  vehicles (a per-vehicle planned filter already exists). Only earns its keep
+  with multiple vehicles, so it rides with Multi-vehicle.
 
-- **File attachments** — allow non-image files (PDF manuals, receipts) via
-  `file_selector`, with a non-image preview/open path. The `type` field already
-  distinguishes receipt/document/other; today every attachment is an image.
+- **Sensor data ingestion.** BLE battery readings, GPS tracks — likely a
+  separate time-series store. The app receives over BLE, stores locally, then
+  syncs. More relevant once the car runs and is driven.
 
-The photo **gallery timeline**, **annotations**, and **search** moved to Phase 4
-(below) — the reusable viewer already covers full-screen swipe/zoom, so the rest
-is future polish rather than blocking work.
+- **Maintenance reminders / notifications.** Time- or mileage-based service
+  nudges. Also more relevant once the car is on the road.
 
----
-
-## Phase 4 — Future (design for, don't build yet)
-
-Keep the schema/architecture compatible; don't implement now.
-
-- **Sync layer to the Go backend** — local-first with push-to-server; conflict
-  strategy TBD. UUID PKs + `updated_at` on every table keep this feasible.
-  **Debt to clear first:** reconcile the backend schema with the app's model
-  — drop `project_jobs`, add `jobs.project_id` (one project per job); and add
-  `attachments.part_id` once part photos exist. All unimplemented server-side,
-  so cheap, but sync breaks on those tables until it's done.
-- **Sensor data ingestion** — BLE battery readings, GPS tracks. Likely a
-  separate time-series table (TimescaleDB server-side); app receives BLE, stores
-  locally, then syncs.
-- **Reminders / notifications** — time- or mileage-based maintenance. More
-  relevant once the car is running and driven.
-- **Multi-vehicle** — schema already supports it; UI needs a vehicle selector.
-  YAGNI on a single car for now.
-- **Cross-vehicle "what's next" / planned-work view** — a to-do list of planned
-  jobs spanning vehicles (a per-vehicle planned filter already exists). Only
-  earns its keep once there are multiple vehicles, so it rides with
-  Multi-vehicle.
-- **Web interface** — review logs on a laptop; needs the Go backend + a simple
-  frontend.
-
-Moved out of Phase 3 (photos work, now deprioritized):
-
-- **Photo gallery timeline** — a per-vehicle visual restoration history across
-  all jobs, ordered by date. (The full-screen swipe + pinch-zoom viewer already
-  ships in `AttachmentsSection`, so only the timeline view remains.)
-- **Photo annotations** — draw overlays / text labels over a photo, original
-  preserved (a separate annotation layer). Useful for the wiring loom; the
-  biggest single build of the three.
-- **Search** — full-text across job titles, descriptions, notes (SQLite FTS or a
-  simple in-memory `contains`). The job list already has status/category/date
-  filters.
+- **Web interface.** Review the logbook on a laptop; needs the backend plus a
+  simple frontend.
