@@ -14,7 +14,6 @@ class Job {
   final ProgressStatus? status;
   final String? description;
   final double? cost;
-  final List<String>? photoPaths;
 
   const Job({
     required this.id,
@@ -28,7 +27,6 @@ class Job {
     this.status,
     this.description,
     this.cost,
-    this.photoPaths,
   });
 
   Job copyWith({
@@ -42,7 +40,6 @@ class Job {
     ProgressStatus? status,
     String? description,
     double? cost,
-    List<String>? photoPaths,
   }) {
     return Job(
       id: id ?? this.id,
@@ -56,7 +53,6 @@ class Job {
       status: status ?? this.status,
       description: description ?? this.description,
       cost: cost ?? this.cost,
-      photoPaths: photoPaths ?? this.photoPaths,
     );
   }
 
@@ -77,7 +73,6 @@ class Job {
     status: status,
     description: description,
     cost: cost,
-    photoPaths: photoPaths,
   );
 
   /// Returns a copy of this job with invariants enforced.
@@ -137,7 +132,7 @@ class Job {
     );
   }
 
-  static Job fromDrift(db.Job data, {List<String>? photoPaths}) {
+  static Job fromDrift(db.Job data) {
     return Job(
       id: data.id,
       vehicleId: data.vehicleId,
@@ -150,7 +145,6 @@ class Job {
       status: ProgressStatus.fromWire(data.status),
       description: data.description,
       cost: data.cost,
-      photoPaths: photoPaths,
     );
   }
 }

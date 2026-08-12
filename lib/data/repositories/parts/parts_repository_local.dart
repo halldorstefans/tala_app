@@ -22,13 +22,6 @@ class PartsRepositoryLocal implements PartsRepository {
   final _uuid = const Uuid();
   final _storage = const AttachmentStorage();
 
-  /// The storage paths of a part's *photo* attachments, which is what the part
-  /// UI still consumes as `photoPaths`.
-  List<String> _photoPaths(Iterable<db.Attachment> attachments) => [
-    for (final a in attachments)
-      if (a.type == domain.AttachmentType.photo.wire) a.storagePath,
-  ];
-
   @override
   Future<Result<List<domain.Part>>> getParts() async {
     try {
@@ -45,10 +38,7 @@ class PartsRepositoryLocal implements PartsRepository {
     try {
       final row = await _database.getPartById(partId);
       if (row == null) return Result.error(const NotFoundException('Part'));
-      final attachments = await _database.getAttachmentsForPart(partId);
-      return Result.ok(
-        domain.Part.fromDrift(row, photoPaths: _photoPaths(attachments)),
-      );
+      return Result.ok(domain.Part.fromDrift(row));
     } catch (e, st) {
       _log.severe('Exception in getPart', e, st);
       return Result.error(StorageException('Failed to get part', cause: e));

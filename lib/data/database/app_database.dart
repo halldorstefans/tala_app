@@ -145,14 +145,6 @@ class AppDatabase extends _$AppDatabase {
   Future<List<Attachment>> getAttachmentsForJob(String jobId) =>
       (select(attachments)..where((t) => t.jobId.equals(jobId))).get();
 
-  /// Attachments for many jobs in one query; the caller groups by `jobId`.
-  /// Empty [jobIds] returns an empty list without touching the database.
-  Future<List<Attachment>> getAttachmentsForJobs(Iterable<String> jobIds) {
-    final ids = jobIds.toList();
-    if (ids.isEmpty) return Future.value(const []);
-    return (select(attachments)..where((t) => t.jobId.isIn(ids))).get();
-  }
-
   Future<List<Attachment>> getAttachmentsForPart(String partId) =>
       (select(attachments)..where((t) => t.partId.equals(partId))).get();
 

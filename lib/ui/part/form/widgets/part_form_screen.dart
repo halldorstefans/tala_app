@@ -75,7 +75,7 @@ class _PartFormBodyState extends State<_PartFormBody> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Preserve id + photoPaths; toDrift writes catalogue fields only.
+    // Preserve the id; toDrift writes catalogue fields only.
     final updated = widget.initial.copyWith(
       name: _name.text.trim(),
       partNumber: _nullIfEmpty(_partNumber.text),
