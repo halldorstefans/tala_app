@@ -28,7 +28,7 @@ void main() {
     expect(find.widgetWithText(TextButton, 'Add'), findsOneWidget);
   });
 
-  testWidgets('Add offers both camera and gallery sources', (tester) async {
+  testWidgets('Add offers camera, gallery, and file sources', (tester) async {
     await tester.pumpWidget(wrap(vmFor(FakeAttachmentsRepository())));
     await tester.pump(); // drain load
 
@@ -37,6 +37,29 @@ void main() {
 
     expect(find.text('Take photo'), findsOneWidget);
     expect(find.text('Choose from gallery'), findsOneWidget);
+    expect(find.text('Choose file'), findsOneWidget);
+  });
+
+  testWidgets('a non-image attachment renders as a file tile, not a thumbnail', (
+    tester,
+  ) async {
+    final repo = FakeAttachmentsRepository()
+      ..seed(
+        const Attachment(
+          id: 'd1',
+          type: AttachmentType.document,
+          storagePath: 'photos/manual.pdf',
+          caption: 'Workshop manual',
+          projectId: 'p1',
+        ),
+      );
+
+    await tester.pumpWidget(wrap(vmFor(repo)));
+    await tester.pump(); // drain load
+
+    expect(find.text('Workshop manual'), findsOneWidget);
+    expect(find.text('PDF'), findsOneWidget);
+    expect(find.byIcon(Icons.picture_as_pdf), findsOneWidget);
   });
 
   testWidgets('renders a captioned attachment and hides the empty state', (
