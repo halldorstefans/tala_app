@@ -1,0 +1,18 @@
+Tala is a private, local-first logbook for keeping a complete history of your car's maintenance and restoration — every job, part, cost, and photo, all stored on your device.
+
+Whether you're rebuilding a project car or just keeping honest records for the one in the driveway, Tala gives you a proper workshop log without accounts, subscriptions, ads, or tracking.
+
+WHAT YOU CAN DO
+
+• Log jobs — record maintenance and repair work with descriptions, notes, status, and dates.
+• Group work into projects — organise related jobs (an engine rebuild, a respray) and see cost and progress at a glance.
+• Track parts and costs — add parts with quantities and prices, plus other spend like machine-shop or paint, for a true total per job.
+• Attach photos and documents — pin images, receipts, and PDFs to any vehicle, job, project, or part. Zoom into photos full-screen; open documents straight from the app.
+• Filter and find — sort your log by status, category, and date to find that one note months later.
+• Backup and restore — export everything to a single file you control, and restore it whenever you need.
+
+PRIVATE BY DESIGN
+
+Tala has no sign-in and no servers. Your data never leaves your device unless you choose to export or share it. There is no analytics, no advertising, and no data collection. The app doesn't even request internet access.
+
+Built for people who like to know exactly what was done, when, and what it cost.
