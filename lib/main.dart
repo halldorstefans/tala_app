@@ -25,6 +25,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Tala Car Logbook',
+      debugShowCheckedModeBanner: false,
       theme: garageTheme,
       routerConfig: router(),
     );

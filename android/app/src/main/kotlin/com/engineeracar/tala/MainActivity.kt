@@ -1,4 +1,4 @@
-package com.example.tala_app
+package com.engineeracar.tala
 
 import io.flutter.embedding.android.FlutterActivity
 

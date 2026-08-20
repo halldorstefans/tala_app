@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="500" viewBox="0 0 1024 500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <!-- Subtle vignette so the centre reads first -->
+    <radialGradient id="vignette" cx="50%" cy="42%" r="72%">
+      <stop offset="0%" stop-color="#00381C"/>
+      <stop offset="70%" stop-color="#002A15"/>
+      <stop offset="100%" stop-color="#00230F"/>
+    </radialGradient>
+    <!-- Blueprint grid -->
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0 L0 0 0 32" fill="none" stroke="#98D4AC" stroke-width="1" opacity="0.05"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="500" fill="url(#vignette)"/>
+  <rect width="1024" height="500" fill="url(#grid)"/>
+
+  <!-- Workshop registration ticks in the safe-zone corners -->
+  <g stroke="#E9C349" stroke-width="2" opacity="0.45" fill="none">
+    <path d="M44 68 h26 M44 68 v26"/>
+    <path d="M980 68 h-26 M980 68 v26"/>
+    <path d="M44 432 h26 M44 432 v-26"/>
+    <path d="M980 432 h-26 M980 432 v-26"/>
+  </g>
+
+  <!-- Monogram -->
+  <image x="437" y="70" width="150" height="150" xlink:href="data:image/png;base64,__MONOGRAM_B64__"/>
+
+  <!-- Wordmark -->
+  <text x="512" y="315" text-anchor="middle"
+        font-family="JetBrainsMono Nerd Font Mono, JetBrainsMono NFM, monospace"
+        font-size="94" font-weight="700" letter-spacing="26"
+        fill="#FCF9F8">TALA</text>
+
+  <!-- Brass accent rule -->
+  <rect x="456" y="342" width="112" height="3" fill="#E9C349"/>
+
+  <!-- Tagline -->
+  <text x="512" y="392" text-anchor="middle"
+        font-family="JetBrainsMono Nerd Font Mono, JetBrainsMono NFM, monospace"
+        font-size="25" font-weight="500" letter-spacing="3"
+        fill="#98D4AC">Your car's logbook. On your phone.</text>
+</svg>

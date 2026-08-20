@@ -1,0 +1,16 @@
+# Copy this file to android/key.properties (which is gitignored) and fill in the
+# real values for your upload keystore. build.gradle.kts reads these to sign the
+# release AAB. Never commit key.properties or the .jks file itself.
+#
+# Generate an upload keystore once (and back it up somewhere safe — losing it
+# means you can't ship updates without Play App Signing key reset):
+#
+#   keytool -genkey -v -keystore ~/tala-upload.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# storeFile can be an absolute path or relative to the android/ directory.
+
+storePassword=changeme
+keyPassword=changeme
+keyAlias=upload
+storeFile=/absolute/path/to/tala-upload.jks

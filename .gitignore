@@ -1,3 +1,6 @@
+# Local release notes (untracked working file)
+RELEASING.md
+
 # Miscellaneous
 *.class
 *.log
@@ -36,6 +39,9 @@ migrate_working_dir/
 
 # Android
 android/local.properties
+android/key.properties
+android/*.jks
+android/*.keystore
 android/.gradle/
 android/captures/
 
