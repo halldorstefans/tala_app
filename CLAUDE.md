@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Android build requirements
 
-The Android build requires **Java 21**. The toolchain (AGP 8.9.1 + KGP 2.2.0 + Gradle 8.12) is incompatible with Java 26+.
+The Android build uses **Java 21**. The toolchain is AGP 9.2.0 + KGP 2.2.20 + Gradle 9.4.1.
 
 Set `org.gradle.java.home` in `android/local.properties` (gitignored) to point at your local Java 21 installation:
 
